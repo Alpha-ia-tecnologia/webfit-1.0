@@ -362,6 +362,8 @@ export function initialState(): AppState {
     appointments: [],
     readNotifications: [],
     goalHistory: [],
+    serverSync: false,
+    accountBound: false,
     updatedAt: new Date().toISOString(),
   };
 }

@@ -13,6 +13,8 @@ import type {
 } from "../types";
 import type { AgentProgress } from "./agent-stream";
 import type { AiProviders } from "./agent-presentation";
+import type { ServerSyncControls } from "./server-sync";
+import type { AccountControls } from "./account";
 /** Atalho que abre uma refeição nova já com o tipo (ex.: "+ Jantar") ou a foto do prato. */
 export interface MealPresetInput {
   category?: string;
@@ -74,6 +76,10 @@ export interface AppContextValue {
   setBackGuard: (guard: (() => void) | null) => void;
   reset: () => Promise<void>;
   restore: (backup: AppState, expectedRevision: number) => Promise<boolean>;
+  /** Cópia no servidor (PostgreSQL), opcional e desligada por padrão. */
+  sync: ServerSyncControls;
+  /** Conta do servidor online (VPS); null no modo local. */
+  account: AccountControls | null;
   aiReady: boolean;
   aiRequest: (
     mode:

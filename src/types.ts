@@ -687,6 +687,10 @@ export const stateSchema = z.object({
   goalHistory: z
     .array(z.object({ date: dateSchema, profile: profileSchema }))
     .max(3000),
+  // Cópia no servidor (PostgreSQL), escolhida pela pessoa em Ajustes e dados; estados e backups anteriores ficam sem.
+  serverSync: z.boolean().default(false),
+  // Os dados já pertencem a uma conta do servidor online (o userId é o id dela): nunca vão para outra conta.
+  accountBound: z.boolean().default(false),
   updatedAt: z.string(),
 });
 export type AppState = z.infer<typeof stateSchema>;

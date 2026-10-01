@@ -37,6 +37,19 @@ export async function saveState(state: AppState) {
   await Storage.setItemAsync(KEY, JSON.stringify(parsed));
 }
 
+/**
+ * Troca o estado inteiro por outro de dono ou revisão diferentes (entrar na conta: adotar os dados do
+ * aparelho ou trazer os da conta). Só grava se o salvo ainda é `expected` (nada mudou no meio).
+ */
+export async function replaceState(next: AppState, expected: Pick<AppState, "userId" | "revision">) {
+  const parsed = stateSchema.parse(next);
+  const previous = await Storage.getItemAsync(KEY);
+  const old = previous === null ? null : (JSON.parse(previous) as AppState);
+  if (old && (old.userId !== expected.userId || old.revision !== expected.revision))
+    throw new Error("Os dados foram alterados por outra gravação. Feche e abra o aplicativo antes de continuar.");
+  await Storage.setItemAsync(KEY, JSON.stringify(parsed));
+}
+
 export async function clearState() {
   await Storage.removeItemAsync(KEY);
 }

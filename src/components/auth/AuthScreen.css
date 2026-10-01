@@ -1,0 +1,100 @@
+/* Entrada do WebFit online: logo, título e um cartão com três formas de entrar. */
+.auth-screen {
+  width: min(100%, 460px);
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+  /* Margem lateral de 16 px no celular: o conteúdo não encosta nas bordas. */
+  padding: 32px 16px 48px;
+}
+.auth-intro {
+  display: grid;
+  gap: 6px;
+  text-align: center;
+}
+.auth-intro h1 {
+  margin: 0;
+  font-size: var(--wf-fs-2xl);
+}
+.auth-intro p,
+.auth-privacy {
+  margin: 0;
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-sm);
+  line-height: 1.5;
+}
+.auth-privacy {
+  text-align: center;
+  color: var(--wf-text-muted);
+  font-size: var(--wf-fs-xs);
+}
+.auth-card {
+  display: grid;
+  gap: 18px;
+}
+.auth-views {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--wf-radius-sm);
+  background: var(--wf-surface-2);
+}
+.auth-view {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 8px;
+  border-radius: var(--wf-radius-sm);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--wf-text-2);
+  transition: background 0.18s, color 0.18s;
+}
+.auth-view[aria-pressed="true"] {
+  color: var(--wf-green-800);
+  background: var(--wf-surface);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--wf-text) 12%, transparent);
+}
+.auth-view:focus-visible {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 1px;
+}
+.auth-form {
+  display: grid;
+  gap: 14px;
+}
+.auth-form .btn {
+  min-height: 48px;
+}
+.auth-error,
+.auth-info {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--wf-radius-sm);
+  font-size: var(--wf-fs-sm);
+  line-height: 1.45;
+}
+.auth-error {
+  border: 1px solid var(--wf-tone-attention-border);
+  background: var(--wf-tone-attention-bg);
+  color: var(--wf-tone-attention-fg);
+}
+.auth-info {
+  background: var(--wf-mint-50);
+  color: var(--wf-green-800);
+}
+@media (max-width: 380px) {
+  .auth-view svg {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-view {
+    transition: none;
+  }
+}

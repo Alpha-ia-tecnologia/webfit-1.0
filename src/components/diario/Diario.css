@@ -508,34 +508,35 @@
   justify-content: space-between;
   gap: 12px;
 }
-/* 10 copos: cheio em gradiente azul, vazio só com o contorno. */
-.water-glasses {
+/* 10 copos: cheio em gradiente azul, vazio só com o contorno. Nome próprio do Diário: a anamnese
+   tem o seu .water-glasses, e este CSS (carregado na abertura) não pode vazar para lá. */
+.diary-water-glasses {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 20px));
   gap: 4px;
   min-width: 0;
 }
-.water-glasses:has(> i:nth-child(8):last-child) {
+.diary-water-glasses:has(> i:nth-child(8):last-child) {
   grid-template-columns: repeat(8, minmax(0, 20px));
 }
-.water-glasses > i {
+.diary-water-glasses > i {
   position: relative;
   height: 24px;
   background: var(--wf-border);
   clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%);
 }
-.water-glasses > i::after {
+.diary-water-glasses > i::after {
   content: "";
   position: absolute;
   inset: 1.5px 1.5px 1.5px;
   background: var(--wf-surface);
   clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%);
 }
-.water-glasses > i.is-full {
+.diary-water-glasses > i.is-full {
   background: linear-gradient(180deg, var(--wf-sky-300), var(--wf-blue));
 }
-.water-glasses > i.is-full::after {
+.diary-water-glasses > i.is-full::after {
   inset: 0 0 auto;
   height: 3px;
   background: color-mix(in srgb, var(--wf-surface) 70%, transparent);
@@ -729,7 +730,7 @@
   .eq-term.result {
     padding: 6px 8px;
   }
-  .water-glasses {
+  .diary-water-glasses {
     gap: 3px;
   }
   .diary-water-list > li {

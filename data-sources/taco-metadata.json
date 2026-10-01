@@ -2,103 +2,28 @@
   "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
   "edition": "4ª edição, 2011",
   "sha256": "a66b8ec528daeabc63bc2b015fc9bd8c6d76b941c2fc0ed93a4311d449302d14",
-  "importedFoods": 578,
+  "importedFoods": 593,
   "excluded": [
-    {
-      "code": "259",
-      "name": "Azeite, de dendê",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "260",
-      "name": "Azeite, de oliva, extra virgem",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "267",
-      "name": "Óleo, de babaçu",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "268",
-      "name": "Óleo, de canola",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "269",
-      "name": "Óleo, de girassol",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "270",
-      "name": "Óleo, de milho",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "271",
-      "name": "Óleo, de pequi",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "272",
-      "name": "Óleo, de soja",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "288",
-      "name": "Corimba, cru",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "322",
-      "name": "Tucunaré, filé, congelado, cru",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "337",
-      "name": "Carne, bovina, capa de contra-filé, sem gordura, grelhada",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "400",
-      "name": "Frango, fígado, cru",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
     {
       "code": "450",
       "name": "Iogurte, sabor abacaxi",
-      "reason": "Composição energética ou macro não numérico / negativo."
+      "reason": "Valores em análise (*) na TACO: sem números para usar."
     },
     {
       "code": "457",
       "name": "Leite, de vaca, desnatado, UHT",
-      "reason": "Composição energética ou macro não numérico / negativo."
+      "reason": "Valores em análise (*) na TACO: sem números para usar."
     },
     {
       "code": "458",
       "name": "Leite, de vaca, integral",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "472",
-      "name": "Cana, aguardente 1",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "516",
-      "name": "Sal, dietético",
-      "reason": "Composição energética ou macro não numérico / negativo."
-    },
-    {
-      "code": "517",
-      "name": "Sal, grosso",
-      "reason": "Composição energética ou macro não numérico / negativo."
+      "reason": "Valores em análise (*) na TACO: sem números para usar."
     },
     {
       "code": "591",
       "name": "Coco,  verde, cru",
-      "reason": "Composição energética ou macro não numérico / negativo."
+      "reason": "Valores em análise (*) na TACO: sem números para usar."
     }
   ],
-  "rules": "Composição por 100 g. Valores arredondados a três casas decimais; Tr aproximado a zero e identificado por alimento. Valores ausentes/NA não são convertidos em zero."
+  "rules": "Composição por 100 g. Valores arredondados a três casas decimais. Tr (traços) e NA (não se aplica) considerados zero, com nota no alimento; carboidrato por diferença levemente negativo (até −0,1 g) considerado zero; destilado sem macronutrientes na tabela entra com eles em zero. Valores em análise (*) ou ausentes não são convertidos: o alimento fica de fora."
 }

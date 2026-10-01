@@ -10,7 +10,7 @@ Aplicação pessoal de alimentação, hidratação, hábitos e medidas. O primei
 - **Porta de entrada:** nome, objetivo, consentimento local e um hábito opcional permitem começar com registros de água e hábitos. Saúde e biometria permanecem sem resposta e o perfil continua incompleto. A anamnese de oito etapas é necessária antes de metas e IA personalizadas; pode ser retomada preservando os registros iniciais.
 - **Fonte única de verdade:** perfil, metas, totais e lembretes derivam do mesmo estado (`src/lib/domain.ts`). Nenhuma tela guarda valores próprios.
 - **Critério de conclusão de uma funcionalidade:** persiste no IndexedDB, sobrevive a recarga, tem validação de esquema, não simula operação externa e está coberta por teste de domínio ou de jornada em `tests/`.
-- **Fora de escopo:** autenticação, sincronização em nuvem, sala de vídeo, agendamento com terceiros, estimativa de gordura corporal, validação clínica das estimativas e alegações clínicas ou de conformidade.
+- **Fora de escopo:** autenticação, sincronização entre aparelhos (a [cópia no servidor](#cópia-no-servidor-opcional) é opcional, de um aparelho só), sala de vídeo, agendamento com terceiros, estimativa de gordura corporal, validação clínica das estimativas e alegações clínicas ou de conformidade.
 
 ## Executar no Windows, macOS ou Linux
 
@@ -110,18 +110,24 @@ O armazenamento utiliza **IndexedDB**, com validação de esquema, versão e rev
 
 Não há autenticação nesta versão local. Quem acessar o mesmo perfil do navegador poderá ler os dados. Limpar o site ou usar navegação temporária pode apagar o histórico. A exportação contém informações sensíveis e arquivos sem proteção por senha; guarde-a em um local adequado. Exclusão local não apaga exportações nem informações já enviadas ao provedor de IA.
 
-O servidor local encaminha solicitações ao DeepSeek ou à OpenAI e não grava o conteúdo em arquivo ou banco. A API valida entrada, tamanho e assinatura de arquivos, exige token da sessão do servidor, verifica origem e limita solicitações. Uma implantação pública exigiria arquitetura e autenticação próprias; alterar apenas o endereço de escuta não é suportado.
+O servidor local encaminha solicitações ao DeepSeek ou à OpenAI e não grava o conteúdo das conversas com a IA em arquivo ou banco; o único conteúdo gravado no banco é a cópia no servidor, quando a pessoa a liga. A API valida entrada, tamanho e assinatura de arquivos, exige token da sessão do servidor, verifica origem e limita solicitações. Uma implantação pública exigiria arquitetura e autenticação próprias; alterar apenas o endereço de escuta não é suportado.
 
 ### Base TACO
 
-Os alimentos foram importados da [planilha oficial NEPA/UNICAMP](https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/), **TACO, 4ª edição, 2011**. São **578 alimentos utilizáveis**; 19 linhas foram excluídas por valores energéticos ou macronutrientes ausentes, não numéricos ou negativos. Não atribuímos zero a dados ausentes. Nutrientes marcados como traços (`Tr`) são aproximados a zero com observação por alimento.
+Os alimentos foram importados da [planilha oficial NEPA/UNICAMP](https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/), **TACO, 4ª edição, 2011**. São **593 alimentos utilizáveis**. Cada ajuste vira uma observação no próprio alimento:
 
-Entre os excluídos estão itens de uso comum (azeite de oliva, óleos vegetais, leite integral e desnatado): na planilha eles trazem `NA` em proteína ou carboidrato, e a regra atual não converte `NA` em zero. Incluí-los exige uma decisão explícita e um novo passo de importação. Fibra, sódio, cálcio e demais micronutrientes da planilha ainda não são importados.
+- traços (`Tr`) e `NA` (não se aplica: proteína e carboidrato dos óleos e do azeite, tudo no sal) são considerados zero;
+- o carboidrato calculado por diferença que sai levemente negativo (até −0,1 g; corimba, tucunaré, contra-filé grelhado e fígado de frango) é considerado zero;
+- a aguardente traz só a energia, que vem do álcool; proteína, gordura e carboidrato ficam em zero.
 
-`data-sources/taco.xlsx` preserva a fonte; `data-sources/taco-metadata.json` contém URL, hash SHA-256, regras e exclusões. O catálogo está em `src/data/foods.json`. Para reproduzir a importação é necessário Python 3 instalado (sem bibliotecas externas):
+Quatro linhas continuam fora porque a TACO não traz nenhum valor para elas (`*`, valores em análise): iogurte sabor abacaxi, leite de vaca desnatado UHT, leite de vaca integral e coco verde cru. Nenhum número é inventado. Fibra, sódio, cálcio e demais micronutrientes da planilha ainda não são importados.
+
+`data-sources/taco.xlsx` preserva a fonte; `data-sources/taco-metadata.json` contém URL, hash SHA-256, regras e exclusões. O catálogo está em `src/data/foods.json`. Para reproduzir a importação (só Node, sem bibliotecas externas):
 
 ```sh
-python scripts/import_taco.py
+npm run taco:import            # regrava foods.json e taco-metadata.json
+npm run taco:import -- --check # só confere se o arquivo atual é o que a planilha gera
+npm run db:seed                # leva o catálogo atualizado para o banco
 ```
 
 Valores por 100 g são preservados com três casas decimais; calorias são arredondadas após somar a refeição, e macros a uma casa decimal. O usuário também pode cadastrar alimentos a partir de rótulos, sempre indicando a fonte. Não há alegação de catálogo IBGE.
@@ -144,7 +150,7 @@ O esquema relacional completo fica em `server/db/migrations/` e é aplicado por 
 npm run db:migrate   # cria o banco se não existir, o schema webfit e aplica migrações pendentes
 npm run db:seed      # carrega/atualiza o catálogo TACO (src/data/foods.json) em foods
 npm run db:status    # lista migrações aplicadas e contagem de linhas por tabela
-npm run test:db      # testes de integração (tests/db.integration.ts); pulam sem DATABASE_URL
+npm run test:db      # integração (db, state-sync e auth .integration.ts); pulam sem DATABASE_URL
 ```
 
 Defina `DATABASE_URL` em `.env.local`. Em servidores remotos use `sslmode=require`: com `sslmode=disable` a senha e os dados trafegam em texto claro.
@@ -162,8 +168,10 @@ Defina `DATABASE_URL` em `.env.local`. Em servidores remotos use `sslmode=requir
 | `injections`                                 | aplicações de injetáveis: medicamento, concentração, seringa, UI, volume, dose, local e observações (migração `0003`)  |
 | `notifications_read`                         | lembretes marcados como lidos                                                                                          |
 | `agent_runs`                                 | telemetria do agente sem conteúdo (modo, especialistas, revisões, chamadas, duração, resultado)                        |
+| `treatment_stock`                            | estoque do frasco ou da caneta                                                                                         |
+| `device_data`                                | o que o aparelho guarda sem tabela própria (dieta, despensa, receitas, compras, pratos salvos), em jsonb              |
 
-As migrações `0006` a `0013` foram escritas e **ainda não foram aplicadas** em nenhum banco. Todas acrescentam colunas opcionais ou com padrão e devem ser aplicadas em ordem depois de `0001`–`0005`:
+As 16 migrações estão aplicadas no banco configurado. Da `0006` em diante, cada uma acrescenta colunas opcionais ou com padrão:
 
 | Migração | Acrescenta |
 | --- | --- |
@@ -175,8 +183,30 @@ As migrações `0006` a `0013` foram escritas e **ainda não foram aplicadas** e
 | `0011_pen_weekday.sql` | `profiles.pen_weekday` (dia da aplicação semanal) |
 | `0012_treatment_o4l3.sql` | `diary_entries.symptoms` (efeitos no bem-estar) e `diary_entries.satiety` ("Como ficou?" nas refeições); tabela `treatment_stock` (estoque do frasco ou da caneta); modo `rotulo` em `agent_runs` |
 | `0013_hide_body_numbers.sql` | `profiles.hide_body_numbers` ("Ocultar números do corpo"); modo `meal_text` em `agent_runs` (a lista de modos é refeita inteira) |
+| `0014_ai_consent_version.sql` | `profiles.ai_consent_version` (versão do texto de autorização da IA) |
+| `0015_state_sync.sql` | tabela `device_data`; `position` nas listas (a ordem do aparelho volta igual); `diary_items.food_ref`, `food_source_url` e `food_note` (alimentos estimados fora do catálogo) |
+| `0016_accounts.sql` | WebFit online: `accounts`, `sessions`, `invites`, `password_resets` e `ai_usage` (tokens e códigos só como SHA-256) |
 
-O aplicativo continua gravando no IndexedDB do navegador. Ligar as telas ao banco exige uma camada de API e autenticação, que não faz parte desta versão.
+### WebFit online (várias contas)
+
+Com `WEBFIT_PUBLIC_URL` (https) e `DATABASE_URL`, o servidor entra no modo online (`server/online.ts`): `/api/status` não entrega mais o token local e tudo exige a sessão de uma conta (`server/auth/`). O navegador guarda a sessão num cookie `HttpOnly`, `Secure`, `SameSite=Strict`; o app nativo, num token `Bearer` no armazenamento privado do app. Cadastro só por convite e senha redefinida pelo dono do servidor (`npm run admin -- invite | reset | owner | list | disable`); senhas com scrypt; limites de tentativas por IP e por e-mail; pedidos ao agente limitados por conta e por dia (`WEBFIT_AI_DAILY_LIMIT`, sem limite para o dono). A cópia no servidor passa a ser da conta (o `userId` do estado é o id da conta; ninguém lê nem grava a de outra); ao entrar, os dados do aparelho são adotados pela conta ou trocados pelos da conta (`src/lib/account.ts`, nunca de outra conta para esta) e "Sair da conta" apaga os dados do aparelho. Publicação: [guia da VPS](publicacao-vps.md).
+
+### Cópia no servidor (opcional)
+
+O aplicativo continua gravando primeiro no aparelho (IndexedDB no web, SQLite no app nativo). Em **Meu espaço › Ajustes**, "Guardar uma cópia no servidor" vem **desligado** e só aparece habilitado quando o servidor tem `DATABASE_URL` (`/api/status` responde `sync: true`). Ligado, cada gravação agenda o envio do estado inteiro alguns segundos depois (`src/lib/server-sync.ts`, `src/lib/use-server-sync.ts`, os mesmos no web e no nativo):
+
+| Rota | Faz |
+| --- | --- |
+| `GET /api/sync/status?userId=` | `{ configured, revision }` (revisão `null`: ainda sem cópia) |
+| `PUT /api/sync[?force=1]` | grava o estado (`server/db/state-repo.ts`, uma transação); revisão igual ou menor responde 409 com `serverRevision` |
+| `GET /api/sync/state?userId=` | devolve a cópia, conferida no aparelho pelas mesmas regras do backup em arquivo |
+| `DELETE /api/sync?userId=` | apaga a cópia (cascata a partir de `users`) |
+
+- **Acesso:** o mesmo token de sessão do agente (`X-WebFit-Token`, mesma origem) e o código da instalação (`userId`, UUID aleatório) — quem tem o código tem a cópia; ele aparece em Ajustes para ser guardado com os backups. Limite de 30 pedidos por minuto e corpo de até 64 MB.
+- **Conflito:** se o servidor tem uma revisão mais nova (por exemplo, dados do aparelho voltados a uma versão antiga), nada é enviado até a pessoa escolher "Enviar a deste aparelho" ou "Restaurar do servidor".
+- **Restaurar do servidor:** passa por `validateBackup` e `prepareRestore`, como o arquivo: o aparelho mantém o próprio código e a IA e os lembretes ficam desligados. Com a cópia ligada, a versão restaurada volta ao servidor por cima.
+- **Excluir:** "Excluir todos os meus dados" apaga antes a cópia do servidor; se não conseguir, nada é excluído. Desligar a cópia pergunta se ela também sai do servidor.
+- **Fora do ar:** o envio tenta de novo a cada 30 s; os dados seguem no aparelho.
 
 ## Padrão visual
 

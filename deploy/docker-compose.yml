@@ -1,0 +1,34 @@
+# WebFit online na VPS (docs/guias/publicacao-vps.md):
+#   cd deploy && docker compose up -d --build
+#
+# Os dois serviços usam a rede do próprio servidor (network_mode: host):
+# - app escuta só em 127.0.0.1:3000 (nunca exposto direto) e alcança o PostgreSQL da VPS em localhost;
+# - caddy publica 80/443 com HTTPS automático (Let's Encrypt) e repassa para o app.
+services:
+  app:
+    build:
+      context: ..
+    image: webfit-app
+    restart: unless-stopped
+    network_mode: host
+    env_file: .env.production
+    environment:
+      HOST: 127.0.0.1
+      PORT: "3000"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    network_mode: host
+    # Só o domínio: o Caddy não recebe a URL do banco nem as chaves de IA.
+    env_file: caddy.env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:

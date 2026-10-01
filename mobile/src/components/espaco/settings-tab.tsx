@@ -37,6 +37,8 @@ import { makeStyles, RN_DARK_MODE_ENABLED, useTheme, useThemeColors } from "@/th
 import { fontSize, radius, themeDomainTone, type ColorScheme, type ThemeColors } from "@/theme/tokens";
 import { AppearanceSheet } from "./appearance-sheet";
 import { ServerCard } from "./server-card";
+import { AccountCard } from "./account-card";
+import { ServerSyncCard } from "./server-sync-card";
 import { SettingGroup, StatusRow, SwitchRow, ValueRow } from "./setting-row";
 import { HydrationSheet, QuietHoursSheet } from "./setting-sheets";
 
@@ -47,8 +49,15 @@ const CHOICES: [SwitchKey, LucideIcon, string][] = [
   ["remindersEnabled", Bell, "Lembretes dentro do aplicativo"],
 ];
 const AI_LABEL = "Permitir envio do contexto ao DeepSeek e/ou à OpenAI ao usar IA";
-const PRIVACY_LINES: [LucideIcon, string][] = [
-  [HardDrive, "Tudo fica neste aparelho: sem conta, sem nuvem."],
+const privacyLines = (serverSync: boolean, hasAccount: boolean): [LucideIcon, string][] => [
+  [
+    HardDrive,
+    hasAccount
+      ? "Ficam neste aparelho e na sua conta deste servidor. Ao sair da conta, saem do aparelho."
+      : serverSync
+        ? "Ficam neste aparelho e numa cópia no banco de dados do servidor, que você pode desligar."
+        : "Tudo fica neste aparelho: sem conta, sem nuvem.",
+  ],
   [Sparkles, "A IA só recebe seu contexto quando você autoriza e pede uma resposta."],
   [Download, "Exporte um backup para não perder o histórico."],
 ];
@@ -75,7 +84,7 @@ export function SettingsTab({
   const styles = useStyles();
   const { scheme, colors, pref: themePref } = useTheme();
   const backupTone = backupTones(colors, scheme);
-  const { state, commit, notify, reset, cancelAi, aiReady, aiProviders } = useApp();
+  const { state, commit, notify, reset, cancelAi, aiReady, aiProviders, account } = useApp();
   const router = useRouter();
   const { width } = useWindowDimensions();
   const p = state.profile!;
@@ -175,12 +184,14 @@ export function SettingsTab({
           <ServerCard embedded />
         </Disclosure>
       </Card>
+      {account && <AccountCard account={account} />}
+      <ServerSyncCard />
       <Card style={styles.dataCard}>
         <AppText heading size={fontSize.lg} weight={700} accessibilityRole="header">
           Onde ficam meus dados?
         </AppText>
         <View style={styles.lines}>
-          {PRIVACY_LINES.map(([Icon, text]) => (
+          {privacyLines(state.serverSync, !!account).map(([Icon, text]) => (
             <View key={text} style={styles.line}>
               <View style={styles.lineIcon}>
                 <Icon size={18} color={colors.green700} />
@@ -219,7 +230,8 @@ export function SettingsTab({
         <Disclosure title="Saiba mais sobre seus dados">
           <AppText size={fontSize.sm} color={colors.text2} lineHeight={20}>
             As respostas, mensagens, registros e arquivos ficam no armazenamento deste aparelho.
-            Não há conta, sincronização entre dispositivos ou cópia automática em nuvem.
+            Não há conta nem sincronização entre dispositivos; a cópia no servidor só existe se
+            você ligá-la acima.
           </AppText>
           <AppText size={fontSize.sm} color={colors.text2} lineHeight={20}>
             Desinstalar o aplicativo ou limpar seus dados apaga o histórico. Exporte uma cópia
@@ -242,7 +254,8 @@ export function SettingsTab({
           Apagar dados
         </AppText>
         <AppText size={fontSize.xs} color={colors.muted} lineHeight={19}>
-          Remove tudo deste aparelho. Não apaga backups exportados nem o que já foi enviado à IA.
+          Remove tudo deste aparelho{state.serverSync ? " e a cópia no servidor" : ""}. Não apaga
+          backups exportados nem o que já foi enviado à IA.
         </AppText>
         <Button
           label="Excluir todos os meus dados"
@@ -271,7 +284,8 @@ export function SettingsTab({
       >
         <AppText color={colors.text2} lineHeight={21}>
           Esta ação apaga sua anamnese, diário, medidas, combinados, conversas, exames e consultas
-          deste aparelho. Ela não apaga cópias exportadas nem dados já enviados ao provedor de IA.
+          deste aparelho{state.serverSync ? ", e também a cópia no servidor" : ""}. Ela não apaga
+          cópias exportadas nem dados já enviados ao provedor de IA.
         </AppText>
         <Field label="Digite EXCLUIR para confirmar">
           <TextField

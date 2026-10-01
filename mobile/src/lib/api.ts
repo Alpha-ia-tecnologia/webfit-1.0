@@ -18,7 +18,10 @@ import {
   subnetUrls,
   type DiscoveredServer,
 } from "@shared/lib/server-discovery";
+import { createHttpSyncRequest, type SyncRequest } from "@shared/lib/server-sync";
+import type { AccountInfo, ServerMode } from "@shared/lib/account";
 import { agentReplySchema, type AgentReply } from "@shared/types";
+import { clearSession, readSession, writeSession } from "./session-store";
 
 export { isLoopbackUrl };
 
@@ -80,7 +83,56 @@ export type AgentStatus = {
   hostname?: string;
   /** Provedores configurados no servidor (sem chaves); null quando a resposta não os informa. */
   providers: AiProviders | null;
+  /** O servidor tem banco de dados para a cópia (/api/sync). */
+  sync: boolean;
+  /** "online": servidor publicado com contas (precisa entrar); "local": computador ou rede Wi-Fi. */
+  mode: ServerMode;
+  /** Conta da sessão guardada neste aparelho (online); null sem sessão válida. */
+  account: AccountInfo | null;
 };
+
+/** Token da conta no servidor online (o app não tem cookie): vai no cabeçalho Authorization. */
+let sessionToken = "";
+
+export const getSessionToken = () => sessionToken;
+
+/** Lê a sessão guardada (token e a última conta; session-store.ts) antes da primeira consulta ao servidor. */
+export async function loadSession(): Promise<AccountInfo | null> {
+  try {
+    const saved = parseJsonSafe((await readSession()) ?? "") as {
+      token?: unknown;
+      account?: unknown;
+    } | null;
+    sessionToken = typeof saved?.token === "string" ? saved.token : "";
+    return sessionToken ? parseAccount(saved?.account) : null;
+  } catch {
+    sessionToken = "";
+    return null;
+  }
+}
+
+/** Guarda (ou apaga, com null) a sessão da conta no cofre do aparelho (session-store.ts). */
+export async function saveSession(session: { token: string; account: AccountInfo } | null): Promise<void> {
+  if (!session) {
+    // Sair: o token deixa de valer já, mesmo se apagar do cofre falhar.
+    sessionToken = "";
+    await clearSession();
+    return;
+  }
+  // Entrar: só vale depois de gravado (cofre falhou = nada muda, a entrada mostra o erro).
+  await writeSession(JSON.stringify(session));
+  sessionToken = session.token;
+}
+
+const bearerHeader = (): Record<string, string> => (sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {});
+
+function parseAccount(value: unknown): AccountInfo | null {
+  if (!value || typeof value !== "object") return null;
+  const { id, email, name, role } = value as Record<string, unknown>;
+  return typeof id === "string" && typeof email === "string"
+    ? { id, email, name: typeof name === "string" ? name : "", role: role === "owner" ? "owner" : "member" }
+    : null;
+}
 
 /** Mesma validação do app web: só aceita os dois indicadores booleanos. */
 function parseProviders(value: unknown): AiProviders | null {
@@ -95,7 +147,7 @@ export async function fetchStatus(): Promise<AgentStatus> {
   const unreachable = `Não foi possível conectar a ${apiUrl}. Confira se o computador está com "npm run dev:lan" e na mesma rede Wi-Fi.`;
   let response: Response;
   try {
-    response = await fetch(`${apiUrl}/api/status`, { signal: controller.signal });
+    response = await fetch(`${apiUrl}/api/status`, { signal: controller.signal, headers: bearerHeader() });
   } catch {
     throw new Error(unreachable);
   } finally {
@@ -106,16 +158,35 @@ export async function fetchStatus(): Promise<AgentStatus> {
   const body = await response.text().catch(() => {
     throw new Error(unreachable);
   });
-  const data = parseJsonSafe(body) as { ready?: unknown; token?: unknown; hostname?: unknown; providers?: unknown } | null;
+  const data = parseJsonSafe(body) as
+    | {
+        ready?: unknown;
+        token?: unknown;
+        hostname?: unknown;
+        providers?: unknown;
+        sync?: unknown;
+        mode?: unknown;
+        account?: unknown;
+      }
+    | null;
   if (!data || typeof data !== "object") throw new Error(`O endereço ${apiUrl} não respondeu como o servidor do WebFit.`);
+  const online = data.mode === "online";
   const status: AgentStatus = {
     ready: data.ready === true,
     token: typeof data.token === "string" ? data.token : "",
     providers: parseProviders(data.providers),
+    sync: data.sync === true,
+    mode: online ? "online" : "local",
+    account: online ? parseAccount(data.account) : null,
   };
   if (typeof data.hostname === "string" && data.hostname) status.hostname = data.hostname;
   void rememberServer(apiUrl, status.hostname);
   return status;
+}
+
+/** Pedidos de /api/sync no endereço atual, com o token da sessão (o mesmo cliente do app web). */
+export function createSyncRequest(getToken: () => string): SyncRequest {
+  return createHttpSyncRequest(() => apiUrl, getToken, getSessionToken);
 }
 
 /** Guarda o endereço que respondeu e o nome do computador, para a reconexão automática. */
@@ -191,6 +262,7 @@ export async function callAgent(
       "Content-Type": "application/json",
       Accept: staged ? `${NDJSON_TYPE}, application/json` : "application/json",
       "X-WebFit-Token": token,
+      ...bearerHeader(),
     },
     body: JSON.stringify(payload),
     signal,

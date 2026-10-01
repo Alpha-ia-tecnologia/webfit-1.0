@@ -71,6 +71,12 @@
             "usesCleartextTraffic": true
           }
         }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": false
+        }
       ]
     ],
     "experiments": {

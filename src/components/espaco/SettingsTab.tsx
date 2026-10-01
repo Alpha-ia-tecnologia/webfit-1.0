@@ -32,6 +32,8 @@ import { RestoreBackup } from "../RestoreBackup";
 import { Card, Field, Modal } from "../UI";
 import { useThemePref } from "../useThemePref";
 import { AppearanceSheet } from "./AppearanceSheet";
+import { AccountCard } from "./AccountCard";
+import { ServerSyncCard } from "./ServerSyncCard";
 import { SwitchRow, ValueRow } from "./SettingRow";
 import { HydrationSheet, QuietHoursSheet } from "./SettingSheets";
 import "./Settings.css";
@@ -60,6 +62,7 @@ export function SettingsTab({
     aiReady,
     aiProviders,
     openAnamneseSection,
+    account,
   } = useApp();
   const p = state.profile!;
   const [pending, setPending] = useState<Partial<Record<SwitchKey, boolean>>>(
@@ -178,12 +181,18 @@ export function SettingsTab({
       {sheet === "appearance" && (
         <AppearanceSheet onClose={() => setSheet(null)} />
       )}
+      {account && <AccountCard account={account} />}
+      <ServerSyncCard />
       <Card className="data-card">
         <h2>Onde ficam meus dados?</h2>
         <ul className="privacy-lines">
           <li>
             <HardDrive size={18} aria-hidden="true" />
-            Tudo fica neste navegador: sem conta, sem nuvem.
+            {account
+              ? "Ficam neste navegador e na sua conta deste servidor. Ao sair da conta, saem do navegador."
+              : state.serverSync
+                ? "Ficam neste navegador e numa cópia no banco de dados do servidor, que você pode desligar."
+                : "Tudo fica neste navegador: sem conta, sem nuvem."}
           </li>
           <li>
             <Sparkles size={18} aria-hidden="true" />A IA só recebe seu contexto
@@ -237,8 +246,9 @@ export function SettingsTab({
       <Card className="danger-card">
         <h2>Apagar dados</h2>
         <p className="hint">
-          Remove tudo deste navegador. Não apaga backups exportados nem o que já
-          foi enviado à IA.
+          Remove tudo deste navegador
+          {state.serverSync ? " e a cópia no servidor" : ""}. Não apaga backups
+          exportados nem o que já foi enviado à IA.
         </p>
         <button className="text-btn danger" onClick={() => setDeleting(true)}>
           Excluir todos os meus dados
@@ -251,8 +261,9 @@ export function SettingsTab({
         >
           <p>
             Esta ação apaga sua anamnese, diário, medidas, combinados, conversas,
-            exames e consultas deste navegador. Ela não apaga cópias exportadas
-            nem dados já enviados ao provedor de IA.
+            exames e consultas deste navegador
+            {state.serverSync ? ", e também a cópia no servidor" : ""}. Ela não
+            apaga cópias exportadas nem dados já enviados ao provedor de IA.
           </p>
           <Field label="Digite EXCLUIR para confirmar">
             <input
@@ -269,6 +280,8 @@ export function SettingsTab({
                 await reset();
               } catch (error) {
                 notify((error as Error).message, "warning");
+              } finally {
+                // Sem conseguir apagar a cópia no servidor, nada é excluído e o botão volta.
                 setBusy(false);
               }
             }}

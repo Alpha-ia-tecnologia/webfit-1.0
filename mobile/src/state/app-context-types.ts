@@ -1,6 +1,8 @@
 import type { AiProviders } from "@shared/lib/agent-presentation";
 import type { AgentProgress } from "@shared/lib/agent-stream";
 import type { DiscoveryOutcome } from "@shared/lib/server-discovery";
+import type { ServerSyncControls } from "@shared/lib/server-sync";
+import type { AccountControls } from "@shared/lib/account";
 import type {
   AgentReply,
   AppState,
@@ -70,7 +72,11 @@ export interface AppContextValue {
   isQuickOpen: boolean;
   setQuickOpen: (open: boolean) => void;
   reset: () => Promise<void>;
-  restore: (backup: AppState, expectedRevision: number) => Promise<boolean>;
+  restore: (backup: AppState, expectedRevision: number, message?: string) => Promise<boolean>;
+  /** Cópia no servidor (PostgreSQL), opcional e desligada por padrão; mesmo contrato do app web. */
+  sync: ServerSyncControls;
+  /** Conta do servidor online (VPS); null no modo local. */
+  account: AccountControls | null;
   aiReady: boolean;
   /** Atualiza a conexão antes de tentar novamente, sem esperar a consulta periódica. */
   refreshAgent: () => Promise<AgentStatus>;

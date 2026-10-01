@@ -9,9 +9,17 @@ config({ path: ".env.local", quiet: true });
 const skip = process.env.DATABASE_URL ? false : "DATABASE_URL não definida";
 
 const EXPECTED_TABLES = [
+  // 0016: contas do WebFit online.
+  "accounts",
   "agent_runs",
+  "ai_usage",
   "appointments",
+  "invites",
+  "password_resets",
+  "sessions",
   "chat_messages",
+  // 0015: partes do estado sem tabela própria (sincronização).
+  "device_data",
   "diary_entries",
   "diary_items",
   "exams",
@@ -76,8 +84,8 @@ test(
         "select count(*)::int as n from information_schema.triggers where trigger_schema = $1 and trigger_name like '%set_updated_at'",
         [DB_SCHEMA],
       );
-      // 5 até a 0003 e o de treatment_stock (0012).
-      assert.equal(triggers.rows[0].n, 6);
+      // 5 até a 0003, o de treatment_stock (0012) e o de device_data (0015).
+      assert.equal(triggers.rows[0].n, 8);
       const foods = await client.query<{ n: number }>(
         "select count(*)::int as n from foods where user_id is null",
       );
@@ -96,12 +104,13 @@ test(
   { skip },
   async () => {
     await withClient(databaseTarget().url, async (client) => {
+      let userId = "";
       await client.query("begin");
       try {
         const user = await client.query<{ id: string }>(
           "insert into users default values returning id",
         );
-        const userId = user.rows[0].id;
+        userId = user.rows[0].id;
         await insertProfile(client, userId);
         await expectRejected(
           client,
@@ -177,8 +186,10 @@ test(
       } finally {
         await client.query("rollback");
       }
+      // Só o usuário deste teste: o banco pode ter pessoas sincronizadas pelo app.
       const users = await client.query<{ n: number }>(
-        "select count(*)::int as n from users",
+        "select count(*)::int as n from users where id = $1",
+        [userId],
       );
       assert.equal(users.rows[0].n, 0);
     });

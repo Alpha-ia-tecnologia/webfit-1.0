@@ -1,0 +1,22 @@
+# HTTPS automático para o domínio do WebFit (WEBFIT_DOMAIN em caddy.env).
+{
+	# Sem a API de administração em localhost:2019 (com a rede do servidor, o app também a alcançaria).
+	admin off
+}
+
+{$WEBFIT_DOMAIN} {
+	encode zstd gzip
+
+	# Respostas do agente chegam em etapas (NDJSON): sem acumular no proxy.
+	reverse_proxy 127.0.0.1:3000 {
+		flush_interval -1
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}

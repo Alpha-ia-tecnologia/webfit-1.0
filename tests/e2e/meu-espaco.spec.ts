@@ -604,7 +604,8 @@ test("preferências em lista: switches, horário de silêncio e lembretes de ág
       exact: true,
     }),
   ).toBeChecked();
-  await expect(page.locator(".set-status")).toContainText("Pronto");
+  // A linha "Agente" (a "Cópia no servidor" tem a própria linha de situação).
+  await expect(page.locator(".set-row.is-status", { hasText: "Agente" }).locator(".set-status")).toContainText("Pronto");
 
   const quiet = page.getByRole("button", { name: /^Horário de silêncio/ });
   await expect(quiet).toContainText("22:00 às 07:00");

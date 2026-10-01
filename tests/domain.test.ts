@@ -247,7 +247,7 @@ test("catálogo importado possui origem, números válidos e arredondamento só 
   const foods = JSON.parse(
     readFileSync(new URL("../src/data/foods.json", import.meta.url), "utf8"),
   );
-  assert.equal(foods.length, 578);
+  assert.equal(foods.length, 593);
   for (const f of foods)
     assert.ok(foodSchema.safeParse(f).success, JSON.stringify(f));
   const rice = foods.find((f: { id: string }) => f.id === "taco-1");

@@ -54,10 +54,27 @@ import {
   loadState,
   saveState,
   clearState,
+  replaceState,
   readRaw,
   downloadJson,
 } from "./lib/storage";
 import { LAUNCH_PARAM, launchShortcut } from "./lib/shortcuts";
+import { createHttpSyncRequest, SERVER_SYNC_COPY } from "./lib/server-sync";
+import {
+  AUTH_COPY,
+  changePassword as changeAccountPassword,
+  deleteAccount as deleteServerAccount,
+  fetchMe,
+  LAST_ACCOUNT_KEY,
+  logOut as logOutServer,
+  prepareSignIn,
+  type AccountControls,
+  type AccountInfo,
+  type AiQuota,
+  type ServerMode,
+} from "./lib/account";
+import { AuthScreen } from "./components/auth/AuthScreen";
+import { useServerSync } from "./lib/use-server-sync";
 import {
   AppContext,
   type DespensaSection,
@@ -166,7 +183,14 @@ export default function App() {
     [aiReady, setAiReady] = useState(false),
     [aiBusy, setAiBusy] = useState(false),
     [aiStage, setAiStage] = useState<AgentProgress | null>(null),
-    [aiProviders, setAiProviders] = useState<AiProviders | null>(null);
+    [aiProviders, setAiProviders] = useState<AiProviders | null>(null),
+    [syncAvailable, setSyncAvailable] = useState(false),
+    // Servidor online (VPS, contas) ou local; null até a primeira resposta de /api/status.
+    [serverMode, setServerMode] = useState<ServerMode | null>(null),
+    [account, setAccount] = useState<AccountInfo | null>(null),
+    [authNotice, setAuthNotice] = useState(""),
+    [quota, setQuota] = useState<AiQuota | null>(null);
+  const accountRef = useRef<AccountInfo | null>(null);
   const [clock, setClock] = useState(new Date());
   // Espaços do cabeçalho que as telas preenchem (HeaderPortal) e as opções que elas pedem.
   const [leadSlot, setLeadSlot] = useState<HTMLElement | null>(null);
@@ -273,10 +297,23 @@ export default function App() {
               : null,
           );
           token.current = typeof s.token === "string" ? s.token : "";
+          // Fora do ar não muda: a cópia espera a conexão voltar em vez de parecer "sem banco".
+          setSyncAvailable(s.sync === true);
+          // Online: a conta da sessão (null pede a tela de entrada; se havia uma, a sessão terminou).
+          const online = s.mode === "online";
+          const next: AccountInfo | null = online && s.account ? s.account : null;
+          if (accountRef.current?.id !== next?.id) {
+            if (accountRef.current && !next) setAuthNotice(AUTH_COPY.sessionEnded);
+            accountRef.current = next;
+            setAccount(next);
+          }
+          setServerMode(online ? "online" : "local");
         })
         .catch(() => {
           setAiReady(false);
           setAiProviders(null);
+          // Sem resposta na primeira vez: o app abre com os dados do aparelho (modo local).
+          setServerMode((mode) => mode ?? "local");
         });
     void check();
     const timer = setInterval(check, 60000);
@@ -433,9 +470,24 @@ export default function App() {
     setQuickAnchor(trigger);
     setQuick((open) => !open);
   }, []);
-  const reset = async () => {
-    if (restoring.current || dataEpoch !== dataEpochRef.current) return;
-    restoring.current = true;
+  // Mesma origem do app; o token vem da consulta periódica de /api/status.
+  const [syncRequest] = useState(() => createHttpSyncRequest(() => "", () => token.current));
+  const sync = useServerSync({
+    state,
+    // Online, a cópia só conversa com o servidor com a sessão aberta.
+    available: syncAvailable && (serverMode !== "online" || !!account),
+    request: syncRequest,
+    getState: () => stateRef.current,
+    setFlag: (enabled) =>
+      commit((current) => (current.serverSync === enabled ? current : { ...current, serverSync: enabled })),
+    restore: (backup, expectedRevision, message) => restore(backup, expectedRevision, message),
+    notify: (message, type) => notify(message, type),
+  });
+  /**
+   * Troca todos os dados do aparelho: `next` grava outro estado (dados da conta), null apaga. Quem chama
+   * já ergueu a trava `restoring` (nenhuma gravação passa no meio).
+   */
+  const swapAll = async (next: AppState | null, message?: string) => {
     setIsRestoring(true);
     try {
       cancelAi();
@@ -446,12 +498,14 @@ export default function App() {
       setPopup(null);
       dietExamIds.current = [];
       setDietProgress("");
-      await queue.current;
-      await clearState();
-      const next = initialState();
-      stateRef.current = next;
+      await queue.current.catch(() => undefined);
+      const current = stateRef.current;
+      if (next && current) await replaceState(next, current);
+      else await clearState();
+      const value = next ?? initialState();
+      stateRef.current = value;
       setDataEpoch(++dataEpochRef.current);
-      setState(next);
+      setState(value);
       setScreen("hoje");
       setQuick(false);
       setEditingMeal(null);
@@ -462,13 +516,133 @@ export default function App() {
       setDespensaSection(null);
       setAnamneseSection(null);
       setDate(localDate());
-      notify("Dados locais excluídos.");
+      if (message) notify(message);
+      return true;
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Não foi possível trocar os dados.", "error");
+      return false;
     } finally {
       restoring.current = false;
       setIsRestoring(false);
     }
   };
-  const restore = async (backup: AppState, expectedRevision: number) => {
+  const reset = async () => {
+    if (restoring.current || dataEpoch !== dataEpochRef.current) return;
+    // A trava sobe antes de apagar a cópia: um segundo toque e novas gravações esperam.
+    restoring.current = true;
+    // Excluir tudo inclui a cópia no servidor; sem conseguir apagá-la, nada é excluído (o código se perderia).
+    if (!(await sync.deleteOwnCopy())) {
+      restoring.current = false;
+      notify(SERVER_SYNC_COPY.deleteFailed, "error");
+      return;
+    }
+    await swapAll(null, "Dados locais excluídos.");
+  };
+  // ---------- Conta (servidor online) ----------
+  const lastAccount = () => {
+    try {
+      return localStorage.getItem(LAST_ACCOUNT_KEY);
+    } catch {
+      return null;
+    }
+  };
+  const rememberAccount = (id: string | null) => {
+    try {
+      if (id) localStorage.setItem(LAST_ACCOUNT_KEY, id);
+      else localStorage.removeItem(LAST_ACCOUNT_KEY);
+    } catch {
+      // armazenamento bloqueado: a regra cai no caso geral (pergunta à pessoa)
+    }
+  };
+  const enterAccount = (signed: AccountInfo | null) => {
+    accountRef.current = signed;
+    setAccount(signed);
+    setQuota(null);
+    rememberAccount(signed?.id ?? null);
+  };
+  /** Depois de entrar: decide o que fazer com os dados do aparelho e os da conta (account.ts). */
+  const signIn = async (signed: AccountInfo) => {
+    const current = stateRef.current;
+    if (!current || restoring.current) return;
+    const { next, message } = await prepareSignIn(syncRequest, current, signed.id, lastAccount(), () =>
+      confirm({
+        title: AUTH_COPY.chooseTitle,
+        message: AUTH_COPY.chooseMessage,
+        confirmLabel: AUTH_COPY.useAccount,
+        cancelLabel: AUTH_COPY.useDevice,
+      }),
+    );
+    if (next) {
+      restoring.current = true;
+      // A tela de entrada não tem aviso flutuante: a falha volta como erro do formulário.
+      if (!(await swapAll(next, message)))
+        throw new Error("Não foi possível guardar os dados neste aparelho. Recarregue a página e tente de novo.");
+    } else if (!current.serverSync) {
+      await commit((s) => ({ ...s, serverSync: true }));
+    }
+    setAuthNotice("");
+    enterAccount(signed);
+  };
+  const refreshQuota = useCallback(async () => {
+    const me = await fetchMe(syncRequest);
+    if (me) setQuota(me.ai);
+  }, [syncRequest]);
+  const accountLogOut = async () => {
+    if (restoring.current) return;
+    // Envia o que falta antes de sair; sem conseguir, a pessoa decide se sai mesmo assim.
+    const result = await sync.flushNow();
+    const safe = result.kind === "synced" || result.kind === "off";
+    const confirmed = await confirm({
+      title: AUTH_COPY.logoutTitle,
+      message: safe ? AUTH_COPY.logoutMessage : AUTH_COPY.logoutPending,
+      confirmLabel: safe ? "Sair" : "Sair mesmo assim",
+      tone: safe ? "default" : "danger",
+    });
+    if (!confirmed || restoring.current) return;
+    restoring.current = true;
+    await logOutServer(syncRequest);
+    enterAccount(null);
+    await swapAll(null, "Você saiu da conta.");
+  };
+  const accountChangePassword = async (current: string, next: string) => {
+    try {
+      await changeAccountPassword(syncRequest, current, next);
+      notify("Senha trocada. As outras sessões foram encerradas.");
+      return true;
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Não foi possível trocar a senha.", "error");
+      return false;
+    }
+  };
+  const accountDelete = async (password: string) => {
+    if (restoring.current) return false;
+    try {
+      await deleteServerAccount(syncRequest, password);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Não foi possível excluir a conta.", "error");
+      return false;
+    }
+    restoring.current = true;
+    enterAccount(null);
+    await swapAll(null, "Conta excluída. Seus dados saíram do servidor e deste aparelho.");
+    return true;
+  };
+  const accountControls: AccountControls | null =
+    serverMode === "online" && account
+      ? {
+          info: account,
+          quota,
+          refreshQuota,
+          logOut: accountLogOut,
+          changePassword: accountChangePassword,
+          deleteAccount: accountDelete,
+        }
+      : null;
+  const restore = async (
+    backup: AppState,
+    expectedRevision: number,
+    message = "Backup restaurado. IA e lembretes permanecem desativados.",
+  ) => {
     if (restoring.current || dataEpoch !== dataEpochRef.current) return false;
     cancelAi();
     const pending = commit((current) => {
@@ -500,7 +674,7 @@ export default function App() {
       setQuick(false);
       setDate(localDate());
       navigate("hoje");
-      notify("Backup restaurado. IA e lembretes permanecem desativados.");
+      notify(message);
       return true;
     } finally {
       restoring.current = false;
@@ -822,7 +996,8 @@ export default function App() {
         {confirmSheet}
       </main>
     );
-  if (!state)
+  // O esqueleto também espera saber se o servidor é online: sem isso, os dados apareceriam antes da entrada.
+  if (!state || serverMode === null)
     return (
       <main className="app-skeleton" aria-busy="true">
         <Brand />
@@ -840,6 +1015,13 @@ export default function App() {
         <Brand />
         <p role="status">Atualizando seus dados…</p>
       </main>
+    );
+  if (serverMode === "online" && !account)
+    return (
+      <>
+        <AuthScreen request={syncRequest} onSignedIn={signIn} notice={authNotice} />
+        {confirmSheet}
+      </>
     );
   const onboarding = !state.profile;
   const unread = notificationsFor(state, clock).filter((n) => !n.read).length;
@@ -907,6 +1089,8 @@ export default function App() {
     setBackGuard,
     reset,
     restore,
+    sync: sync.controls,
+    account: accountControls,
     aiReady,
     aiRequest,
     aiBusy,

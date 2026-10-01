@@ -8,7 +8,7 @@ export function WaterGlasses({ totalMl, goalMl }: { totalMl: number; goalMl: num
   const { filled, total } = waterGlasses(totalMl, goalMl);
   return (
     <span
-      className="water-glasses"
+      className="diary-water-glasses"
       role="img"
       aria-label={`${filled} de ${total} copos, ${waterSpoken(totalMl, goalMl)}`}
     >

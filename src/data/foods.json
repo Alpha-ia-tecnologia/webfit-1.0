@@ -2863,6 +2863,30 @@
     "note": "Um ou mais macronutrientes classificados como traços (Tr) foram aproximados para zero no cálculo."
   },
   {
+    "id": "taco-259",
+    "name": "Azeite, de dendê",
+    "category": "Gorduras e óleos",
+    "caloriesPer100g": 884.0,
+    "proteinPer100g": 0,
+    "carbsPer100g": 0,
+    "fatPer100g": 100.0,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 259",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Valores marcados como NA (não se aplica) na TACO foram considerados zero."
+  },
+  {
+    "id": "taco-260",
+    "name": "Azeite, de oliva, extra virgem",
+    "category": "Gorduras e óleos",
+    "caloriesPer100g": 884.0,
+    "proteinPer100g": 0,
+    "carbsPer100g": 0,
+    "fatPer100g": 100.0,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 260",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Valores marcados como NA (não se aplica) na TACO foram considerados zero."
+  },
+  {
     "id": "taco-261",
     "name": "Manteiga, com sal",
     "category": "Gorduras e óleos",
@@ -2931,6 +2955,78 @@
     "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 266",
     "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
     "note": "Um ou mais macronutrientes classificados como traços (Tr) foram aproximados para zero no cálculo."
+  },
+  {
+    "id": "taco-267",
+    "name": "Óleo, de babaçu",
+    "category": "Gorduras e óleos",
+    "caloriesPer100g": 884.0,
+    "proteinPer100g": 0,
+    "carbsPer100g": 0,
+    "fatPer100g": 100.0,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 267",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Valores marcados como NA (não se aplica) na TACO foram considerados zero."
+  },
+  {
+    "id": "taco-268",
+    "name": "Óleo, de canola",
+    "category": "Gorduras e óleos",
+    "caloriesPer100g": 884.0,
+    "proteinPer100g": 0,
+    "carbsPer100g": 0,
+    "fatPer100g": 100.0,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 268",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Valores marcados como NA (não se aplica) na TACO foram considerados zero."
+  },
+  {
+    "id": "taco-269",
+    "name": "Óleo, de girassol",
+    "category": "Gorduras e óleos",
+    "caloriesPer100g": 884.0,
+    "proteinPer100g": 0,
+    "carbsPer100g": 0,
+    "fatPer100g": 100.0,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 269",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Valores marcados como NA (não se aplica) na TACO foram considerados zero."
+  },
+  {
+    "id": "taco-270",
+    "name": "Óleo, de milho",
+    "category": "Gorduras e óleos",
+    "caloriesPer100g": 884.0,
+    "proteinPer100g": 0,
+    "carbsPer100g": 0,
+    "fatPer100g": 100.0,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 270",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Valores marcados como NA (não se aplica) na TACO foram considerados zero."
+  },
+  {
+    "id": "taco-271",
+    "name": "Óleo, de pequi",
+    "category": "Gorduras e óleos",
+    "caloriesPer100g": 884.0,
+    "proteinPer100g": 0,
+    "carbsPer100g": 0,
+    "fatPer100g": 100.0,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 271",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Valores marcados como NA (não se aplica) na TACO foram considerados zero."
+  },
+  {
+    "id": "taco-272",
+    "name": "Óleo, de soja",
+    "category": "Gorduras e óleos",
+    "caloriesPer100g": 884.0,
+    "proteinPer100g": 0,
+    "carbsPer100g": 0,
+    "fatPer100g": 100.0,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 272",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Valores marcados como NA (não se aplica) na TACO foram considerados zero."
   },
   {
     "id": "taco-273",
@@ -3096,6 +3192,18 @@
     "fatPer100g": 0.423,
     "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 287",
     "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/"
+  },
+  {
+    "id": "taco-288",
+    "name": "Corimba, cru",
+    "category": "Pescados e frutos do mar",
+    "caloriesPer100g": 128.155,
+    "proteinPer100g": 17.367,
+    "carbsPer100g": 0,
+    "fatPer100g": 5.987,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 288",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Carboidrato calculado por diferença saiu levemente negativo na TACO e foi considerado zero."
   },
   {
     "id": "taco-289",
@@ -3461,6 +3569,18 @@
     "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/"
   },
   {
+    "id": "taco-322",
+    "name": "Tucunaré, filé, congelado, cru",
+    "category": "Pescados e frutos do mar",
+    "caloriesPer100g": 87.686,
+    "proteinPer100g": 17.958,
+    "carbsPer100g": 0,
+    "fatPer100g": 1.22,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 322",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Carboidrato calculado por diferença saiu levemente negativo na TACO e foi considerado zero."
+  },
+  {
     "id": "taco-323",
     "name": "Apresuntado",
     "category": "Carnes e derivados",
@@ -3613,6 +3733,18 @@
     "fatPer100g": 4.333,
     "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 336",
     "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/"
+  },
+  {
+    "id": "taco-337",
+    "name": "Carne, bovina, capa de contra-filé, sem gordura, grelhada",
+    "category": "Carnes e derivados",
+    "caloriesPer100g": 239.444,
+    "proteinPer100g": 35.063,
+    "carbsPer100g": 0,
+    "fatPer100g": 9.95,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 337",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Carboidrato calculado por diferença saiu levemente negativo na TACO e foi considerado zero."
   },
   {
     "id": "taco-338",
@@ -4295,6 +4427,18 @@
     "fatPer100g": 4.857,
     "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 399",
     "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/"
+  },
+  {
+    "id": "taco-400",
+    "name": "Frango, fígado, cru",
+    "category": "Carnes e derivados",
+    "caloriesPer100g": 106.485,
+    "proteinPer100g": 17.587,
+    "carbsPer100g": 0,
+    "fatPer100g": 3.49,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 400",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Carboidrato calculado por diferença saiu levemente negativo na TACO e foi considerado zero."
   },
   {
     "id": "taco-401",
@@ -5045,6 +5189,18 @@
     "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/"
   },
   {
+    "id": "taco-472",
+    "name": "Cana, aguardente 1",
+    "category": "Bebidas (alcoólicas e não alcoólicas)",
+    "caloriesPer100g": 215.662,
+    "proteinPer100g": 0,
+    "carbsPer100g": 0,
+    "fatPer100g": 0,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 472",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "A TACO informa só a energia (vinda do álcool); proteína, gordura e carboidrato foram considerados zero."
+  },
+  {
     "id": "taco-473",
     "name": "Cana, caldo de",
     "category": "Bebidas (alcoólicas e não alcoólicas)",
@@ -5521,6 +5677,30 @@
     "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 515",
     "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
     "note": "Um ou mais macronutrientes classificados como traços (Tr) foram aproximados para zero no cálculo."
+  },
+  {
+    "id": "taco-516",
+    "name": "Sal, dietético",
+    "category": "Miscelâneas",
+    "caloriesPer100g": 0,
+    "proteinPer100g": 0,
+    "carbsPer100g": 0,
+    "fatPer100g": 0,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 516",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Valores marcados como NA (não se aplica) na TACO foram considerados zero."
+  },
+  {
+    "id": "taco-517",
+    "name": "Sal, grosso",
+    "category": "Miscelâneas",
+    "caloriesPer100g": 0,
+    "proteinPer100g": 0,
+    "carbsPer100g": 0,
+    "fatPer100g": 0,
+    "source": "TACO, 4ª edição, NEPA/UNICAMP (2011), alimento 517",
+    "sourceUrl": "https://www.nepa.unicamp.br/arquivo/uploads/taco-4a-edicao/taco-4a-edicao-2/",
+    "note": "Valores marcados como NA (não se aplica) na TACO foram considerados zero."
   },
   {
     "id": "taco-518",

@@ -19,6 +19,11 @@ export function parseBackup(content: string): AppState {
       "Não foi possível ler este JSON. Escolha um backup exportado pelo WebFit.",
     );
   }
+  return validateBackup(value);
+}
+
+/** Mesmas conferências para um backup em arquivo ou a cópia do servidor: dados não confiáveis. */
+export function validateBackup(value: unknown): AppState {
   const result = stateSchema.safeParse(value);
   if (!result.success)
     throw new Error(
@@ -78,5 +83,9 @@ export function prepareRestore(backup: AppState, current: AppState): AppState {
       userId: current.userId,
     })),
     readNotifications: [],
+    // A cópia no servidor é escolha deste aparelho: o backup não a liga sozinho.
+    serverSync: current.serverSync,
+    // O dono dos dados é o aparelho (ou a conta) que restaura, não o do arquivo.
+    accountBound: current.accountBound,
   });
 }

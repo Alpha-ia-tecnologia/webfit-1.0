@@ -1,0 +1,18 @@
+# Fora da imagem: dependências e builds locais, o app nativo, testes, segredos e históricos.
+node_modules
+dist
+mobile
+test-results
+playwright-report
+.git
+.github
+.claude
+.claude-flow
+.vscode
+**/.env
+**/.env.*
+!.env.example
+deploy/caddy.env
+*.log
+docs
+data-sources

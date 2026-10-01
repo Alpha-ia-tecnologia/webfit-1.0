@@ -71,6 +71,42 @@ export async function saveState(state: AppState) {
     };
   });
 }
+/**
+ * Troca o estado inteiro por outro de dono ou revisão diferentes (entrar na conta: adotar os dados do
+ * navegador ou trazer os da conta). Só grava se o salvo ainda é `expected` (outra aba não mudou nada).
+ */
+export async function replaceState(next: AppState, expected: Pick<AppState, "userId" | "revision">) {
+  const parsed = stateSchema.parse(next);
+  const db = await open();
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction("state", "readwrite");
+    const store = tx.objectStore("state");
+    const r = store.get("current");
+    let conflict = false;
+    r.onsuccess = () => {
+      const old = r.result as AppState | undefined;
+      // Sem nada salvo (primeiro acesso), vale a troca; com algo salvo, precisa ser o que a tela mostra.
+      if (old && (old.userId !== expected.userId || old.revision !== expected.revision)) {
+        conflict = true;
+        tx.abort();
+      } else store.put(parsed, "current");
+    };
+    tx.oncomplete = () => {
+      db.close();
+      resolve();
+    };
+    tx.onabort = tx.onerror = () => {
+      db.close();
+      reject(
+        new Error(
+          conflict
+            ? "Os dados foram alterados em outra aba. Recarregue esta página antes de continuar."
+            : "Não foi possível salvar. Verifique o espaço disponível no navegador; seus dados anteriores foram preservados.",
+        ),
+      );
+    };
+  });
+}
 export async function clearState() {
   const db = await open();
   return new Promise<void>((resolve, reject) => {

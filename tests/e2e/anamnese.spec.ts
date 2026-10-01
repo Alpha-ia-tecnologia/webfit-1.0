@@ -478,6 +478,9 @@ test("metas: recomendado para você, editor único de macros, água em copos", a
   await water.getByRole("button", { name: "Mais um copo" }).click();
   await expect(page.locator('input[name="manualWater"]')).toHaveValue("1750");
   await expect(water).toContainText("7 copos · 1,75 L");
+  // O CSS do Diário, carregado na abertura, já espremeu este widget em colunas de 20 px.
+  for (const part of [".wg-head", ".wg-body"])
+    expect((await water.locator(part).boundingBox())!.width, part).toBeGreaterThan(200);
 
   await seedDraft(page, { ...base(), hideCalories: true }, stepOf("Objetivos e metas"));
   const hidden = page.getByTestId("goals-recommended");

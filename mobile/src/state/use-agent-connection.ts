@@ -8,11 +8,15 @@ import {
   discoverApiUrl,
   fetchStatus,
   getApiUrl,
+  getSessionToken,
   isLoopbackUrl,
   loadApiUrl,
+  loadSession,
   saveApiUrl,
+  saveSession,
   type AgentStatus,
 } from "@/lib/api";
+import type { AccountInfo, ServerMode } from "@shared/lib/account";
 import { confirmAsync } from "@/lib/confirm";
 import type { AppContextValue } from "./app-context-types";
 
@@ -33,6 +37,13 @@ type Options = {
 export function useAgentConnection({ notify, onForeground }: Options) {
   const [aiReady, setAiReady] = useState(false);
   const [aiProviders, setAiProviders] = useState<AiProviders | null>(null);
+  // Fora do ar não muda: a cópia no servidor espera a conexão voltar em vez de parecer "sem banco".
+  const [syncAvailable, setSyncAvailable] = useState(false);
+  // Servidor online (contas) ou local; null até a primeira resposta. A conta vem da sessão guardada.
+  const [mode, setMode] = useState<ServerMode | null>(null);
+  const [account, setAccount] = useState<AccountInfo | null>(null);
+  const accountRef = useRef<AccountInfo | null>(null);
+  const [sessionEnded, setSessionEnded] = useState(false);
   const [apiUrl, setApiUrlState] = useState(getApiUrl());
   const [apiError, setApiError] = useState<string | null>(null);
   const discovering = useRef(false);
@@ -53,11 +64,21 @@ export function useAgentConnection({ notify, onForeground }: Options) {
           setAiProviders(status.providers);
           setApiError(status.ready ? null : AGENT_NOT_CONFIGURED);
           token.current = status.token;
+          setSyncAvailable(status.sync);
+          setMode(status.mode);
+          if (accountRef.current?.id !== status.account?.id) {
+            // Havia conta e o servidor não reconhece mais a sessão: pede para entrar de novo.
+            if (accountRef.current && !status.account) setSessionEnded(true);
+            accountRef.current = status.account;
+            setAccount(status.account);
+          }
           return status;
         })
         .catch((error: unknown) => {
           agentStatus.current = null;
           setAiReady(false);
+          // Sem resposta na primeira vez: o app abre com os dados do aparelho (a conta guardada continua).
+          setMode((current) => current ?? (getSessionToken() ? "online" : "local"));
           // Sem servidor, os provedores anteriores não valem mais.
           setAiProviders(null);
           setApiError(
@@ -112,14 +133,22 @@ export function useAgentConnection({ notify, onForeground }: Options) {
   // ao voltar ao primeiro plano e quando a rede muda. Cada falha dispara a busca automática.
   useEffect(() => {
     let alive = true;
+    // Até o endereço e a sessão serem lidos, nenhuma consulta sai (sem isso, a primeira iria sem o Bearer).
+    let loaded = false;
     const verify = () => {
-      if (!alive) return;
+      if (!alive || !loaded) return;
       checkAgent().catch(() => {
         if (alive) void autoDiscover();
       });
     };
-    void loadApiUrl().then((url) => {
+    void Promise.all([loadApiUrl(), loadSession()]).then(([url, saved]) => {
       if (!alive) return;
+      loaded = true;
+      // Sem internet, o app abre com a última conta (os dados estão no aparelho); o servidor confirma depois.
+      if (saved && !accountRef.current) {
+        accountRef.current = saved;
+        setAccount(saved);
+      }
       setApiUrlState(url);
       if (isLoopbackUrl(url)) lastDiscovery.current = 0;
       verify();
@@ -156,5 +185,28 @@ export function useAgentConnection({ notify, onForeground }: Options) {
     [checkAgent],
   );
 
-  return { aiReady, aiProviders, apiUrl, apiError, checkAgent, discoverServer, updateApiUrl, agentStatus, token };
+  /** Entrou (token e conta) ou saiu (null): grava a sessão e atualiza a conta na hora. */
+  const setSession = useCallback(async (session: { token: string; account: AccountInfo } | null) => {
+    await saveSession(session);
+    accountRef.current = session?.account ?? null;
+    setAccount(accountRef.current);
+    setSessionEnded(false);
+  }, []);
+
+  return {
+    mode,
+    account,
+    sessionEnded,
+    setSession,
+    aiReady,
+    aiProviders,
+    syncAvailable,
+    apiUrl,
+    apiError,
+    checkAgent,
+    discoverServer,
+    updateApiUrl,
+    agentStatus,
+    token,
+  };
 }

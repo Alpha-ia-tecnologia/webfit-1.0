@@ -122,7 +122,9 @@ Comandos completos, portas e a lista de verificações do app em [Testes e verif
 
 ## Banco de dados
 
-O esquema PostgreSQL fica em `server/db/migrations/`, no schema `webfit`; `npm run db:migrate`, `db:seed` e `db:status` são ações explícitas. As migrações **`0006` a `0013` foram escritas e ainda não foram aplicadas**: layout do Hoje e marcadores do bem-estar (0006), modo de aplicação (0007), blocos do chat (0008), exames estruturados (0009), lado da aplicação (0010), dia da aplicação semanal da caneta (0011), efeitos percebidos, "Como ficou?", estoque do frasco ou caneta e o modo `rotulo` do agente (0012), "Ocultar números do corpo" e o modo `meal_text` do agente (0013). O app continua gravando no armazenamento local (IndexedDB no web, SQLite no mobile); o banco não está ligado às telas. Detalhes no [guia do sistema](docs/guias/sistema.md#banco-de-dados-postgresql).
+O esquema PostgreSQL fica em `server/db/migrations/`, no schema `webfit`; `npm run db:migrate`, `db:seed` e `db:status` são ações explícitas. **WebFit online (várias contas):** com `WEBFIT_PUBLIC_URL` definida, o servidor exige conta (cadastro só por convite, `npm run admin`), limita os pedidos de IA por conta e por dia e guarda a cópia de cada pessoa na própria conta. Publicação na VPS com Docker e HTTPS: [guia de publicação](docs/guias/publicacao-vps.md).
+
+As 16 migrações estão aplicadas no banco configurado. O app grava primeiro no armazenamento local (IndexedDB no web, SQLite no mobile); em Meu espaço › Ajustes, a **cópia no servidor** (desligada por padrão) guarda o estado também no PostgreSQL, com restauração por código e exclusão junto com os dados do aparelho. Detalhes no [guia do sistema](docs/guias/sistema.md#cópia-no-servidor-opcional).
 
 ## Limites conhecidos
 
