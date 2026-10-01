@@ -636,6 +636,8 @@ export default function App() {
           logOut: accountLogOut,
           changePassword: accountChangePassword,
           deleteAccount: accountDelete,
+          // Painel do administrador: só o dono; os convites apontam para o endereço deste WebFit.
+          admin: account.role === "owner" ? { request: syncRequest, publicUrl: window.location.origin } : undefined,
         }
       : null;
   const restore = async (

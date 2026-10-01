@@ -1,0 +1,191 @@
+/* Painel do administrador (servidor online, só o dono): convites e contas. */
+.admin-modal {
+  gap: 16px;
+}
+.admin-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--wf-radius-sm);
+  background: var(--wf-surface-2);
+}
+.admin-section-btn {
+  min-height: 44px;
+  padding: 6px 8px;
+  border-radius: var(--wf-radius-sm);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text-2);
+  transition:
+    background 0.18s,
+    color 0.18s;
+}
+.admin-section-btn[aria-pressed="true"] {
+  color: var(--wf-green-800);
+  background: var(--wf-surface);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--wf-text) 12%, transparent);
+}
+.admin-section-btn:focus-visible {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 1px;
+}
+.admin-section,
+.admin-form {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.admin-form .btn {
+  min-height: 44px;
+}
+.admin-section .hint,
+.admin-error {
+  margin: 0;
+}
+.admin-error {
+  padding: 10px 12px;
+  border-radius: var(--wf-radius-sm);
+  border: 1px solid var(--wf-tone-danger-border);
+  background: var(--wf-tone-danger-bg);
+  color: var(--wf-tone-danger-fg);
+  font-size: var(--wf-fs-sm);
+}
+/* Código mostrado uma vez só: destaque menta, fácil de selecionar e copiar. */
+.admin-code {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-mint-200);
+  background: var(--wf-mint-50);
+  color: var(--wf-text);
+}
+.admin-code-label {
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  color: var(--wf-green-800);
+}
+.admin-code-value {
+  justify-self: start;
+  max-width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--wf-radius-xs);
+  background: var(--wf-surface);
+  font-size: var(--wf-fs-lg);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.admin-code .hint,
+.admin-message {
+  margin: 0;
+}
+.admin-message {
+  padding: 10px 12px;
+  border-radius: var(--wf-radius-sm);
+  background: var(--wf-surface);
+  font-size: var(--wf-fs-sm);
+  line-height: 1.5;
+  color: var(--wf-text-2);
+  overflow-wrap: anywhere;
+}
+.admin-code-actions,
+.admin-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.admin-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.admin-item {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface-3);
+}
+.admin-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px 10px;
+}
+.admin-item-title {
+  min-width: 0;
+  font-size: var(--wf-fs-base);
+  color: var(--wf-text);
+  overflow-wrap: anywhere;
+}
+.admin-item-email {
+  display: block;
+  font-size: var(--wf-fs-xs);
+  font-weight: 500;
+  color: var(--wf-text-muted);
+  overflow-wrap: anywhere;
+}
+.admin-item-meta {
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.admin-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.admin-pill {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-tone-neutral-border);
+  background: var(--wf-tone-neutral-bg);
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.admin-pill.ok {
+  border-color: var(--wf-mint-100);
+  background: var(--wf-mint-50);
+  color: var(--wf-green-800);
+}
+.admin-pill.attention {
+  border-color: var(--wf-tone-attention-border);
+  background: var(--wf-tone-attention-bg);
+  color: var(--wf-tone-attention-fg);
+}
+.admin-pill.danger {
+  border-color: var(--wf-tone-danger-border);
+  background: var(--wf-tone-danger-bg);
+  color: var(--wf-tone-danger-fg);
+}
+.btn-secondary.admin-danger {
+  color: var(--wf-tone-danger-fg);
+}
+.btn-secondary.admin-danger:hover:not(:disabled) {
+  border-color: var(--wf-tone-danger-border);
+  background: var(--wf-tone-danger-bg);
+}
+.admin-code-actions .btn-sm,
+.admin-item-actions .btn-sm {
+  min-height: 40px;
+}
+@media (max-width: 420px) {
+  .admin-code-actions .btn-sm {
+    flex: 1 1 100%;
+  }
+}

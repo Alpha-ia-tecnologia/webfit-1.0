@@ -15,6 +15,7 @@ import {
   type Account,
 } from "../server/auth/repo";
 import { registerAuth, SESSION_COOKIE } from "../server/auth/routes";
+import { registerAdmin } from "../server/auth/admin-routes";
 import { registerSync } from "../server/sync";
 import { initialState } from "../src/lib/domain";
 import type { AppState } from "../src/types";
@@ -35,6 +36,7 @@ async function startServer(aiDailyLimit = 2) {
   await once(server, "listening");
   const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   const auth = registerAuth(app, { publicOrigin: origin, aiDailyLimit, getPool: () => pool });
+  registerAdmin(app, { getPool: () => pool, requireAccount: auth.requireAccount, publicOrigin: origin });
   registerSync(app, {
     getPool: () => pool,
     authorize: async (req) => {
@@ -311,6 +313,246 @@ test("redefinição pelo dono, conta bloqueada e exclusão da conta com a cópia
       ),
     );
     assert.deepEqual(left.rows[0], { a: 0, u: 0 });
+  } finally {
+    await server.close();
+    await cleanup();
+  }
+});
+
+// ---------- Painel do administrador (/api/admin) ----------
+
+type Server = Awaited<ReturnType<typeof startServer>>;
+type Member = { token: string; id: string; email: string };
+type InviteItem = { id: string; note: string; status: string; usedBy: string | null; createdAt: string; expiresAt: string };
+type AccountItem = { id: string; email: string; role: string; disabled: boolean; createdAt: string; aiToday: number };
+const NOTE = "teste automatizado";
+const HEX_ID = "a".repeat(64);
+const UNKNOWN_UUID = "00000000-0000-4000-8000-000000000000";
+
+/** Conta nova pelo app (token no corpo); com owner, vira dona do servidor direto no banco. */
+async function joinAs(server: Server, name: string, owner = false): Promise<Member> {
+  const address = email(name);
+  const res = await server.call("/api/auth/signup", {
+    method: "POST",
+    from: null,
+    body: { invite: await invite(), email: address, password: PASSWORD, client: "app" },
+  });
+  assert.equal(res.status, 200);
+  if (owner) await withDb((client) => setRole(client, address, "owner"));
+  return { token: res.data.token as string, id: (res.data.account as Account).id, email: address };
+}
+
+/** Pedido ao painel com o token de quem administra (sem Origin, como o app). */
+const adminCall = (server: Server, who: Member, path: string, method = "GET", body?: unknown) =>
+  server.call(`/api/admin${path}`, { method, token: who.token, from: null, body });
+
+test("painel do administrador: conta comum recebe 403 em todas as rotas", { skip }, async () => {
+  const server = await startServer();
+  try {
+    const member = await joinAs(server, "comum");
+    const routes: Array<[string, string, unknown?]> = [
+      ["/invites", "GET"],
+      ["/invites", "POST", { note: NOTE }],
+      [`/invites/${HEX_ID}`, "DELETE"],
+      ["/accounts", "GET"],
+      [`/accounts/${member.id}/reset`, "POST"],
+      [`/accounts/${member.id}/status`, "POST", { disabled: true }],
+      [`/accounts/${member.id}/role`, "POST", { role: "owner" }],
+    ];
+    for (const [path, method, body] of routes) {
+      const res = await adminCall(server, member, path, method, body);
+      assert.equal(res.status, 403, `${method} ${path}`);
+      assert.equal(res.data.error, "Só quem administra o WebFit pode fazer isso.");
+    }
+    // Sem sessão, nem chega à conferência do papel.
+    assert.equal((await server.call("/api/admin/invites")).status, 401);
+  } finally {
+    await server.close();
+    await cleanup();
+  }
+});
+
+test("painel do administrador: convite gerado, usado no cadastro, listado e revogado", { skip }, async () => {
+  const server = await startServer();
+  try {
+    const owner = await joinAs(server, "dono", true);
+    for (const days of [0, 366, 1.5, "14"]) {
+      const bad = await adminCall(server, owner, "/invites", "POST", { note: NOTE, days });
+      assert.equal(bad.status, 400, `days=${String(days)}`);
+    }
+    const created = await adminCall(server, owner, "/invites", "POST", { note: `  ${NOTE}  `, days: 3 });
+    assert.equal(created.status, 200);
+    const code = created.data.code as string;
+    const item = created.data.invite as InviteItem;
+    assert.match(code, /^[A-Z2-9]{4}(-[A-Z2-9]{4}){3}$/);
+    assert.match(item.id, /^[0-9a-f]{64}$/);
+    assert.deepEqual([item.note, item.status, item.usedBy], [NOTE, "pending", null]);
+    // Pelo relógio do banco (o do teste pode estar alguns segundos atrás); 1 h de folga para horário de verão.
+    const validity = Date.parse(item.expiresAt) - Date.parse(item.createdAt);
+    assert.ok(Math.abs(validity - 3 * 86_400_000) <= 3_600_000, `validade ${validity}`);
+
+    // O código gerado no painel abre o cadastro; depois aparece como usado, com o e-mail da conta.
+    const guest = email("convidada");
+    const signup = await server.call("/api/auth/signup", {
+      method: "POST",
+      from: null,
+      body: { invite: code, email: guest, password: PASSWORD, client: "app" },
+    });
+    assert.equal(signup.status, 200);
+    const listed = await adminCall(server, owner, "/invites");
+    const used = (listed.data.invites as InviteItem[]).find((i) => i.id === item.id);
+    assert.deepEqual([used?.status, used?.usedBy], ["used", guest]);
+    assert.equal((await adminCall(server, owner, `/invites/${item.id}`, "DELETE")).status, 409);
+
+    // Pendente: revogado some da lista e não abre cadastro.
+    const spare = await adminCall(server, owner, "/invites", "POST", { note: NOTE });
+    const spareId = (spare.data.invite as InviteItem).id;
+    assert.equal((await adminCall(server, owner, `/invites/${spareId}`, "DELETE")).status, 200);
+    const after = await adminCall(server, owner, "/invites");
+    assert.ok(!(after.data.invites as InviteItem[]).some((i) => i.id === spareId));
+    assert.equal((await adminCall(server, owner, `/invites/${spareId}`, "DELETE")).status, 404);
+    const revokedSignup = await server.call("/api/auth/signup", {
+      method: "POST",
+      from: null,
+      body: { invite: spare.data.code, email: email("revogada"), password: PASSWORD, client: "app" },
+    });
+    assert.equal(revokedSignup.status, 400);
+    for (const bad of ["xyz", "A".repeat(64), `${HEX_ID}0`])
+      assert.equal((await adminCall(server, owner, `/invites/${bad}`, "DELETE")).status, 400, bad);
+  } finally {
+    await server.close();
+    await cleanup();
+  }
+});
+
+test("painel do administrador: cookie de outra origem não muda nada", { skip }, async () => {
+  const server = await startServer();
+  try {
+    const owner = await joinAs(server, "dono-web", true);
+    const login = await server.call("/api/auth/login", { method: "POST", body: { email: owner.email, password: PASSWORD } });
+    const cookie = /=([\w-]+);/.exec(login.setCookie)![1];
+    const evil = "https://site-malicioso.example";
+    const body = { note: NOTE };
+    const forged = await server.call("/api/admin/invites", { method: "POST", cookie, from: evil, body });
+    assert.equal(forged.status, 401);
+    const bearerForged = await server.call("/api/admin/invites", { method: "POST", token: owner.token, from: evil, body });
+    assert.equal(bearerForged.status, 403);
+    const own = await server.call("/api/admin/invites", { method: "POST", cookie, body });
+    assert.equal(own.status, 200);
+    assert.equal((await server.call("/api/admin/invites", { cookie })).status, 200);
+  } finally {
+    await server.close();
+    await cleanup();
+  }
+});
+
+test("painel do administrador: contas, código de senha, bloqueio e papel", { skip }, async () => {
+  const server = await startServer();
+  const NEW = "nova senha 456";
+  try {
+    const owner = await joinAs(server, "dona", true);
+    const member = await joinAs(server, "membro");
+    const listed = await adminCall(server, owner, "/accounts");
+    assert.equal(listed.status, 200);
+    const accounts = listed.data.accounts as AccountItem[];
+    const row = accounts.find((a) => a.id === member.id);
+    assert.deepEqual(
+      row && { email: row.email, role: row.role, disabled: row.disabled, aiToday: row.aiToday },
+      { email: member.email, role: "member", disabled: false, aiToday: 0 },
+    );
+    assert.ok(!Number.isNaN(Date.parse(row!.createdAt)));
+    assert.equal(accounts.find((a) => a.id === owner.id)?.role, "owner");
+
+    // Código de senha pelo painel vale em "Esqueci minha senha" e encerra as sessões antigas.
+    const reset = await adminCall(server, owner, `/accounts/${member.id}/reset`, "POST");
+    assert.equal(reset.status, 200);
+    const hoursLeft = (Date.parse(reset.data.expiresAt as string) - Date.now()) / 3_600_000;
+    assert.ok(Math.abs(hoursLeft - 24) < 0.1, `validade ${hoursLeft}`);
+    const changed = await server.call("/api/auth/reset-password", {
+      method: "POST",
+      body: { code: reset.data.code, password: NEW },
+    });
+    assert.equal(changed.status, 200);
+    assert.equal((await server.call("/api/auth/me", { token: member.token })).status, 401);
+    assert.equal((await adminCall(server, owner, `/accounts/${UNKNOWN_UUID}/reset`, "POST")).status, 404);
+    assert.equal((await adminCall(server, owner, "/accounts/nao-e-uuid/reset", "POST")).status, 400);
+
+    const appLogin = () =>
+      server.call("/api/auth/login", {
+        method: "POST",
+        from: null,
+        body: { email: member.email, password: NEW, client: "app" },
+      });
+    const token = (await appLogin()).data.token as string;
+
+    // Bloquear derruba a sessão e o login; liberar devolve o acesso.
+    const status = (id: string, disabled: unknown) =>
+      adminCall(server, owner, `/accounts/${id}/status`, "POST", { disabled });
+    assert.equal((await status(member.id, "sim")).status, 400);
+    assert.equal((await status(member.id, true)).status, 200);
+    assert.equal((await server.call("/api/auth/me", { token })).status, 401);
+    assert.equal((await appLogin()).status, 401);
+    assert.equal((await status(member.id, false)).status, 200);
+    const fresh = (await appLogin()).data.token as string;
+    assert.ok(fresh);
+    const self = await status(owner.id, true);
+    assert.deepEqual([self.status, self.data.error], [400, "Você não pode bloquear a própria conta."]);
+    assert.equal((await status(UNKNOWN_UUID, true)).status, 404);
+
+    // Papel: promover dá acesso ao painel; ninguém tira o próprio acesso.
+    const role = (id: string, value: unknown) => adminCall(server, owner, `/accounts/${id}/role`, "POST", { role: value });
+    assert.equal((await role(member.id, "admin")).status, 400);
+    assert.equal((await role(member.id, "owner")).status, 200);
+    assert.equal((await adminCall(server, { ...member, token: fresh }, "/accounts")).status, 200);
+    assert.equal((await role(member.id, "member")).status, 200);
+    assert.equal((await adminCall(server, { ...member, token: fresh }, "/accounts")).status, 403);
+    const demote = await role(owner.id, "member");
+    assert.deepEqual([demote.status, demote.data.error], [400, "Você não pode tirar o próprio acesso de administração."]);
+    assert.equal((await role(owner.id, "owner")).status, 200);
+    assert.equal((await role(UNKNOWN_UUID, "owner")).status, 404);
+  } finally {
+    await server.close();
+    await cleanup();
+  }
+});
+
+test("códigos de senha: o novo cancela o anterior, bloquear cancela os abertos e o único dono não se exclui", { skip }, async () => {
+  const server = await startServer();
+  try {
+    const owner = await joinAs(server, "dono-regras", true);
+    const member = await joinAs(server, "membro-codigos");
+    const reset = async (id: string) => (await adminCall(server, owner, `/accounts/${id}/reset`, "POST")).data.code as string;
+    const use = (code: string, password: string) =>
+      server.call("/api/auth/reset-password", { method: "POST", body: { code, password } });
+    const status = (id: string, disabled: boolean) => adminCall(server, owner, `/accounts/${id}/status`, "POST", { disabled });
+
+    // Só o último código gerado vale.
+    const first = await reset(member.id);
+    const second = await reset(member.id);
+    assert.equal((await use(first, "nova senha 111")).status, 400);
+    // Bloquear a conta cancela o código que ainda estava aberto, mesmo depois de liberar.
+    assert.equal((await status(member.id, true)).status, 200);
+    assert.equal((await status(member.id, false)).status, 200);
+    assert.equal((await use(second, "nova senha 222")).status, 400);
+    const third = await reset(member.id);
+    assert.equal((await use(third, "nova senha 333")).status, 200);
+
+    // O único dono ativo não exclui a própria conta; com outro dono, pode.
+    const others = await withDb((client) =>
+      client.query<{ n: number }>(
+        "select count(*)::int as n from webfit.accounts where role = 'owner' and not disabled and id <> $1",
+        [owner.id],
+      ),
+    );
+    const remove = () =>
+      server.call("/api/auth/delete-account", { method: "POST", token: owner.token, from: null, body: { password: PASSWORD } });
+    if (others.rows[0].n === 0) {
+      const refused = await remove();
+      assert.equal(refused.status, 409);
+      assert.match(String(refused.data.error), /único dono/);
+    }
+    assert.equal((await adminCall(server, owner, `/accounts/${member.id}/role`, "POST", { role: "owner" })).status, 200);
+    assert.equal((await remove()).status, 200);
   } finally {
     await server.close();
     await cleanup();

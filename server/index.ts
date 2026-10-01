@@ -11,6 +11,7 @@ import { slidingWindow } from "./rate-limit";
 import { registerSync, type SyncIdentity } from "./sync";
 import { onlineConfig } from "./online";
 import { registerAuth } from "./auth/routes";
+import { registerAdmin } from "./auth/admin-routes";
 import { consumeAiRequest, purgeExpired, type Account } from "./auth/repo";
 import { createPool } from "./db/client";
 import type pg from "pg";
@@ -140,6 +141,8 @@ const statusWindow = slidingWindow(30, 60_000);
 const auth = online
   ? registerAuth(app, { publicOrigin: online.publicOrigin, aiDailyLimit: online.aiDailyLimit, getPool })
   : null;
+// Online: painel do administrador (convites e contas), só para contas com papel de dono.
+if (online && auth) registerAdmin(app, { getPool, requireAccount: auth.requireAccount, publicOrigin: online.publicOrigin });
 app.get("/api/status", async (req, res, next) => {
   if (auth) {
     try {

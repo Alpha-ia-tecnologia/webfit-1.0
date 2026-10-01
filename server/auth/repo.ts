@@ -74,13 +74,77 @@ function requirePassword(password: string) {
 
 // ---------- Convites (dono do servidor) ----------
 
-export async function createInvite(client: pg.ClientBase, note = "", days = INVITE_DAYS): Promise<string> {
+export type InviteStatus = "pending" | "used" | "expired";
+/** Convite como o painel de administração mostra (o id é o hash; o código em texto nunca volta). */
+export interface InviteSummary {
+  id: string;
+  note: string;
+  createdAt: string;
+  expiresAt: string;
+  usedAt: string | null;
+  /** E-mail da conta criada com o convite (null se ainda não usado ou se a conta foi excluída). */
+  usedBy: string | null;
+  status: InviteStatus;
+}
+type InviteRow = {
+  code_hash: string;
+  note: string;
+  created_at: Date;
+  expires_at: Date;
+  used_at: Date | null;
+  used_by: string | null;
+  status: InviteStatus;
+};
+/** Situação calculada pelo relógio do banco, o mesmo que vale no cadastro. */
+const INVITE_STATUS = "case when i.used_at is not null then 'used' when i.expires_at <= now() then 'expired' else 'pending' end";
+const INVITES_SHOWN = 200;
+
+const toInvite = (row: InviteRow): InviteSummary => ({
+  id: row.code_hash,
+  note: row.note,
+  createdAt: row.created_at.toISOString(),
+  expiresAt: row.expires_at.toISOString(),
+  usedAt: row.used_at?.toISOString() ?? null,
+  usedBy: row.used_by,
+  status: row.status,
+});
+
+/** Gera o convite; o código em texto existe só nesta resposta (o banco guarda o hash). */
+export async function issueInvite(
+  client: pg.ClientBase,
+  note = "",
+  days = INVITE_DAYS,
+): Promise<{ code: string; invite: InviteSummary }> {
   const code = newCode();
-  await client.query(
-    "insert into webfit.invites (code_hash, note, expires_at) values ($1, $2, now() + make_interval(days => $3))",
-    [sha256(normalizeCode(code)!), note.slice(0, 120), days],
+  const created = await client.query<InviteRow>(
+    `insert into webfit.invites as i (code_hash, note, expires_at) values ($1, $2, now() + make_interval(days => $3))
+     returning i.code_hash, i.note, i.created_at, i.expires_at, i.used_at, null::text as used_by, ${INVITE_STATUS} as status`,
+    [sha256(normalizeCode(code)!), note.trim().slice(0, 120), days],
   );
-  return code;
+  return { code, invite: toInvite(created.rows[0]) };
+}
+
+export async function createInvite(client: pg.ClientBase, note = "", days = INVITE_DAYS): Promise<string> {
+  return (await issueInvite(client, note, days)).code;
+}
+
+/** Convites mais recentes primeiro, com o e-mail de quem usou. */
+export async function listInvites(client: pg.ClientBase): Promise<InviteSummary[]> {
+  const rows = await client.query<InviteRow>(
+    `select i.code_hash, i.note, i.created_at, i.expires_at, i.used_at, a.email as used_by, ${INVITE_STATUS} as status
+     from webfit.invites i left join webfit.accounts a on a.id = i.used_by
+     order by i.created_at desc, i.code_hash limit $1`,
+    [INVITES_SHOWN],
+  );
+  return rows.rows.map(toInvite);
+}
+
+/** Apaga um convite ainda não usado (pendente ou vencido); convite usado fica como registro. */
+export async function revokeInvite(client: pg.ClientBase, id: string): Promise<"revoked" | "used" | "missing"> {
+  const deleted = await client.query("delete from webfit.invites where code_hash = $1 and used_at is null", [id]);
+  if (deleted.rowCount) return "revoked";
+  const found = await client.query("select 1 from webfit.invites where code_hash = $1", [id]);
+  return found.rowCount ? "used" : "missing";
 }
 
 // ---------- Cadastro e login ----------
@@ -188,16 +252,38 @@ export async function purgeExpired(client: pg.ClientBase): Promise<void> {
 
 // ---------- Senha ----------
 
-/** Código de redefinição para o dono do servidor mandar à pessoa; null quando o e-mail não tem conta. */
+/** Códigos de redefinição ainda abertos da conta deixam de valer (só o último gerado vale; bloqueio e troca de senha encerram todos). */
+async function expireResetCodes(client: pg.ClientBase, accountId: string) {
+  await client.query("update webfit.password_resets set used_at = now() where account_id = $1 and used_at is null", [
+    accountId,
+  ]);
+}
+
+/** Código de redefinição pela conta; um código novo cancela os anteriores. null quando a conta não existe. */
+export async function createPasswordResetById(
+  client: pg.ClientBase,
+  accountId: string,
+): Promise<{ code: string; expiresAt: string } | null> {
+  const code = newCode();
+  return transaction(client, async () => {
+    const account = await client.query("select 1 from webfit.accounts where id = $1 for update", [accountId]);
+    if (!account.rowCount) return null;
+    await expireResetCodes(client, accountId);
+    const created = await client.query<{ expires_at: Date }>(
+      `insert into webfit.password_resets (code_hash, account_id, expires_at)
+       values ($1, $2, now() + make_interval(hours => $3)) returning expires_at`,
+      [sha256(normalizeCode(code)!), accountId, RESET_HOURS],
+    );
+    return { code, expiresAt: created.rows[0].expires_at.toISOString() };
+  });
+}
+
+/** Código de redefinição para o dono do servidor mandar à pessoa (scripts/admin.ts); null sem conta com o e-mail. */
 export async function createPasswordReset(client: pg.ClientBase, emailInput: string): Promise<string | null> {
   const email = requireEmail(emailInput);
-  const code = newCode();
-  const created = await client.query(
-    `insert into webfit.password_resets (code_hash, account_id, expires_at)
-     select $1, a.id, now() + make_interval(hours => $3) from webfit.accounts a where a.email = $2`,
-    [sha256(normalizeCode(code)!), email, RESET_HOURS],
-  );
-  return created.rowCount ? code : null;
+  const account = await client.query<{ id: string }>("select id from webfit.accounts where email = $1", [email]);
+  const id = account.rows[0]?.id;
+  return id ? ((await createPasswordResetById(client, id))?.code ?? null) : null;
 }
 
 /** Troca a senha com o código de redefinição; encerra todas as sessões da conta. */
@@ -215,7 +301,8 @@ export async function resetPassword(client: pg.ClientBase, codeInput: string, pa
     if (!accountId) throw new AuthError(400, "Este código não vale mais. Peça um novo a quem administra o WebFit.");
     // O scrypt (caro) só roda com código válido.
     const passwordHash = await hashPassword(password);
-    await client.query("update webfit.password_resets set used_at = now() where code_hash = $1", [sha256(code)]);
+    // Este e qualquer outro código aberto da conta deixam de valer.
+    await expireResetCodes(client, accountId);
     await client.query("update webfit.accounts set password_hash = $2 where id = $1", [accountId, passwordHash]);
     await client.query("delete from webfit.sessions where account_id = $1", [accountId]);
   });
@@ -242,16 +329,38 @@ export async function changePassword(
 export async function deleteAccount(client: pg.ClientBase, account: Account, password: string): Promise<void> {
   if (!(await logIn(client, account.email, password))) throw new AuthError(400, "A senha não confere.");
   await transaction(client, async () => {
+    // O único dono ativo não sai: o servidor ficaria sem quem convide ou libere contas.
+    const owners = await client.query<{ others: number; owner: boolean }>(
+      `select (select count(*)::int from webfit.accounts where role = 'owner' and not disabled and id <> $1) as others,
+              exists(select 1 from webfit.accounts where id = $1 and role = 'owner') as owner`,
+      [account.id],
+    );
+    if (owners.rows[0].owner && owners.rows[0].others === 0)
+      throw new AuthError(409, "Você é o único dono do servidor. Torne outra conta dona antes de excluir a sua.");
     await client.query("delete from webfit.users where id = $1", [account.id]);
     await client.query("delete from webfit.accounts where id = $1", [account.id]);
   });
 }
 
-// ---------- Administração (scripts/admin.ts) ----------
+// ---------- Administração (scripts/admin.ts por e-mail; painel /api/admin por id) ----------
 
 export async function setRole(client: pg.ClientBase, emailInput: string, role: Role): Promise<boolean> {
   const updated = await client.query("update webfit.accounts set role = $2 where email = $1", [requireEmail(emailInput), role]);
   return updated.rowCount === 1;
+}
+
+export async function setRoleById(client: pg.ClientBase, accountId: string, role: Role): Promise<boolean> {
+  const updated = await client.query("update webfit.accounts set role = $2 where id = $1", [accountId, role]);
+  return updated.rowCount === 1;
+}
+
+/** Depois de bloquear, as sessões e os códigos de senha abertos da conta deixam de valer; true quando a conta existia. */
+async function endSessionsIfDisabled(client: pg.ClientBase, accountId: string | undefined, disabled: boolean) {
+  if (accountId && disabled) {
+    await client.query("delete from webfit.sessions where account_id = $1", [accountId]);
+    await expireResetCodes(client, accountId);
+  }
+  return Boolean(accountId);
 }
 
 /** Desativa ou reativa; desativar encerra as sessões na hora. */
@@ -260,13 +369,20 @@ export async function setDisabled(client: pg.ClientBase, emailInput: string, dis
     "update webfit.accounts set disabled = $2 where email = $1 returning id",
     [requireEmail(emailInput), disabled],
   );
-  const id = updated.rows[0]?.id;
-  if (id && disabled) await client.query("delete from webfit.sessions where account_id = $1", [id]);
-  return Boolean(id);
+  return endSessionsIfDisabled(client, updated.rows[0]?.id, disabled);
+}
+
+export async function setDisabledById(client: pg.ClientBase, accountId: string, disabled: boolean): Promise<boolean> {
+  const updated = await client.query<{ id: string }>(
+    "update webfit.accounts set disabled = $2 where id = $1 returning id",
+    [accountId, disabled],
+  );
+  return endSessionsIfDisabled(client, updated.rows[0]?.id, disabled);
 }
 
 export async function listAccounts(client: pg.ClientBase) {
   const rows = await client.query<{
+    id: string;
     email: string;
     name: string;
     role: Role;
@@ -274,7 +390,7 @@ export async function listAccounts(client: pg.ClientBase) {
     created_at: Date;
     ai_today: number;
   }>(
-    `select a.email, a.name, a.role, a.disabled, a.created_at, coalesce(u.requests, 0) as ai_today
+    `select a.id, a.email, a.name, a.role, a.disabled, a.created_at, coalesce(u.requests, 0) as ai_today
      from webfit.accounts a left join webfit.ai_usage u on u.account_id = a.id and u.day = current_date
      order by a.created_at`,
   );

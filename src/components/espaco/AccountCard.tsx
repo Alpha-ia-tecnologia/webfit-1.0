@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
-import { Sparkles, UserRound } from "lucide-react";
+import { ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { AUTH_COPY, quotaLabel, type AccountControls } from "../../lib/account";
+import { ADMIN_COPY } from "../../lib/admin";
 import { IconTile } from "../IconTile";
 import { Card, Field, Modal } from "../UI";
+import { AdminPanel } from "./AdminPanel";
 
 /** "Sua conta" em Ajustes (só no servidor online): quem entrou, IA de hoje, senha, sair e excluir. */
 export function AccountCard({ account }: { account: AccountControls }) {
   const { info, quota, refreshQuota } = account;
-  const [sheet, setSheet] = useState<"password" | "delete" | null>(null);
+  const [sheet, setSheet] = useState<"password" | "delete" | "admin" | null>(null);
+  // Só o dono recebe o acesso do painel (App.tsx); a conta comum nem vê o botão.
+  const admin = info.role === "owner" ? account.admin : undefined;
   useEffect(() => {
     void refreshQuota();
   }, [refreshQuota]);
@@ -32,6 +36,12 @@ export function AccountCard({ account }: { account: AccountControls }) {
         </li>
       </ul>
       <div className="data-actions">
+        {admin && (
+          <button type="button" className="btn-secondary" onClick={() => setSheet("admin")}>
+            <ShieldCheck size={16} aria-hidden="true" />
+            {ADMIN_COPY.open}
+          </button>
+        )}
         <button type="button" className="btn-secondary" onClick={() => setSheet("password")}>
           Trocar senha
         </button>
@@ -44,6 +54,7 @@ export function AccountCard({ account }: { account: AccountControls }) {
       </button>
       {sheet === "password" && <PasswordSheet account={account} onClose={() => setSheet(null)} />}
       {sheet === "delete" && <DeleteSheet account={account} onClose={() => setSheet(null)} />}
+      {sheet === "admin" && admin && <AdminPanel admin={admin} selfId={info.id} onClose={() => setSheet(null)} />}
     </Card>
   );
 }

@@ -24,6 +24,8 @@ export interface AccountControls {
   changePassword: (current: string, next: string) => Promise<boolean>;
   /** Pede a senha; apaga a conta, a cópia e os dados do aparelho. */
   deleteAccount: (password: string) => Promise<boolean>;
+  /** Só para o dono, no web: pedidos do painel do administrador e o endereço público do WebFit (convites). */
+  admin?: { request: SyncRequest; publicUrl: string };
 }
 
 export type AccountRole = "owner" | "member";
@@ -174,7 +176,8 @@ export async function prepareSignIn(
 
 // ---------- Pedidos ----------
 
-const errorOf = (data: unknown, fallback: string) =>
+/** A frase de erro que o servidor mandou ({ error }), ou a reserva. */
+export const errorOf = (data: unknown, fallback: string) =>
   data && typeof data === "object" && typeof (data as { error?: unknown }).error === "string"
     ? (data as { error: string }).error
     : fallback;
