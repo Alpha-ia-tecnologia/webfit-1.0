@@ -1,0 +1,747 @@
+/* ---------- Diário (Onda 2 · Lote 4): balanço, grupos por refeição, água e bem-estar ---------- */
+.diary-balance {
+  display: grid;
+  gap: 14px;
+}
+.diary-balance-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.diary-balance-head h2 {
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wf-text-muted);
+}
+/* (i) sem fundo, só o traço cinza; o alvo continua com 44 px. */
+.diary-balance-info {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin: -10px -10px -10px 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--wf-text-muted);
+}
+.diary-balance-info:hover {
+  background: var(--wf-surface-2);
+  color: var(--wf-text-2);
+}
+.diary-balance-info:focus-visible {
+  outline: 2px solid var(--wf-green-700);
+  outline-offset: 2px;
+}
+/* A conta centralizada (conceito 03): 1.645 − 1.210 = [435 Restam]. */
+.balance-eq {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1.15fr);
+  align-items: center;
+  gap: 6px;
+}
+.eq-term {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+  text-align: center;
+}
+.eq-term strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--wf-text-2);
+  font-variant-numeric: tabular-nums;
+}
+.eq-term small {
+  font-size: var(--wf-fs-sm);
+  font-weight: 500;
+  color: var(--wf-text-muted);
+}
+.eq-term.result {
+  padding: 8px 10px;
+  border-radius: 16px;
+  background: var(--wf-mint-50);
+  border: 1px solid var(--wf-mint-200);
+}
+.eq-term.result strong {
+  font-size: var(--wf-fs-3xl);
+  color: var(--wf-green-700);
+}
+.eq-term.result small {
+  font-weight: 800;
+  color: var(--wf-green-700);
+}
+/* Acima do planejado é informação, não erro: caixa e cor neutras, nunca vermelho. */
+.eq-term.result.over {
+  background: var(--wf-surface-2);
+  border-color: var(--wf-border);
+}
+.eq-term.result.over strong,
+.eq-term.result.over small {
+  color: var(--wf-text-2);
+}
+.eq-op {
+  margin-bottom: 18px;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-xl);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+/* Macros como no Hoje (ponto, rótulo, "82 / 115 g", barra de 4 px), um degrau menores e sem divisórias (conceito 03). */
+.diary-balance .day-macros {
+  padding-top: 14px;
+}
+.diary-balance .day-macro {
+  padding-inline: 0 12px;
+}
+.diary-balance .day-macro + .day-macro {
+  border-left: 0;
+}
+.diary-balance .day-macro-label {
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.diary-balance .day-macro strong {
+  font-size: var(--wf-fs-xl);
+}
+.diary-balance .day-macro strong small {
+  font-size: var(--wf-fs-sm);
+  font-weight: 500;
+}
+.diary-balance-bar {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--wf-surface-3);
+  overflow: hidden;
+}
+.diary-balance-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--wf-gradient);
+  transform-origin: left;
+  transition: transform 0.5s var(--wf-ease);
+}
+.diary-balance-plain {
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.diary-balance-plain strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-2xl);
+  font-weight: 800;
+  color: var(--wf-text);
+}
+
+/* Faixa de 56 px que acompanha a rolagem: âncora de altura zero, presa sob o cabeçalho. */
+.diary-band-anchor {
+  position: sticky;
+  z-index: 30;
+  height: 0;
+  /* Anula o gap da coluna da página: a âncora não deve abrir espaço entre o cartão e a lista. */
+  margin-bottom: -16px;
+}
+.diary-band {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 56px;
+  margin-top: 6px;
+  padding: 0 16px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--wf-surface) 94%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--wf-border-soft);
+  box-shadow: var(--wf-shadow-float);
+  animation: wf-fade-up 0.2s var(--wf-ease) both;
+}
+.diary-band-kcal {
+  display: grid;
+  line-height: 1.1;
+}
+.diary-band-kcal strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  color: var(--wf-text);
+}
+.diary-band-kcal small,
+.diary-band-macros {
+  font-size: var(--wf-fs-2xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.diary-band-macros {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 12px;
+}
+.diary-band-macros > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  color: var(--wf-text-2);
+}
+
+.diary-section {
+  display: grid;
+  gap: 12px;
+  margin-top: 6px;
+}
+.diary-section > h2 {
+  font-size: var(--wf-fs-xl);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.diary-section > .text-btn {
+  justify-self: start;
+}
+/* Com um "⋯" aberto, o cartão sobe acima dos vizinhos (o menu não fica por baixo do próximo). */
+.diary-section .meal-card:has(.overflow-menu-list),
+.diary-section .diary-card:has(.overflow-menu-list) {
+  z-index: 3;
+}
+
+/* Grupos de refeição (conceito 03): MealCard "group" + as linhas do grupo. */
+.diary-subtotal {
+  align-items: baseline;
+}
+.diary-add {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -4px -6px -4px 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--wf-green-700);
+}
+.diary-add > span {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--wf-mint-50);
+  border: 1px solid var(--wf-mint-200);
+  transition: background 0.2s var(--wf-ease);
+}
+.diary-add:hover > span {
+  background: var(--wf-mint-100);
+}
+.diary-add:focus-visible,
+.diary-row-hit:focus-visible,
+.diary-water-toggle:focus-visible,
+.diary-water-add:focus-visible,
+.diary-search-hit:focus-visible {
+  outline: 2px solid var(--wf-green-700);
+  outline-offset: 2px;
+}
+.diary-rows {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Linha do registro: toda ela abre a edição (o botão cobre a linha); ⋯ e "Como ficou?" ficam por cima. */
+.diary-group .diary-meal-row {
+  position: relative;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 2px 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  box-shadow: none;
+}
+.diary-group .diary-meal-row:hover {
+  box-shadow: none;
+}
+.diary-row-hit {
+  position: absolute;
+  inset: -4px -6px;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  cursor: pointer;
+}
+.diary-row-hit:hover {
+  background: color-mix(in srgb, var(--wf-surface-2) 55%, transparent);
+}
+.diary-meal-row .overflow-menu,
+.diary-meal-row .diary-satiety {
+  position: relative;
+  z-index: 2;
+}
+/* O conteúdo fica acima do toque da linha (o fundo do hover passa por trás do texto) e deixa o toque passar. */
+.diary-meal-row .food-glyph,
+.diary-meal-row .diary-thumb,
+.diary-meal-row .diary-row-copy,
+.diary-meal-row .entry-kcal {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+.diary-meal-row .diary-row-copy .diary-satiety {
+  pointer-events: auto;
+}
+/* Horário, barra P/C/G e "Como ficou?" numa linha (conceito 03): a barra encolhe para a pergunta caber. */
+.diary-meal-row .diary-row-meta {
+  flex-wrap: nowrap;
+}
+.diary-thumb {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+.diary-row-copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.diary-row-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  color: var(--wf-text);
+}
+.diary-row-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  min-width: 0;
+}
+.diary-row-time {
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.diary-row-sub {
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-muted);
+}
+.diary-meal-row .macro-bar {
+  flex: 0 1 auto;
+  min-width: 48px;
+}
+.diary-meal-row .entry-kcal {
+  font-size: var(--wf-fs-sm);
+}
+/* "Como ficou?" (SERINGA-07) na linha do horário: chip fantasma, alvo de 44 px sem abrir a linha. */
+.diary-row-meta .diary-satiety {
+  flex: none;
+  min-height: 0;
+  margin: -10px 0;
+  padding: 0;
+}
+.diary-row-meta .satiety-ask {
+  min-height: 44px;
+  padding: 0 6px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+}
+.diary-row-meta .satiety-chip {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(var(--wf-surface-2), var(--wf-surface-2)) center / 100% 28px no-repeat;
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.is-highlight {
+  animation: diary-flash 2.4s var(--wf-ease) both;
+}
+@keyframes diary-flash {
+  0%,
+  40% {
+    background: var(--wf-mint-50);
+    box-shadow: 0 0 0 2px var(--wf-mint-200);
+  }
+  100% {
+    background: transparent;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+.diary-card.is-highlight {
+  animation-name: diary-card-flash;
+}
+@keyframes diary-card-flash {
+  0%,
+  40% {
+    box-shadow: 0 0 0 2px var(--wf-mint-200);
+  }
+  100% {
+    box-shadow: var(--wf-shadow-card);
+  }
+}
+
+/* Refeições sem registro: vagas tracejadas de meia largura com "+ Adicionar", sem cobrança. */
+.diary-pending {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.diary-pending .meal-card-subtitle {
+  overflow: visible;
+}
+.diary-pending-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  color: var(--wf-green-700);
+}
+.diary-pending .meal-card.is-slot:hover {
+  border-color: var(--wf-green-600);
+  background: var(--wf-mint-50);
+}
+/* Abaixo de 360 px a vaga de meia largura não tem espaço para o ícone e "+ Adicionar" lado a lado: o nome e a ação ficam. */
+@media (max-width: 359px) {
+  .diary-pending .meal-card-tile {
+    display: none;
+  }
+  /* "Café da manhã" quebra em 2 linhas em vez de reticências ao lado do subtotal e do "+". */
+  .diary-group .meal-card-title {
+    white-space: normal;
+  }
+}
+
+/* Cartões de água, bem-estar e aplicação (conceito 03): brancos, raio 24, sombra, sem borda. */
+.diary-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 24px;
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+.diary-card.diary-entry:hover {
+  border-color: transparent;
+  box-shadow: var(--wf-shadow-card);
+}
+.diary-water {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+.diary-water-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+.diary-water-copy {
+  flex: 1;
+  min-width: 0;
+}
+.diary-water-copy h3 {
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+}
+.diary-water-value {
+  margin: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.diary-water-value strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--wf-text);
+}
+.diary-water-value small {
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.diary-water-toggle {
+  position: absolute;
+  inset: -6px -8px;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  cursor: pointer;
+}
+.diary-water-toggle:hover {
+  background: color-mix(in srgb, var(--wf-surface-2) 55%, transparent);
+}
+.diary-water-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+/* 10 copos: cheio em gradiente azul, vazio só com o contorno. */
+.water-glasses {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 20px));
+  gap: 4px;
+  min-width: 0;
+}
+.water-glasses:has(> i:nth-child(8):last-child) {
+  grid-template-columns: repeat(8, minmax(0, 20px));
+}
+.water-glasses > i {
+  position: relative;
+  height: 24px;
+  background: var(--wf-border);
+  clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%);
+}
+.water-glasses > i::after {
+  content: "";
+  position: absolute;
+  inset: 1.5px 1.5px 1.5px;
+  background: var(--wf-surface);
+  clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%);
+}
+.water-glasses > i.is-full {
+  background: linear-gradient(180deg, var(--wf-sky-300), var(--wf-blue));
+}
+.water-glasses > i.is-full::after {
+  inset: 0 0 auto;
+  height: 3px;
+  background: color-mix(in srgb, var(--wf-surface) 70%, transparent);
+}
+.diary-water-add {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 16px;
+  border: 1px solid var(--wf-sky-100);
+  background: var(--wf-sky-50);
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  /* Azul da água um tom mais escuro: 4,5:1 sobre o sky-50 no claro; no escuro, azul claro. */
+  color: var(--wf-sky-700);
+  white-space: nowrap;
+}
+.diary-water-add:hover {
+  border-color: var(--wf-sky-600);
+}
+.diary-water-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--wf-border-soft);
+  list-style: none;
+}
+.diary-water-list > li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 0 0 52px;
+  border-radius: 12px;
+}
+.diary-water-amount {
+  flex: 1;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+}
+/* Bem-estar: rosto, anotação, barra de 5 do humor, horário e o sono num chip. */
+.diary-mood-row .diary-row-title {
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+}
+/* 5 segmentos em 72 px como no conceito; o seletor composto vence o width: 100% do SegmentMeter.css. */
+.diary-row-meta .diary-mood-meter {
+  flex: none;
+  width: 72px;
+}
+.diary-sleep-chip {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--wf-tone-body-bg);
+  color: var(--wf-indigo-700);
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+  white-space: nowrap;
+}
+.diary-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--wf-surface-3);
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.diary-chip.is-tag {
+  background: var(--wf-tone-mind-bg);
+  color: var(--wf-text-2);
+  box-shadow: inset 0 0 0 1px var(--wf-tone-mind-border);
+}
+.diary-injection-row .diary-row-title {
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+}
+
+/* Rosca P/C/G com as calorias ocultas. */
+.macro-donut {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+}
+.macro-donut svg {
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+}
+.macro-donut-legend {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.macro-donut-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.macro-donut-legend strong {
+  margin-left: auto;
+  padding-left: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text);
+}
+
+/* Busca em todo o histórico. */
+.diary-search-results {
+  display: grid;
+  gap: 14px;
+  max-height: 55dvh;
+  margin-top: 12px;
+  overflow: auto;
+}
+.diary-search-results h3 {
+  margin-bottom: 6px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--wf-text-muted);
+}
+.diary-search-results ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.diary-search-hit {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--wf-surface-2);
+  text-align: left;
+}
+.diary-search-hit:hover {
+  background: var(--wf-mint-50);
+}
+.diary-search-hit .diary-row-time {
+  padding-top: 2px;
+}
+.diary-search-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.diary-search-copy strong {
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text);
+}
+.diary-search-copy span {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+
+@media (max-width: 600px) {
+  .diary-band-anchor {
+    margin-bottom: -14px;
+  }
+  .diary-band {
+    padding: 0 12px;
+  }
+}
+/* Celular estreito: a conta encolhe um degrau e os copos ficam mais juntos. */
+@media (max-width: 360px) {
+  .eq-term strong {
+    font-size: var(--wf-fs-xl);
+  }
+  .eq-term.result strong {
+    font-size: var(--wf-fs-2xl);
+  }
+  .eq-term.result {
+    padding: 6px 8px;
+  }
+  .water-glasses {
+    gap: 3px;
+  }
+  .diary-water-list > li {
+    padding-left: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .diary-band,
+  .is-highlight {
+    animation: none;
+  }
+  .diary-balance-bar > span {
+    transition: none;
+  }
+}

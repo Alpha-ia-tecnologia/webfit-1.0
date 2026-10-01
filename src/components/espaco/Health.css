@@ -1,0 +1,591 @@
+/* Aba "Saúde" (conceito 11): corpo em blocos, perfil de saúde em mosaico e as 7 etapas da anamnese
+   atrás de uma linha. Só tons neutros, navy, azul-claro e âmbar de atenção: nada aqui usa vermelho. */
+
+/* ---------- Corpo (bento) ---------- */
+.body-bento {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.body-bento .section-title-row {
+  margin-bottom: 0;
+}
+.body-bento .body-bento-head h2 {
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.body-bento .body-bento-head .body-register {
+  gap: 6px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+}
+.body-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.body-bento-grid.has-bmi > .body-tile-weight {
+  grid-row: span 2;
+}
+.body-tile {
+  min-width: 0;
+  padding: 14px 12px 12px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--wf-border-soft);
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+.body-tile p {
+  margin: 0;
+}
+.body-tile-weight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.body-tile-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  align-self: stretch;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.body-when {
+  font-size: var(--wf-fs-sm);
+  font-weight: 500;
+  color: var(--wf-text-muted);
+}
+.body-tile-weight > .body-weight {
+  margin: 0;
+  line-height: 1;
+  white-space: nowrap;
+}
+.body-weight strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-5xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  color: var(--wf-text);
+}
+.body-weight small {
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+/* Variação neutra (azul-claro, nunca verde nem vermelho): seta e "−4,0 kg". */
+.body-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-tone-water-border);
+  background: var(--wf-sky-50);
+  color: var(--wf-sky-700);
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.body-spark {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 4px;
+  overflow: visible;
+}
+.body-spark .body-spark-stop-a {
+  stop-color: var(--wf-sky-400);
+  stop-opacity: 0.32;
+}
+.body-spark .body-spark-stop-b {
+  stop-color: var(--wf-sky-400);
+  stop-opacity: 0;
+}
+.body-spark-line {
+  fill: none;
+  stroke: var(--wf-sky-500);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.body-spark circle {
+  fill: var(--wf-surface);
+  stroke: var(--wf-sky-500);
+  stroke-width: 2.5;
+}
+.body-progress {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.body-progress-track {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--wf-surface-2);
+  overflow: hidden;
+}
+.body-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--wf-gradient);
+}
+.body-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.body-progress-labels b {
+  font-weight: 800;
+  color: var(--wf-text);
+}
+/* IMC: régua neutra (faixas de largura igual), marcador navy, sem categoria nem cor por faixa. */
+.body-tile-bmi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.body-bmi-value strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-2xl);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text);
+}
+.body-tile-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.bmi-ruler {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  height: 16px;
+  align-items: center;
+}
+.bmi-seg {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--wf-slate-200);
+}
+.bmi-dot {
+  position: absolute;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  border-radius: 50%;
+  background: var(--wf-marker);
+  box-shadow: 0 0 0 3px var(--wf-surface);
+}
+.body-bmi-ref {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* Altura | Cintura: duas colunas com divisória. */
+.body-extra {
+  display: flex;
+  margin: 0;
+}
+.body-extra > div {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.body-extra > div + div {
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid var(--wf-border-soft);
+}
+.body-extra dt {
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.body-extra dd {
+  margin: 2px 0 0;
+  white-space: nowrap;
+}
+.body-extra dd strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text);
+}
+.body-extra dd small {
+  font-size: var(--wf-fs-sm);
+  font-weight: 500;
+  color: var(--wf-text-muted);
+}
+/* "Ocultar números do corpo" (ESPACO-13): só o estado, a data da medição e o atalho. */
+.body-hidden-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.body-hidden {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--wf-radius-md);
+  border: 1px dashed var(--wf-tone-body-border);
+  background: var(--wf-surface-2);
+}
+.body-hidden p {
+  margin: 0;
+}
+.body-hidden-title {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  color: var(--wf-text);
+}
+.body-hidden-tile > .body-adjust {
+  align-self: flex-start;
+  min-height: 44px;
+}
+
+/* ---------- Perfil de saúde (mosaico) ---------- */
+.health-mosaic-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.health-mosaic-section > .health-mosaic-title {
+  margin: 4px 0 0;
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.health-mosaic.card {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.mosaic-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-bottom: 1px solid var(--wf-border-soft);
+}
+.mosaic-pair > .mosaic-item + .mosaic-item {
+  border-left: 1px solid var(--wf-border-soft);
+}
+.mosaic-item {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+  gap: 10px;
+  padding: 14px;
+  text-align: left;
+  color: var(--wf-text);
+  background: transparent;
+  transition: background-color 0.18s;
+}
+.mosaic-item:hover,
+.mosaic-hub-toggle:hover {
+  background: var(--wf-surface-2);
+}
+.mosaic-item:focus-visible,
+.mosaic-hub-toggle:focus-visible {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: -3px;
+}
+.mosaic-item.is-cell {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.mosaic-item.is-row {
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+  border-bottom: 1px solid var(--wf-border-soft);
+}
+.mosaic-item-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex-shrink: 0;
+}
+.mosaic-icon.icon-tile {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+.mosaic-item-title {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text);
+}
+.mosaic-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+.mosaic-item.is-row .mosaic-chips {
+  justify-content: flex-end;
+}
+.mosaic-chips .pill-chip.is-md {
+  min-height: 26px;
+  padding: 0 10px;
+  font-weight: 600;
+  font-size: var(--wf-fs-sm);
+}
+.mosaic-chips .pill-chip.tone-neutral {
+  --pill-fg: var(--wf-text);
+  --pill-border: transparent;
+}
+.mosaic-hub-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 14px 0 18px;
+  text-align: left;
+  color: var(--wf-text);
+  transition: background-color 0.18s;
+}
+.mosaic-hub-ring {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px dashed var(--wf-slate-400);
+}
+.mosaic-hub-ring.is-complete {
+  border-style: solid;
+  border-color: var(--wf-green-500);
+}
+.mosaic-hub-label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--wf-fs-sm);
+}
+.mosaic-hub-label strong {
+  font-weight: 700;
+}
+.mosaic-hub-label span {
+  color: var(--wf-text-muted);
+}
+.mosaic-hub-chevron {
+  flex-shrink: 0;
+  color: var(--wf-text-muted);
+  transition: transform 0.2s var(--wf-ease);
+}
+.mosaic-hub-toggle[aria-expanded="true"] .mosaic-hub-chevron {
+  transform: rotate(90deg);
+}
+.mosaic-hub-panel[hidden] {
+  display: none;
+}
+.mosaic-hub-panel {
+  border-top: 1px solid var(--wf-border-soft);
+}
+/* 320–370 px: as linhas empilham os chips embaixo do título; altura e cintura, uma sobre a outra. */
+@media (max-width: 370px) {
+  .body-extra {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .body-extra > div + div {
+    margin-left: 0;
+    padding-left: 0;
+    padding-top: 8px;
+    border-left: 0;
+    border-top: 1px solid var(--wf-border-soft);
+  }
+  .mosaic-item.is-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .mosaic-item.is-row .mosaic-chips {
+    justify-content: flex-start;
+  }
+}
+
+/* ---------- As 7 etapas (dentro do mosaico) ---------- */
+.profile-attention {
+  padding: 14px 16px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-tone-attention-border);
+  background: var(--wf-tone-attention-bg);
+}
+.profile-attention h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+  color: var(--wf-text);
+}
+.profile-attention h3 svg {
+  flex-shrink: 0;
+  color: var(--wf-tone-attention-fg);
+}
+.profile-attention ul {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.profile-attention li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 8px 0;
+}
+.profile-attention li + li {
+  border-top: 1px dashed var(--wf-tone-attention-border);
+}
+.profile-attention li p {
+  flex: 1 1 200px;
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.45;
+  color: var(--wf-text-2);
+}
+.profile-attention .btn-sm {
+  min-height: 44px;
+  background: var(--wf-surface);
+}
+.profile-hub-list {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0 8px;
+}
+.profile-hub-grid {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.profile-hub-grid > li {
+  display: flex;
+  min-width: 0;
+}
+.profile-hub-grid > li + li {
+  border-top: 1px solid var(--wf-border-soft);
+}
+.profile-hub-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 16px;
+  text-align: left;
+  background: transparent;
+  transition: background-color 0.18s;
+}
+.profile-hub-card:hover {
+  background: var(--wf-surface-2);
+}
+.profile-hub-card:focus-visible {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: -3px;
+}
+.profile-hub-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.profile-hub-title {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--wf-text);
+}
+.profile-hub-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  font-size: var(--wf-fs-xs);
+  line-height: 1.4;
+  color: var(--wf-text-muted);
+}
+.profile-hub-highlights > span {
+  overflow-wrap: anywhere;
+}
+.profile-hub-highlights > span + span::before {
+  content: "· ";
+}
+.profile-hub-chevron {
+  flex-shrink: 0;
+  color: var(--wf-text-muted);
+}
+.profile-hub-review {
+  align-self: flex-start;
+  min-height: 44px;
+  margin: 4px 16px 0;
+  font-size: var(--wf-fs-sm);
+}
+
+/* ---------- Respostas de uma etapa (folha) ---------- */
+.profile-section-sheet .profile-answers {
+  margin: 0;
+}
+.profile-answers > div {
+  padding: 10px 0;
+  border-top: 1px solid var(--wf-border-soft);
+}
+.profile-answers > div:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.profile-answers dt {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.profile-answers dd {
+  margin: 3px 0 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.profile-section-sheet > .btn {
+  align-self: stretch;
+  min-height: 44px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mosaic-item,
+  .mosaic-hub-toggle,
+  .mosaic-hub-chevron,
+  .profile-hub-card {
+    transition: none;
+  }
+}

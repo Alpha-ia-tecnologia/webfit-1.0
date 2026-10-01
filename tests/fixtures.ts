@@ -1,0 +1,111 @@
+import {
+  emptyDraft,
+  initialState,
+  localDate,
+  updateProfile,
+} from "../src/lib/domain";
+import { profileSchema } from "../src/types";
+export function profileFixture() {
+  return profileSchema.parse({
+    ...emptyDraft(),
+    name: "Pessoa Teste",
+    birthDate: "1992-06-15",
+    sex: "feminino",
+    occupation: "Trabalho em escritório",
+    routine: "Trabalho durante o dia e cozinho em casa.",
+    weight: 72,
+    height: 165,
+    measurementDate: localDate(),
+    measurementMethod: "Balança em casa",
+    conditions: "Nenhuma",
+    medications: "Não",
+    weightLossPen: "nao",
+    supplements: "Não",
+    surgeries: "Não",
+    familyHistory: "Prefiro não informar",
+    pregnancy: "nao",
+    fluidRestriction: "nao",
+    eatingDisorder: "nao",
+    allergies: "sim",
+    allergyDetails: "Amendoim",
+    diet: "Alimentação variada",
+    avoidedFoods: "Camarão",
+    favoriteFoods: "Arroz e feijão",
+    mealRoutine: "Café às 8h, almoço às 12h e jantar às 19h.",
+    mealsPerDay: 3,
+    digestiveSymptoms: "Não",
+    bowelHabit: "Regular",
+    alcohol: "Não",
+    tobacco: "Não",
+    sleepHours: 7,
+    sleepQuality: "boa",
+    stress: "moderado",
+    activityLevel: "leve",
+    exerciseType: "Caminhada",
+    exerciseDays: 3,
+    exerciseMinutes: 30,
+    sedentaryHours: 8,
+    wakeTime: "07:00",
+    sleepTime: "23:00",
+    goal: "manter",
+    motivation: "Organizar minha rotina",
+    barriers: "Tempo para cozinhar",
+    foodBudget: "Orçamento semanal planejado",
+    cookingTime: "30 minutos por dia",
+    professionalPlan: "Não tenho",
+    manualWater: 2000,
+    manualCalories: 1800,
+    consentLocal: true,
+    consentAi: false,
+  });
+}
+export function stateFixture() {
+  return updateProfile(initialState(), profileFixture());
+}
+
+/**
+ * Troca globais do ambiente (navigator, localStorage, indexedDB, document, ...) durante `run` e
+ * devolve o valor anterior depois, mesmo se `run` for assíncrono ou lançar. Usado para testar
+ * módulos de src/lib que dependem de APIs de navegador sem precisar de um DOM real.
+ */
+export function withGlobals<T>(
+  overrides: Record<string, unknown>,
+  run: () => T,
+): T {
+  const previous = new Map<string, PropertyDescriptor | undefined>();
+  for (const key of Object.keys(overrides)) {
+    previous.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
+    Object.defineProperty(globalThis, key, {
+      value: overrides[key],
+      configurable: true,
+      writable: true,
+    });
+  }
+  const restore = () => {
+    for (const [key, descriptor] of previous) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else delete (globalThis as Record<string, unknown>)[key];
+    }
+  };
+  let result: T;
+  try {
+    result = run();
+  } catch (error) {
+    restore();
+    throw error;
+  }
+  if (result instanceof Promise) {
+    return result.then(
+      (value) => {
+        restore();
+        return value;
+      },
+      (error) => {
+        restore();
+        throw error;
+      },
+    ) as T;
+  }
+  restore();
+  return result;
+}

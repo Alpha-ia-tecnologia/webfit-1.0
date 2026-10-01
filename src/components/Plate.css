@@ -1,0 +1,127 @@
+/* Sugestões do agente (chat, dieta e Hoje): itens em medida caseira, macros da TACO e o prato. */
+.planned-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.planned-items > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.45;
+  color: var(--wf-text-2);
+  overflow-wrap: anywhere;
+}
+.planned-item-text {
+  min-width: 0;
+}
+.planned-item-name {
+  font-weight: 600;
+  color: var(--wf-text);
+}
+.allergen-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  color: var(--wf-tone-attention-fg);
+  background: var(--wf-tone-attention-bg);
+  border: 1px solid var(--wf-tone-attention-border);
+}
+/* Barra própria (a .macro-split do diário tem 72 px): largura total, 8 px, só proporções. */
+.macro-estimate {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.macro-estimate-bar {
+  display: flex;
+  gap: 2px;
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--wf-surface-3);
+}
+.macro-estimate-bar > span {
+  flex-basis: 0;
+  min-width: 0;
+  height: 100%;
+}
+.macro-estimate-bar .is-protein {
+  background: var(--wf-macro-protein);
+}
+.macro-estimate-bar .is-carbs {
+  background: var(--wf-macro-carbs);
+}
+.macro-estimate-bar .is-fat {
+  background: var(--wf-macro-fat);
+}
+.macro-estimate-caption {
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text-muted);
+}
+/* Prato do perfil sensível: grupos presentes, sem números. */
+.mini-plate {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.mini-plate-svg {
+  flex-shrink: 0;
+}
+.plate-rim {
+  fill: var(--wf-surface-2);
+  stroke: var(--wf-border);
+  stroke-width: 1.5;
+}
+.plate-arc {
+  fill: none;
+  stroke: var(--plate-color);
+  stroke-width: 7;
+}
+/* Verde-escuro: o verde 500 é a mesma cor da proteína (--wf-macro-protein) e os dois se confundiriam. */
+.plate-veg {
+  --plate-color: var(--wf-green-700);
+}
+.plate-protein {
+  --plate-color: var(--wf-macro-protein);
+}
+.plate-grain {
+  --plate-color: var(--wf-macro-carbs);
+}
+.mini-plate-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-2);
+}
+.mini-plate-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.plate-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--plate-color);
+}

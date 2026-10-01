@@ -1,0 +1,1178 @@
+/* Controles interativos da anamnese: cartões, chips, régua, rodas e passos.
+   Padrão visual: cartões com indicador redondo, verde esmeralda, cantos 16 px. */
+.anamnese-fields {
+  grid-template-columns: 1fr;
+  gap: 22px;
+}
+.q-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  position: relative;
+  outline: none;
+}
+.q-block[aria-invalid="true"] {
+  padding-left: 12px;
+  border-left: 3px solid var(--wf-rose-400);
+}
+.q-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.q-label {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: var(--wf-text);
+}
+/* Pergunta de escolha: título em cima, "Marque todos que se aplicam · ⓘ Por quê?" embaixo. */
+.q-head.is-stacked,
+.anamnese-choice-heading {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 6px;
+}
+.q-help {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  margin: 0;
+  font-size: var(--wf-fs-base);
+  line-height: 1.4;
+  color: var(--wf-text-muted);
+}
+.q-help .anamnese-choice-mode {
+  margin-left: auto;
+}
+.q-help-dot {
+  color: var(--wf-text-muted);
+}
+.q-mode,
+.q-value {
+  flex-shrink: 0;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+  white-space: nowrap;
+}
+.q-value {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-green-700);
+}
+.q-value.empty {
+  color: var(--wf-text-muted);
+  font-weight: 500;
+}
+.q-none {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  font-size: var(--wf-fs-2xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.q-none:hover {
+  background: var(--wf-surface-2);
+  color: var(--wf-text-2);
+}
+/* Etiqueta "Opcional" no lugar do sufixo "(opcional)" */
+.q-optional {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  vertical-align: 2px;
+  font-family: var(--wf-font);
+  font-size: var(--wf-fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--wf-text-muted);
+  background: var(--wf-surface-2);
+}
+/* Opcional sem valor: uma linha de 56 px com "Informar" em vez da régua inteira */
+.q-collapsed {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  min-height: 56px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+}
+.q-collapsed .q-label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--wf-fs-sm);
+}
+.q-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-green-700);
+  background: var(--wf-mint-50);
+}
+.q-add:hover {
+  background: var(--wf-mint-100);
+}
+.q-collapsed > .hint,
+.q-collapsed > .field-error {
+  flex-basis: 100%;
+  margin: 0;
+}
+/* Campo nativo espelho: fora da vista das pessoas, disponível para automação. */
+.q-mirror {
+  position: absolute !important;
+  left: 0;
+  bottom: 0;
+  width: 1px !important;
+  height: 1px;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+}
+/* ---------- Cartões de escolha ---------- */
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.choice-chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  text-align: left;
+  color: var(--wf-text-2);
+  transition:
+    border-color 0.16s,
+    background 0.16s,
+    box-shadow 0.16s,
+    transform 0.12s;
+}
+.choice-chip:hover {
+  border-color: var(--wf-slate-300);
+}
+.choice-chip:active {
+  transform: scale(0.98);
+}
+.choice-chip.on {
+  border-color: var(--wf-green-500);
+  background: color-mix(in srgb, var(--wf-mint-50) 55%, transparent);
+  color: var(--wf-text);
+  box-shadow:
+    inset 0 0 0 1px var(--wf-green-500),
+    0 4px 14px -8px rgb(16 185 129 / 0.5);
+}
+.choice-chip.none.on {
+  border-color: var(--wf-text-muted);
+  background: var(--wf-surface-2);
+  box-shadow: inset 0 0 0 1px var(--wf-text-muted);
+}
+.choice-chip.other {
+  border-style: dashed;
+}
+.choice-check {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--wf-slate-300);
+  color: var(--wf-white);
+  transition:
+    background 0.16s,
+    border-color 0.16s;
+}
+.choice-chip.on .choice-check {
+  background: var(--wf-green-500);
+  border-color: var(--wf-green-500);
+}
+.choice-chip.none.on .choice-check {
+  background: var(--wf-text-muted);
+  border-color: var(--wf-text-muted);
+  color: var(--wf-surface);
+}
+.choice-chip.other .choice-check {
+  color: var(--wf-text-muted);
+}
+.choice-chip.other.on .choice-check {
+  background: var(--wf-green-500);
+  border-color: var(--wf-green-500);
+  color: var(--wf-white);
+}
+.choice-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.choice-text small {
+  margin-top: 2px;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 400;
+  color: var(--wf-text-muted);
+}
+.choice-other {
+  background: var(--wf-surface) !important;
+  border-color: var(--wf-green-500) !important;
+}
+/* Múltipla escolha: marca quadrada; escolha única: marca redonda. */
+.choice-chip.is-multi .choice-check {
+  border-radius: 6px;
+}
+.choice-icon {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  color: var(--wf-text-2);
+}
+.choice-emoji {
+  flex-shrink: 0;
+  font-size: var(--wf-fs-md);
+  line-height: 1;
+}
+/* ---------- Pílulas (listas longas sem descrição) ---------- */
+.choice-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.choice-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.choice-chip.is-pill {
+  min-height: 44px;
+  padding: 8px 14px;
+  gap: 8px;
+  border-radius: 999px;
+}
+.choice-chip.is-pill .choice-text {
+  font-size: var(--wf-fs-base);
+}
+/* Excludentes ("Nenhuma", "Prefiro não informar") lado a lado, texto centralizado. */
+.choice-pill-row.is-exclusive > .choice-chip {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+.choice-chip.is-pill:not(.on):not(.other) .choice-check {
+  display: none;
+}
+.choice-chip.is-pill .choice-check {
+  width: 18px;
+  height: 18px;
+  border-width: 0;
+}
+/* Marcada: pílula verde escura com texto branco (5,5:1). */
+.choice-chip.is-pill.on {
+  color: var(--wf-white);
+  background: var(--wf-accent-fill);
+  border-color: var(--wf-accent-fill);
+  box-shadow: 0 6px 16px -10px rgb(4 120 87 / 0.8);
+}
+.choice-chip.is-pill.on .choice-check {
+  background: rgb(255 255 255 / 0.22);
+  color: var(--wf-white);
+}
+/* Excludentes ("Nenhuma", "Prefiro não informar"): neutras, também quando marcadas. */
+.choice-chip.is-pill.none.on {
+  color: var(--wf-surface);
+  background: var(--wf-text-2);
+  border-color: var(--wf-text-2);
+  box-shadow: none;
+}
+.choice-chip.is-pill.none.on .choice-check {
+  color: var(--wf-surface);
+}
+.choice-chip.is-pill.other {
+  border-style: dashed;
+  color: var(--wf-text-2);
+}
+.choice-chip.is-pill.other.on {
+  color: var(--wf-green-800);
+  background: var(--wf-mint-50);
+  border-color: var(--wf-green-500);
+  box-shadow: none;
+}
+.choice-chip.is-pill.other.on .choice-check {
+  background: var(--wf-green-600);
+}
+.choice-more {
+  background: var(--wf-surface-2);
+  border-color: transparent;
+  color: var(--wf-text);
+}
+.choice-chip.is-pill.choice-more {
+  padding-inline: 16px 12px;
+  box-shadow: none;
+}
+.choice-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 2px 0;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.choice-divider::before,
+.choice-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--wf-border);
+}
+.choice-expand {
+  align-self: flex-start;
+  min-height: 40px;
+}
+.choice-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 1px solid var(--wf-border);
+  color: var(--wf-text-muted);
+}
+.choice-search input {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  outline: none;
+  background: transparent;
+}
+.choice-search:focus-within {
+  border-color: var(--wf-green-600);
+  box-shadow: 0 0 0 3px rgb(16 185 129 / 0.18);
+}
+.choice-sheet-list {
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 2px;
+}
+/* ---------- Chips rápidos (horários, datas, passos) ---------- */
+.quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.quick-chips.center {
+  justify-content: center;
+}
+.quick-chip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+  transition:
+    background 0.16s,
+    border-color 0.16s,
+    color 0.16s,
+    transform 0.12s;
+}
+.quick-chip:hover {
+  border-color: var(--wf-slate-300);
+}
+.quick-chip:active {
+  transform: scale(0.96);
+}
+/* Marcado: o mesmo verde escuro das pílulas marcadas, com texto branco (5,5:1 nos dois temas). */
+.quick-chip.on {
+  background: var(--wf-accent-fill);
+  border-color: var(--wf-accent-fill);
+  color: var(--wf-white);
+  box-shadow: 0 6px 14px -8px rgb(4 120 87 / 0.7);
+}
+.quick-chip small {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 500;
+  opacity: 0.8;
+}
+/* ---------- Régua ---------- */
+.ruler-card {
+  padding: 16px 16px 14px;
+  border-radius: 22px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+.ruler-value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ruler-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+}
+.ruler-value strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-6xl);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+}
+.ruler-card.empty .ruler-value strong {
+  color: var(--wf-text-muted);
+}
+.ruler-value span {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-lg);
+  font-weight: 700;
+  color: var(--wf-accent-text-soft);
+}
+.ruler-helper {
+  margin-top: 4px;
+  text-align: center;
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.ruler {
+  position: relative;
+  height: 84px;
+  margin-top: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--wf-border-soft);
+  background: var(--wf-surface-3);
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 22%,
+    black 78%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 22%,
+    black 78%,
+    transparent
+  );
+}
+.ruler:focus-visible {
+  outline: 3px solid rgb(0 208 132 / 0.45);
+  outline-offset: 2px;
+}
+.ruler-marker {
+  position: absolute;
+  top: 6px;
+  bottom: 8px;
+  left: 50%;
+  z-index: 2;
+  width: 3px;
+  margin-left: -1.5px;
+  border-radius: 999px;
+  background: var(--wf-green-500);
+  pointer-events: none;
+}
+.ruler-marker::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: var(--wf-green-500);
+  box-shadow: 0 1px 3px rgb(16 185 129 / 0.5);
+}
+.ruler-scroll {
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  cursor: grab;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+}
+.ruler-scroll::-webkit-scrollbar {
+  display: none;
+}
+.ruler-scroll:active {
+  cursor: grabbing;
+}
+.ruler-track {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  padding: 0 50%;
+  padding-bottom: 10px;
+  width: max-content;
+}
+.tick {
+  position: relative;
+  flex: 0 0 12px;
+  height: 14px;
+}
+.tick::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2px;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--wf-slate-300);
+}
+.tick.mid {
+  height: 20px;
+}
+.tick.major {
+  height: 28px;
+}
+.tick.major::before {
+  background: var(--wf-slate-400);
+}
+.tick.major::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 1px;
+  bottom: 100%;
+  transform: translateX(-50%);
+  margin-bottom: 6px;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+  white-space: nowrap;
+}
+.tick.current::before {
+  width: 3px;
+  background: var(--wf-green-500);
+}
+/* O rótulo sob o ponteiro some: o número grande já mostra o valor e o ponteiro o cobriria. */
+.tick.center.major::after {
+  visibility: hidden;
+}
+/* −/+ só com ícone, ao lado do número (o nome acessível diz o passo: "Aumentar 0,5 kg"). */
+.fine-btn {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--wf-surface-2);
+  color: var(--wf-text-2);
+}
+.fine-btn:hover {
+  background: var(--wf-mint-100);
+  color: var(--wf-green-700);
+}
+.fine-btn:active {
+  transform: scale(0.92);
+}
+/* ---------- Rodas ---------- */
+.wheels {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr 1.2fr;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 22px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+.wheels.time {
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  max-width: 260px;
+}
+.wheel-colon {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-2xl);
+  font-weight: 800;
+  color: var(--wf-text-muted);
+}
+.wheel {
+  position: relative;
+  height: 120px;
+  border-radius: 14px;
+  outline: none;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 30%,
+    black 70%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 30%,
+    black 70%,
+    transparent
+  );
+}
+.wheel:focus-visible {
+  outline: 3px solid rgb(0 208 132 / 0.45);
+  outline-offset: 2px;
+}
+.wheel-band {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--wf-mint-50) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--wf-mint-200) 90%, transparent);
+  pointer-events: none;
+}
+.wheel-scroll {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  cursor: grab;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+}
+.wheel-scroll::-webkit-scrollbar {
+  display: none;
+}
+.wheel-scroll:active {
+  cursor: grabbing;
+}
+.wheel-pad {
+  height: 40px;
+}
+.wheel-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  scroll-snap-align: center;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+  text-transform: capitalize;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+.wheel-item.on {
+  color: var(--wf-green-800);
+  font-weight: 800;
+}
+/* ---------- Passos ---------- */
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 14px;
+  border-radius: 22px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+.stepper-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--wf-surface-2);
+  color: var(--wf-text-2);
+}
+.stepper-btn:hover:not(:disabled) {
+  background: var(--wf-mint-100);
+  color: var(--wf-green-700);
+}
+.stepper-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+.stepper-value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 96px;
+}
+.stepper-value strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-5xl);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--wf-text);
+}
+.stepper-value.empty strong {
+  color: var(--wf-text-muted);
+}
+/* Unidade (kg, cm, mg/ml): verde um tom mais escuro que o soft para passar de 4,5:1 no claro. */
+.stepper-value span {
+  margin-top: 4px;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 600;
+  color: var(--wf-green-700);
+}
+/* ---------- Barra de etapa (única) e rodapé fixo ---------- */
+.anamnese-bar {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+.anamnese-bar .icon-btn {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--wf-radius-md);
+  background: var(--wf-surface);
+  color: var(--wf-text);
+  box-shadow: var(--wf-shadow-card);
+}
+.anamnese-bar .icon-btn:hover:not(:disabled) {
+  box-shadow: var(--wf-shadow-float);
+}
+.anamnese-bar-center {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  white-space: nowrap;
+  font-size: var(--wf-fs-base);
+}
+.anamnese-bar-center strong {
+  flex-shrink: 0;
+  font-family: var(--wf-font-heading);
+  font-weight: 800;
+  color: var(--wf-text);
+}
+/* Nome da etapa desenhado pelo CSS (o texto já é o h2): corta com reticências quando falta espaço. */
+.anamnese-bar-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--wf-text-muted);
+}
+.anamnese-bar-title::before {
+  content: "· " attr(data-title);
+}
+.anamnese-saved-slot:empty {
+  display: none;
+}
+.anamnese-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+  color: var(--wf-green-800);
+  background: var(--wf-mint-50);
+}
+.anamnese-saved.is-failed {
+  color: var(--wf-tone-attention-fg);
+  background: var(--wf-tone-attention-bg);
+}
+/* Só em tela muito estreita o selo vira o ícone (o texto continua para leitores de tela). */
+@media (max-width: 340px) {
+  .anamnese-saved {
+    padding: 0 9px;
+  }
+  .anamnese-saved-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+/* 8 segmentos de 6 px: as etapas feitas em verde; a atual enche em degradê verde → azul. */
+.anamnese-step-progress {
+  gap: 5px;
+  margin-top: 14px;
+}
+.anamnese-step-progress > span {
+  height: 6px;
+  background: var(--wf-border);
+}
+.anamnese-step-progress > span > span {
+  background: var(--wf-green-500);
+}
+.anamnese-step-progress > span.is-current > span {
+  background: linear-gradient(90deg, var(--wf-green-500), var(--wf-sky-500));
+}
+.anamnese-form-footer .form-actions {
+  align-items: stretch;
+  gap: 12px;
+}
+.anamnese-form-footer .btn {
+  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  padding-inline: 24px;
+  border-radius: var(--wf-radius-md);
+  font-size: var(--wf-fs-md);
+  box-shadow: 0 14px 28px -14px color-mix(in srgb, var(--wf-green-600) 70%, transparent);
+}
+.anamnese-form-footer .btn-secondary {
+  min-height: 56px;
+  border-radius: var(--wf-radius-md);
+}
+.anamnese-adjust-btn {
+  gap: 10px;
+  padding-inline: 20px;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  color: var(--wf-text);
+  background: var(--wf-surface);
+  border: 1px solid var(--wf-border);
+  box-shadow: var(--wf-shadow-card);
+}
+/* Até 400 px: menos respiro nos dois botões para "Ajustar" e "Começar meu dia" caberem numa linha. */
+@media (max-width: 400px) {
+  .anamnese-form-footer .btn,
+  .anamnese-adjust-btn {
+    gap: 8px;
+    padding-inline: 16px;
+  }
+}
+@media (max-width: 800px) {
+  /* Na anamnese o celular mostra só a barra de etapa (um voltar, um título). */
+  .onboarding-shell .app-header,
+  .app-header.is-anamnese {
+    display: none;
+  }
+  .anamnese-bar-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    margin: 0 -16px;
+    padding: 12px 16px 10px;
+    background: color-mix(in srgb, var(--wf-bg) 78%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  /* Rodapé flutuante: só o botão sobre o fundo que se apaga (sem barra nem fio). */
+  .anamnese-form-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    padding: 20px 16px max(16px, env(safe-area-inset-bottom));
+    background: linear-gradient(
+      to top,
+      var(--wf-bg) 58%,
+      color-mix(in srgb, var(--wf-bg) 0%, transparent)
+    );
+  }
+  .anamnese-form-footer .form-actions {
+    margin: 0;
+    flex-wrap: nowrap;
+  }
+  .anamnese-form-footer .btn {
+    flex: 1;
+    width: auto;
+  }
+  .anamnese-form-footer .anamnese-back-btn {
+    display: none;
+  }
+  .anamnese-form-footer .anamnese-adjust-btn {
+    flex: 0 0 auto;
+  }
+}
+@media (max-width: 480px) {
+  .choice-grid {
+    grid-template-columns: 1fr;
+  }
+  .choice-chip {
+    min-height: 48px;
+  }
+  .ruler-value strong {
+    font-size: var(--wf-fs-6xl);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wheel-scroll,
+  .ruler-scroll {
+    scroll-behavior: auto;
+  }
+}
+/* ---------- Sim/Não em blocos grandes (caneta) ---------- */
+.choice-binary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.choice-binary-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+.choice-binary .radio-card.is-tile {
+  gap: 12px;
+  min-height: 118px;
+  padding: 14px 16px 16px;
+}
+.choice-binary .radio-card-body {
+  gap: 2px;
+}
+.choice-binary-media {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--wf-surface-2);
+  color: var(--wf-text-2);
+}
+.choice-binary .radio-card.is-sim .choice-binary-media {
+  background: var(--wf-mint-100);
+  color: var(--wf-green-700);
+}
+.choice-binary .radio-card.is-checked .radio-card-title {
+  color: var(--wf-green-800);
+}
+.choice-binary .radio-card-subtitle {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  white-space: normal;
+  color: var(--wf-green-700);
+}
+/* "Prefiro não informar" como rádio em texto, centralizado sob os blocos. */
+.choice-text-radio {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-base);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+  cursor: pointer;
+}
+.choice-text-radio.on {
+  font-weight: 700;
+  color: var(--wf-green-700);
+  background: var(--wf-mint-50);
+}
+.choice-text-radio input[type="radio"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.choice-text-radio:has(input:focus-visible) {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 2px;
+}
+/* Aviso da caneta, compacto e sem caixa: só quando a resposta pede. */
+.anamnese-field-slot.is-pen .anamnese-echo {
+  margin-top: 12px;
+}
+.anamnese-field-slot.is-pen .anamnese-echo > span {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-muted);
+}
+/* ---------- "Caneta e dose": bloco que abre e fecha ---------- */
+.pen-details {
+  border-radius: 20px;
+  background: var(--wf-surface);
+  box-shadow:
+    inset 0 0 0 1px var(--wf-border-soft),
+    var(--wf-shadow-card);
+}
+.pen-details-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 20px;
+  background: none;
+  text-align: left;
+  color: var(--wf-text);
+}
+.pen-details-head:focus-visible {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 2px;
+}
+.pen-details-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--wf-radius-sm);
+  background: var(--wf-mint-100);
+  color: var(--wf-green-700);
+}
+.pen-details-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.pen-details-text strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+}
+.pen-details-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-muted);
+}
+.pen-details-chevron {
+  flex-shrink: 0;
+  color: var(--wf-text-muted);
+  transition: transform 0.2s;
+}
+.pen-details.is-open .pen-details-chevron {
+  transform: rotate(180deg);
+}
+.pen-details-body {
+  display: grid;
+  gap: 24px;
+  padding: 4px 14px 18px;
+}
+.pen-details-body[hidden] {
+  display: none;
+}
+@media (max-width: 800px) {
+  /* A pergunta é o título: 24 px (a 1ª da etapa, 32 px), no peso forte do app. */
+  .anamnese .q-label {
+    font-size: var(--wf-fs-2xl);
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+  }
+  .anamnese .anamnese-field-slot.is-lead .q-label {
+    font-size: var(--wf-fs-3xl);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+  /* Pílulas no ritmo do conceito: 44 px, 12 px de respiro, ícone de 17 px. */
+  .anamnese .choice-chip.is-pill {
+    gap: 6px;
+    padding: 0 12px;
+  }
+  .anamnese .choice-chip.is-pill .choice-check {
+    width: 20px;
+    height: 20px;
+  }
+  .anamnese .choice-pill-row {
+    gap: 8px 8px;
+  }
+  .anamnese .choice-pill-row.is-exclusive {
+    gap: 10px;
+  }
+  .anamnese .q-collapsed .q-label,
+  .anamnese .pen-details .q-label {
+    font-size: var(--wf-fs-lg);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .anamnese .q-head.is-stacked,
+  .anamnese .anamnese-choice-heading {
+    margin-bottom: 12px;
+  }
+  .anamnese .q-block {
+    gap: 12px;
+  }
+  .anamnese .choice-pills {
+    gap: 12px;
+  }
+  /* Pílulas e cartões sobre o fundo: superfície com sombra leve. */
+  .anamnese .choice-chip.is-pill:not(.on):not(.other):not(.choice-more) {
+    box-shadow: var(--wf-shadow-card);
+  }
+  .anamnese .choice-chip.is-pill.other {
+    border: 1.5px dashed var(--wf-slate-300);
+    background: transparent;
+    color: var(--wf-text-muted);
+  }
+  .anamnese .anamnese-option-card:not(.is-pill):not(.is-face),
+  .anamnese .choice-grid .choice-chip {
+    min-height: 60px;
+    padding: 12px 16px;
+    border-color: transparent;
+    border-radius: 18px;
+    box-shadow:
+      inset 0 0 0 1px var(--wf-border-soft),
+      var(--wf-shadow-card);
+  }
+  .anamnese .anamnese-option-card.on:not(.is-pill):not(.is-face),
+  .anamnese .choice-grid .choice-chip.on {
+    background: linear-gradient(160deg, var(--wf-mint-50), var(--wf-surface));
+    box-shadow:
+      inset 0 0 0 2px var(--wf-green-500),
+      0 0 0 4px var(--wf-mint-50);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pen-details-chevron {
+    transition: none;
+  }
+}

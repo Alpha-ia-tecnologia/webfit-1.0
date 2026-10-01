@@ -1,0 +1,446 @@
+/* Aba "Exames e consultas" (ESPACO-05 e ESPACO-11): laudos como documentos e consultas como agenda.
+   Resultados de exame sempre neutros: zona cinza, valor em navy, marca do laboratório copiada. */
+
+.exams-card > .row-between,
+.appointments-card > .row-between {
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+.exam-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+/* ---------- Cartão do laudo ---------- */
+.exam-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border-soft);
+  background: var(--wf-surface);
+}
+.exam-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+}
+.exam-thumb {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--wf-surface-2);
+  border: 1px solid var(--wf-border-soft);
+}
+.exam-thumb.is-pdf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  color: var(--wf-tone-neutral-fg);
+  background: var(--wf-tone-neutral-bg);
+}
+.exam-thumb.is-pdf small {
+  font-size: var(--wf-fs-2xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--wf-text-2);
+}
+.exam-card-id {
+  flex: 1;
+  min-width: 0;
+}
+.exam-card-id h3 {
+  margin: 0;
+  font-size: var(--wf-fs-md);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  color: var(--wf-text);
+}
+.exam-meta {
+  margin: 3px 0 0;
+  font-size: var(--wf-fs-xs);
+  line-height: 1.45;
+  color: var(--wf-text-muted);
+}
+.exam-card .overflow-menu .icon-btn {
+  width: 44px;
+  height: 44px;
+}
+.exam-card > .notice.exam-urgent {
+  margin-top: 0;
+}
+.exam-analyze {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.exam-analyze .btn-sm {
+  min-height: 44px;
+}
+.exam-analyze .hint {
+  margin: 0;
+}
+.exam-analyzing {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.exam-legacy summary,
+.exam-text summary,
+.appointments-past summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-green-700);
+}
+.exam-notes {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Resultados transcritos ---------- */
+.exam-results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.exam-counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.exam-counters li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-tone-neutral-border);
+  background: var(--wf-tone-neutral-bg);
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+}
+.exam-results-toggle {
+  align-self: flex-start;
+  min-height: 44px;
+  font-size: var(--wf-fs-sm);
+}
+.exam-results-toggle svg {
+  transition: transform 0.2s var(--wf-ease);
+}
+.exam-results-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.exam-results-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.exam-group h4 {
+  margin: 0 0 6px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--wf-text-muted);
+}
+.biomarkers {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.biomarker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  border-top: 1px solid var(--wf-border-soft);
+}
+.biomarker:first-child {
+  border-top: 0;
+  padding-top: 2px;
+}
+.biomarker-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 12px;
+}
+.biomarker-name {
+  min-width: 0;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text);
+  overflow-wrap: anywhere;
+}
+.biomarker-value {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.biomarker-value strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text);
+}
+.biomarker-value small {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+/* Barra: faixa impressa (cinza neutro, sem sugerir "normal") e valor (navy); passar da barra vira uma seta neutra. */
+.biomarker-bar {
+  position: relative;
+  height: 12px;
+  margin: 2px 8px;
+  border-radius: 999px;
+  background: var(--wf-slate-100);
+}
+.biomarker-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--wf-slate-300);
+}
+.biomarker-dot {
+  position: absolute;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: var(--wf-marker);
+  box-shadow: 0 0 0 2px var(--wf-surface);
+}
+.biomarker-beyond {
+  position: absolute;
+  top: 3px;
+  width: 0;
+  height: 0;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+}
+.biomarker-beyond.below {
+  left: -8px;
+  border-right: 6px solid var(--wf-marker);
+}
+.biomarker-beyond.above {
+  right: -8px;
+  border-left: 6px solid var(--wf-marker);
+}
+.biomarker-foot {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.biomarker-ref {
+  flex: 1 1 180px;
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  line-height: 1.5;
+  color: var(--wf-text-muted);
+  overflow-wrap: anywhere;
+}
+.lab-mark {
+  display: inline-flex;
+  margin-left: 4px;
+  padding: 0 7px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-slate-300);
+  background: var(--wf-surface-2);
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.biomarker-history {
+  flex-shrink: 0;
+  overflow: visible;
+}
+.biomarker-history path {
+  fill: none;
+  stroke: var(--wf-marker);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.biomarker-history circle {
+  fill: var(--wf-marker);
+}
+.exam-notes-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.exam-notes-list li + li {
+  margin-top: 4px;
+}
+.exam-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--wf-radius-sm);
+  border: 1px solid var(--wf-border-soft);
+  background: var(--wf-surface-2);
+}
+.exam-questions legend {
+  padding: 0 4px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  color: var(--wf-text-2);
+}
+.exam-question {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 2px;
+  cursor: pointer;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.45;
+  color: var(--wf-text);
+}
+.exam-question input {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--wf-green-600);
+}
+.exam-question input:checked + span {
+  color: var(--wf-text-muted);
+}
+.exam-results-hint {
+  margin: 0;
+}
+
+/* ---------- Consultas ---------- */
+.next-appointment {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border-soft);
+  background: var(--wf-surface-2);
+}
+.next-appointment .eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+}
+.next-appointment-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.next-appointment-text {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.next-appointment-text h3 {
+  margin: 0;
+  font-size: var(--wf-fs-md);
+  overflow-wrap: anywhere;
+}
+.next-appointment-when {
+  margin: 2px 0 0;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.next-appointment-text .hint {
+  margin: 2px 0 0;
+}
+.next-appointment-notes {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.next-appointment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.next-appointment-actions > a,
+.next-appointment-actions > button {
+  flex: 1 1 150px;
+  min-height: 44px;
+}
+.next-appointment .overflow-menu .icon-btn,
+.appointment-row .overflow-menu .icon-btn {
+  width: 44px;
+  height: 44px;
+}
+.appointment-list {
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.appointment-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 6px 0;
+  border-top: 1px solid var(--wf-border-soft);
+}
+.appointment-list > .appointment-row:first-child {
+  border-top: 0;
+}
+.appointment-row-text {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.appointment-row-text strong {
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text);
+  overflow-wrap: anywhere;
+}
+.appointment-row-text span {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.appointments-past {
+  margin-top: 10px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--wf-border);
+}
+@media (prefers-reduced-motion: reduce) {
+  .exam-results-toggle svg {
+    transition: none;
+  }
+}

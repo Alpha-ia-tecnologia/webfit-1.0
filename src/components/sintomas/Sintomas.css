@@ -1,0 +1,291 @@
+/* Efeitos percebidos, "Como ficou?" e "Seu ciclo" (SERINGA-07). Só ardósia e superfícies neutras:
+   nada de vermelho ou âmbar num efeito, numa resposta ou na grade. */
+
+/* ---------- Bem-estar: chips, intensidade e nota de efeito forte ---------- */
+.entry-chips.symptom-chips button {
+  min-height: 44px;
+}
+.entry-chips.symptom-chips button[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.symptom-rows {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.symptom-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+  padding: 2px 4px 2px 12px;
+  border-radius: var(--wf-radius-md);
+  background: var(--wf-surface-2);
+}
+.symptom-name {
+  flex: 1 1 64px;
+  min-width: 0;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text);
+}
+.symptom-dots {
+  display: flex;
+}
+.symptom-dot {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+.symptom-dot > i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--wf-slate-300);
+  transition: background 0.15s;
+}
+.symptom-dot.is-on > i {
+  background: var(--wf-slate-700);
+  box-shadow: inset 0 0 0 2px var(--wf-slate-700);
+}
+.symptom-dot:focus-visible {
+  outline: 2px solid var(--wf-green-700);
+  outline-offset: -2px;
+}
+.symptom-word {
+  min-width: 68px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.symptom-strong {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 12px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface-2);
+  font-size: var(--wf-fs-sm);
+  line-height: 1.5;
+  color: var(--wf-text-2);
+}
+.symptom-strong strong {
+  color: var(--wf-text);
+}
+.symptom-strong p {
+  margin: 0;
+}
+@media (max-width: 359px) {
+  .symptom-name {
+    flex-basis: 100%;
+    padding-top: 6px;
+  }
+}
+
+/* ---------- Diário: chip do efeito com três pontinhos ---------- */
+.diary-chip.is-symptom {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--wf-surface-3);
+  color: var(--wf-text-2);
+  box-shadow: inset 0 0 0 1px var(--wf-border);
+}
+.symptom-mini {
+  display: inline-flex;
+  gap: 2px;
+}
+.symptom-mini > i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--wf-slate-400);
+}
+.symptom-mini > i.is-on {
+  background: var(--wf-slate-700);
+  box-shadow: none;
+}
+
+/* ---------- Diário: "Como ficou?" sob a refeição ---------- */
+.diary-meal-row:has(> .diary-satiety) {
+  flex-wrap: wrap;
+  row-gap: 0;
+}
+.diary-satiety {
+  flex: 0 0 100%;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 8px 4px 64px;
+}
+.satiety-ask {
+  min-height: 44px;
+  font-size: var(--wf-fs-sm);
+}
+.satiety-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface-2);
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.satiety-chip:hover {
+  border-color: var(--wf-slate-300);
+}
+.satiety-ask:focus-visible,
+.satiety-chip:focus-visible {
+  outline: 2px solid var(--wf-green-700);
+  outline-offset: 2px;
+}
+@media (max-width: 359px) {
+  .diary-satiety {
+    padding-left: 8px;
+  }
+}
+.satiety-options {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.satiety-options button {
+  min-height: 48px;
+  padding: 10px 16px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  font-size: var(--wf-fs-md);
+  font-weight: 600;
+  text-align: left;
+  color: var(--wf-text);
+}
+.satiety-options button:hover {
+  background: var(--wf-surface-2);
+}
+.satiety-options button[aria-pressed="true"] {
+  border-color: var(--wf-accent-fill);
+  background: var(--wf-accent-fill);
+  color: var(--wf-white);
+}
+.satiety-clear {
+  min-height: 44px;
+  margin-top: 8px;
+  font-size: var(--wf-fs-sm);
+}
+
+/* ---------- Evolução: "Seu ciclo" ---------- */
+.cycle-grid-card {
+  display: grid;
+  gap: 12px;
+}
+.cycle-grid-card .evol-card-head {
+  align-items: flex-start;
+}
+.cycle-grid-card .evol-card-head p {
+  margin: 2px 0 0;
+}
+.cycle-grid-card .segmented button {
+  min-height: 44px;
+}
+.cycle-grid {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 2px;
+}
+.cycle-grid thead th:not(:first-child),
+.cycle-grid td:not(.cg-corner) {
+  width: clamp(22px, 7vw, 28px);
+}
+.cycle-grid thead th {
+  padding: 0 0 4px;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  text-align: center;
+  color: var(--wf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.cycle-grid tbody th {
+  padding: 2px 6px 2px 0;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: left;
+  overflow-wrap: anywhere;
+  color: var(--wf-text-2);
+}
+.cycle-grid td {
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+}
+.cg-cell {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 100%;
+  max-width: 26px;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  vertical-align: middle;
+}
+.cg-cell.is-l0 {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--wf-border);
+}
+.cg-cell.is-l1 {
+  background: var(--wf-slate-200);
+}
+.cg-cell.is-l2 {
+  background: var(--wf-slate-400);
+}
+.cg-cell.is-l3 {
+  background: var(--wf-slate-700);
+}
+.cg-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--wf-slate-700);
+}
+.cg-cell.is-l2 .cg-dot,
+.cg-cell.is-l3 .cg-dot {
+  background: var(--wf-surface);
+}
+.cycle-grid-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.cycle-grid-legend .cg-cell {
+  width: 14px;
+  border-radius: 4px;
+}
+.cg-legend-sep {
+  padding: 0 4px;
+}
+.cycle-grid-empty {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .symptom-dot > i {
+    transition: none;
+  }
+}

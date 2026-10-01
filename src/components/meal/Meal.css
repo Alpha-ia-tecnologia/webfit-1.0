@@ -1,0 +1,473 @@
+/* ---------- Peças de refeição compartilhadas (fidelidade visual; Hoje, Diário, Registro, Dieta) ----------
+   Só tokens. Números: registro ou TACO. Nada de vermelho para "acima"; rosa só para erro. */
+
+/* Barra P/C/G nas cores fixas dos macros. */
+.macro-bar {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+  min-width: 0;
+}
+.macro-bar > span {
+  display: block;
+  min-width: 4px;
+  border-radius: 999px;
+}
+.macro-bar.is-sm > span {
+  height: 5px;
+}
+.macro-bar.is-md > span {
+  height: 6px;
+}
+.macro-bar.is-lg > span {
+  height: 8px;
+}
+.macro-bar .is-protein {
+  background: var(--wf-macro-protein);
+}
+.macro-bar .is-carbs {
+  background: var(--wf-macro-carbs);
+}
+.macro-bar .is-fat {
+  background: var(--wf-macro-fat);
+}
+
+/* Bloco do emoji (ou ícone) do alimento; o lado vem em --glyph-size. */
+.food-glyph {
+  --glyph-bg: var(--wf-surface-3);
+  --glyph-fg: var(--wf-text-2);
+  --glyph-border: var(--wf-border-soft);
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--glyph-size);
+  height: var(--glyph-size);
+  border-radius: calc(var(--glyph-size) * 0.32);
+  background: var(--glyph-bg);
+  color: var(--glyph-fg);
+  line-height: 1;
+}
+.food-glyph.tone-amber {
+  --glyph-bg: var(--wf-amber-50);
+  --glyph-fg: var(--wf-amber-700);
+  --glyph-border: var(--wf-amber-200);
+}
+.food-glyph.tone-mint {
+  --glyph-bg: var(--wf-mint-50);
+  --glyph-fg: var(--wf-green-700);
+  --glyph-border: var(--wf-mint-200);
+}
+.food-glyph.tone-sky {
+  --glyph-bg: var(--wf-sky-50);
+  --glyph-fg: var(--wf-sky-700);
+  --glyph-border: var(--wf-sky-100);
+}
+.food-glyph.tone-indigo {
+  --glyph-bg: var(--wf-indigo-50);
+  --glyph-fg: var(--wf-indigo-700);
+  --glyph-border: var(--wf-tone-body-border);
+}
+.food-glyph.tone-mind {
+  --glyph-bg: var(--wf-tone-mind-bg);
+  --glyph-fg: var(--wf-tone-mind-fg);
+  --glyph-border: var(--wf-tone-mind-border);
+}
+.food-glyph.is-bordered {
+  box-shadow: inset 0 0 0 1px var(--glyph-border);
+}
+.food-glyph.is-circle {
+  border-radius: 50%;
+}
+.food-glyph.has-ring {
+  box-shadow: 0 0 0 2px var(--wf-surface);
+}
+.food-glyph.is-28 {
+  font-size: var(--wf-fs-md);
+}
+.food-glyph.is-34 {
+  font-size: var(--wf-fs-lg);
+}
+.food-glyph.is-40 {
+  font-size: var(--wf-fs-xl);
+}
+.food-glyph.is-44,
+.food-glyph.is-48 {
+  font-size: var(--wf-fs-2xl);
+}
+.food-glyph.is-56 {
+  font-size: var(--wf-fs-3xl);
+}
+.glyph-stack {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.glyph-stack > .food-glyph + .food-glyph {
+  margin-left: -10px;
+}
+.glyph-stack > .food-glyph.is-28 + .food-glyph {
+  margin-left: -12px;
+}
+
+/* kcal: número forte e a unidade menor. */
+.kcal-stat {
+  display: inline-flex;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.kcal-stat strong {
+  font-family: var(--wf-font-heading);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--wf-text);
+}
+.kcal-stat small {
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.kcal-stat.is-stack {
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+}
+.kcal-stat.is-stack strong {
+  font-size: var(--wf-fs-xl);
+}
+.kcal-stat.is-stack small {
+  font-size: var(--wf-fs-xs);
+}
+.kcal-stat.is-inline {
+  align-items: baseline;
+  gap: 4px;
+}
+.kcal-stat.is-inline strong {
+  font-size: var(--wf-fs-lg);
+}
+.kcal-stat.is-inline small {
+  font-size: var(--wf-fs-sm);
+}
+
+/* Cabeçalho de seção fora de cartão. */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.section-header-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-right: auto;
+}
+.section-header.is-title .section-header-title {
+  font-size: var(--wf-fs-xl);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.section-header.is-eyebrow .section-header-title {
+  font-family: var(--wf-font);
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wf-text-muted);
+}
+.section-header-count {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text-muted);
+  white-space: nowrap;
+}
+.section-header-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  color: var(--wf-green-700);
+  white-space: nowrap;
+}
+.section-header-action:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 7 pontos da semana de um combinado. */
+.week-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.week-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.week-dots .is-done {
+  background: var(--wf-green-500);
+}
+.week-dots .is-missed {
+  background: var(--wf-slate-300);
+}
+.week-dots .is-today {
+  box-shadow: inset 0 0 0 1.5px var(--wf-slate-400);
+}
+.week-dots .is-future,
+.week-dots .is-before {
+  box-shadow: inset 0 0 0 1.5px var(--wf-border);
+}
+
+/* Cartão de refeição. */
+.meal-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 24px;
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+  transition:
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+.meal-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.meal-card-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.meal-card-title {
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--wf-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.meal-card-subtitle {
+  font-size: var(--wf-fs-base);
+  color: var(--wf-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.meal-card-meta {
+  font-size: var(--wf-fs-base);
+  color: var(--wf-text-muted);
+}
+.meal-card-text .macro-bar {
+  margin-top: 4px;
+}
+.meal-card-kcal,
+.meal-card-badge {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.meal-card-kcal + .meal-card-badge {
+  margin-left: 0;
+}
+/* Controles próprios ficam acima do toque do cartão inteiro. */
+.meal-card-trailing {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.meal-card-badge {
+  position: relative;
+  z-index: 2;
+}
+.meal-card-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+.meal-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.meal-card-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+}
+.meal-card-hit:focus-visible,
+.meal-card-toggle:focus-visible::after {
+  outline: 3px solid color-mix(in srgb, var(--wf-emerald) 45%, transparent);
+  outline-offset: 2px;
+}
+.meal-card-toggle:focus-visible::after {
+  border-radius: 16px;
+}
+.meal-card-toggle:focus-visible {
+  outline: none;
+}
+.meal-card.is-pressable:hover {
+  box-shadow: var(--wf-shadow-float);
+}
+.meal-card.is-pressable:active {
+  transform: scale(0.99);
+}
+.meal-card.is-card {
+  min-height: 74px;
+}
+/* Vaga: tracejada, sem sombra; a ação vem em trailing (ou o cartão todo, no compacto). */
+.meal-card.is-slot {
+  min-height: 64px;
+  padding: 12px 14px;
+  background: transparent;
+  box-shadow: none;
+  border: 1.5px dashed var(--wf-slate-300);
+}
+.meal-card.is-slot .meal-card-title {
+  font-weight: 800;
+}
+.meal-card.is-slot.is-compact {
+  min-height: 66px;
+  border-radius: 20px;
+  padding: 12px;
+}
+.meal-card.is-slot.is-compact .meal-card-title {
+  font-weight: 700;
+}
+.meal-card.is-group .meal-card-body {
+  padding-top: 12px;
+  border-top: 1px solid var(--wf-border-soft);
+}
+/* Plano (Dieta): recolhida, feita, próxima e aberta. */
+.meal-card.is-collapsed {
+  min-height: 56px;
+  padding: 10px 12px;
+  border-radius: 22px;
+}
+.meal-card.is-done {
+  background: linear-gradient(90deg, var(--wf-mint-50), var(--wf-surface));
+}
+.meal-card.is-next {
+  border: 2px solid var(--wf-mint-300);
+  box-shadow:
+    0 0 0 6px var(--wf-mint-50),
+    var(--wf-shadow-card);
+}
+.meal-card.is-open .meal-card-title {
+  font-size: var(--wf-fs-md);
+}
+.meal-card.is-open .meal-card-meta {
+  font-size: var(--wf-fs-sm);
+}
+/* Recolhida (Dieta): título de 15 px numa linha, ao lado da pilha de emojis e da pílula. */
+.meal-card.is-collapsed .meal-card-title {
+  font-size: var(--wf-fs-md);
+}
+.meal-card.is-collapsed .meal-card-head {
+  gap: 10px;
+}
+.meal-card.is-collapsed .meal-card-subtitle {
+  font-size: var(--wf-fs-sm);
+}
+/* Recolhível: o botão fica no título; o ::after cobre o cabeçalho do cartão (alvo ≥ 44 px). */
+.meal-card.is-toggleable .meal-card-head {
+  position: relative;
+  min-height: 44px;
+}
+.meal-card-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.meal-card-toggle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Colunas de macros (plano da anamnese, metas do Meu espaço; também "82 / 115 g"). */
+.macro-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.macro-columns li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.macro-col-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--wf-fs-md);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.macro-col-label i {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+.macro-columns .is-protein i {
+  background: var(--wf-macro-protein);
+}
+.macro-columns .is-carbs i {
+  background: var(--wf-macro-carbs);
+}
+.macro-columns .is-fat i {
+  background: var(--wf-macro-fat);
+}
+.macro-col-value {
+  white-space: nowrap;
+}
+.macro-col-value strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text);
+}
+.macro-col-value small {
+  font-size: var(--wf-fs-md);
+  font-weight: 500;
+  color: var(--wf-text-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .meal-card {
+    transition: none;
+  }
+  .meal-card.is-pressable:active {
+    transform: none;
+  }
+}

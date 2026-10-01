@@ -1,0 +1,132 @@
+/* Texto do agente: títulos, listas, passos e metadados no lugar de markdown cru. */
+.rich-text {
+  display: grid;
+  gap: 10px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.rich-text p,
+.rich-text ul,
+.rich-text ol,
+.rich-text h3,
+.rich-text h4 {
+  margin: 0;
+}
+.rich-section {
+  display: grid;
+  gap: 10px;
+}
+.rich-section + .rich-section {
+  padding-top: 14px;
+  border-top: 1px solid var(--wf-border);
+}
+.rich-section.card-like {
+  padding: 16px;
+  border: 1px solid var(--wf-border);
+  border-radius: var(--wf-radius-md);
+  background: var(--wf-surface-3);
+}
+.rich-section.card-like + .rich-section.card-like {
+  padding-top: 16px;
+}
+.rich-title {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-lg);
+  font-weight: 700;
+  color: var(--wf-primary);
+}
+.rich-heading {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-base);
+  font-weight: 700;
+  color: var(--wf-text);
+  margin-top: 4px;
+}
+.rich-list {
+  display: grid;
+  gap: 6px;
+  padding: 0;
+  list-style: none;
+}
+.rich-list li {
+  position: relative;
+  padding-left: 18px;
+}
+.rich-list li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.62em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--wf-emerald);
+}
+.rich-steps {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+.rich-steps li {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+.rich-steps li::before {
+  content: attr(data-step);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--wf-mint-100);
+  color: var(--wf-green-800);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.rich-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0;
+  list-style: none;
+}
+.rich-meta li {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  max-width: 100%;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--wf-surface-2);
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-sm);
+}
+.rich-meta-label {
+  flex: none;
+  white-space: nowrap;
+  color: var(--wf-text-muted);
+}
+.rich-hidden {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--wf-surface-2);
+  color: var(--wf-text-muted);
+  font-size: 0.85em;
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+/* Dentro da bolha do usuário (fundo escuro) os realces herdam a cor clara. */
+.chat-row.user .rich-hidden,
+.chat-row.user .rich-meta li {
+  background: rgb(255 255 255 / 0.14);
+  color: inherit;
+}

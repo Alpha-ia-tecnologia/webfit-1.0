@@ -1,0 +1,716 @@
+/* ---------- Minha dieta: o dia em linha do tempo (fidelidade visual) ----------
+   Trilho com horário e nó por refeição; cartões (meal/MealCard) recolhidos para feitas e passadas,
+   abertos para a próxima e as futuras; itens com emoji, medida caseira e "⇄ Trocar"; barra P/C/G em
+   gramas; "Para facilitar" em atalhos. Só tokens; nunca vermelho para passada ou acima da meta. */
+.diet-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.diet-v2 > .diet-plan-tag {
+  align-self: flex-start;
+  margin-bottom: 0;
+}
+.diet-v2 > .diet-preview-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--wf-radius-sm);
+  background: var(--wf-surface-2);
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.diet-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.plan-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  column-gap: 4px;
+  align-items: start;
+}
+/* Trilho: neutro; verde até a última refeição feita (ou a próxima). O nó cobre a linha. */
+.plan-step::before {
+  content: "";
+  position: absolute;
+  top: 44px;
+  bottom: -8px;
+  left: 21px;
+  width: 2px;
+  border-radius: 999px;
+  background: var(--wf-border);
+}
+.plan-step:last-child::before {
+  bottom: 16px;
+}
+.plan-step.has-active-line::before {
+  background: var(--wf-mint-200);
+}
+.plan-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 14px;
+}
+.plan-rail-time {
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text-muted);
+}
+.plan-step.is-next .plan-rail-time {
+  color: var(--wf-green-700);
+}
+.plan-rail-node {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--wf-bg);
+  box-shadow: inset 0 0 0 2px var(--wf-slate-300);
+  color: var(--wf-white);
+}
+.plan-step.is-done .plan-rail-node {
+  width: 22px;
+  height: 22px;
+  background: var(--wf-green-500);
+  box-shadow: none;
+}
+.plan-step.is-next .plan-rail-node {
+  width: 20px;
+  height: 20px;
+  background: var(--wf-emerald);
+  box-shadow: 0 0 0 6px var(--wf-mint-100);
+}
+
+/* Cartão da refeição do plano (sobre .meal-card). Aberta: o título pode quebrar; recolhida: uma linha. */
+.meal-card.plan-meal.is-open .meal-card-title {
+  white-space: normal;
+}
+.meal-card.plan-meal.is-open {
+  padding: 14px;
+}
+/* Próxima: a pílula fica na linha do título e a meta ("173 kcal · 7 g proteína") passa por baixo dela. */
+.meal-card.plan-meal.is-next .meal-card-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 2px;
+}
+.meal-card.plan-meal.is-next .meal-card-tile {
+  grid-row: 1 / span 2;
+}
+.meal-card.plan-meal.is-next .meal-card-text {
+  display: contents;
+}
+.meal-card.plan-meal.is-next .meal-card-title {
+  grid-column: 2;
+  grid-row: 1;
+}
+.meal-card.plan-meal.is-next .meal-card-meta {
+  grid-column: 2 / 4;
+  grid-row: 2;
+}
+.meal-card.plan-meal.is-next .meal-card-badge {
+  grid-column: 3;
+  grid-row: 1;
+  margin-left: 0;
+}
+.meal-card.plan-meal .meal-card-meta {
+  line-height: 1.35;
+}
+.plan-meal-protein {
+  font-weight: 700;
+  color: var(--wf-green-700);
+}
+.plan-meal .next-meal-until {
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.plan-next-pill,
+.plan-done-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.plan-next-pill {
+  min-height: 26px;
+  padding: 0 10px 0 8px;
+  gap: 5px;
+  background: var(--wf-inverse);
+  color: var(--wf-white);
+  font-size: var(--wf-fs-xs);
+}
+.plan-next-pill i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wf-green-500);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--wf-green-500) 35%, transparent);
+}
+.plan-done-pill {
+  min-height: 28px;
+  padding: 0 10px 0 8px;
+  gap: 4px;
+  background: var(--wf-green-600);
+  color: var(--wf-white);
+  font-size: var(--wf-fs-sm);
+}
+.plan-items {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.plan-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 12px;
+  min-height: 48px;
+  padding: 4px 0;
+}
+.plan-item + .plan-item {
+  border-top: 1px solid var(--wf-border-soft);
+}
+.plan-item-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.plan-item-name {
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--wf-text);
+  overflow-wrap: anywhere;
+}
+.plan-item-portion {
+  font-size: var(--wf-fs-sm);
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text-muted);
+}
+.plan-item-portion strong {
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.plan-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 2px;
+}
+/* "⇄ Trocar" do item: 28 px visíveis, 44 px de toque. */
+.plan-item-swap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--wf-sky-100);
+  border-radius: 999px;
+  background: var(--wf-sky-50);
+  color: var(--wf-sky-700);
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+}
+.plan-item-swap::after {
+  content: "";
+  position: absolute;
+  inset: -8px -2px;
+}
+.plan-item-swap[aria-expanded="true"] {
+  border-color: var(--wf-sky-300);
+}
+.diet-swaps {
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 6px 0 2px;
+  padding: 8px 10px;
+  border-radius: var(--wf-radius-sm);
+  font-size: var(--wf-fs-sm);
+  background: var(--wf-surface-2);
+}
+.diet-swaps[hidden] {
+  display: none;
+}
+.diet-swaps-label {
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.diet-swaps ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--wf-text);
+}
+.diet-swaps li {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+.diet-swap-tag {
+  display: inline-flex;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--wf-surface-2);
+  color: var(--wf-text-muted);
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+}
+.plan-meal-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.plan-meal-bar .macro-bar {
+  flex: 1;
+}
+.plan-meal-grams {
+  flex-shrink: 0;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text-muted);
+  white-space: nowrap;
+}
+.diet-meal-status {
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.diet-meal-status:empty {
+  display: none;
+}
+.plan-meal .meal-card-footer {
+  flex-wrap: nowrap;
+}
+.meal-actions-wrap {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.meal-actions:empty {
+  display: none;
+}
+/* "Ajustar e registrar": botão de texto sob as ações (o conceito tem só "Trocar refeição" e "Registrar"). */
+.plan-adjust {
+  position: relative;
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+}
+.plan-adjust::after {
+  content: "";
+  position: absolute;
+  inset: -6px -4px;
+}
+.plan-adjust:disabled {
+  opacity: 0.6;
+}
+.plan-adjust:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--wf-emerald) 45%, transparent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.meal-actions {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.plan-swap-meal,
+.plan-register {
+  display: inline-flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 8px;
+  gap: 5px;
+  border-radius: 14px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+  white-space: nowrap;
+  transition:
+    transform 0.15s,
+    filter 0.2s;
+}
+.plan-swap-meal svg,
+.plan-register svg {
+  flex-shrink: 0;
+}
+.plan-swap-meal {
+  border: 0;
+  background: var(--wf-surface-2);
+  color: var(--wf-text);
+}
+.plan-register.is-primary {
+  border: 0;
+  background: var(--wf-gradient-btn);
+  color: var(--wf-white);
+  box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--wf-green-600) 60%, transparent);
+}
+.plan-register.is-outline {
+  border: 1.5px solid var(--wf-border);
+  background: var(--wf-surface);
+  color: var(--wf-text);
+}
+/* Passada recolhida: "Registrar" contornado de 34 px no cabeçalho (44 px de toque). */
+.plan-register.is-compact {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+}
+.plan-register.is-compact::after {
+  content: "";
+  position: absolute;
+  inset: -5px -2px;
+}
+.plan-swap-meal:hover:not(:disabled),
+.plan-register.is-outline:hover:not(:disabled) {
+  filter: brightness(0.97);
+}
+.plan-register.is-primary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.plan-swap-meal:active:not(:disabled),
+.plan-register:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.plan-register:disabled {
+  opacity: 0.6;
+}
+.meal-actions .overflow-menu {
+  flex: 0 0 auto;
+}
+
+/* ---------- Semana do plano (IA-X5): "Outros dias do plano", depois da linha do tempo ---------- */
+.diet-week {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 440px;
+}
+.diet-week-title {
+  margin: 0;
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  color: var(--wf-text);
+}
+/* 320 px: 7 chips de ~38 px (mesma exceção da semana do Hoje); a partir de 390 px, mais respiro. */
+.diet-week-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+.diet-week-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  height: 56px;
+  padding: 4px 0;
+  border-radius: 14px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  color: var(--wf-text-2);
+  transition:
+    transform 0.15s,
+    background 0.2s,
+    border-color 0.2s;
+}
+.diet-week-day:hover {
+  border-color: var(--wf-slate-300);
+}
+.diet-week-day:active {
+  transform: scale(0.95);
+}
+.diet-week-day:focus-visible {
+  outline: 2px solid var(--wf-green-700);
+  outline-offset: 2px;
+}
+.diet-week-letter {
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--wf-text-muted);
+}
+.diet-week-num {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.diet-week-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.diet-week-dot.is-on {
+  background: var(--wf-tone-food-fg);
+}
+/* Hoje: contorno azul-marinho (claro no tema escuro). */
+.diet-week-day.is-today {
+  border: 1.5px solid var(--wf-marker);
+}
+.diet-week-day[aria-checked="true"] {
+  border-color: var(--wf-accent-fill);
+  background: var(--wf-accent-fill);
+  color: var(--wf-white);
+}
+.diet-week-day[aria-checked="true"] .diet-week-letter {
+  color: var(--wf-on-fill-mint-50);
+}
+.diet-week-day[aria-checked="true"] .diet-week-dot.is-on {
+  background: var(--wf-on-fill-mint);
+}
+.diet-week-day.is-today[aria-checked="true"] {
+  box-shadow:
+    0 0 0 2px var(--wf-bg),
+    0 0 0 3.5px var(--wf-marker);
+}
+.diet-week-legend {
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  line-height: 1.5;
+  color: var(--wf-text-muted);
+}
+@media (min-width: 390px) {
+  .diet-week-days {
+    gap: 6px;
+  }
+}
+
+/* ---------- "Para facilitar": dicas do agente (faixa rolável) e atalhos Despensa / Compras ---------- */
+.plan-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  margin-top: 8px;
+}
+.plan-shortcuts .section-header.is-title .section-header-title {
+  font-size: var(--wf-fs-lg);
+}
+.plan-shortcuts .section-header-count {
+  font-size: var(--wf-fs-base);
+  font-weight: 500;
+}
+.plan-tips {
+  display: flex;
+  gap: 12px;
+  margin: 0 -16px;
+  padding: 2px 16px 8px;
+  overflow-x: auto;
+  list-style: none;
+  scroll-padding-inline: 16px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.plan-tips::-webkit-scrollbar {
+  display: none;
+}
+.plan-tips:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--wf-emerald) 45%, transparent);
+  outline-offset: -3px;
+  border-radius: 20px;
+}
+.plan-tip {
+  display: flex;
+  flex: 0 0 min(252px, 74%);
+  align-items: center;
+  gap: 10px;
+  min-height: 72px;
+  padding: 12px 14px;
+  border-radius: 20px;
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+  scroll-snap-align: start;
+}
+.plan-tip p {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.35;
+  color: var(--wf-text-muted);
+}
+.plan-tip strong {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text);
+}
+.plan-tips .plan-tip-icon,
+.plan-app-tiles .shortcut-tile .shortcut-tile-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+.plan-app-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.plan-app-tiles .shortcut-tile {
+  gap: 10px;
+  padding: 12px 10px 12px 12px;
+}
+.plan-app-tiles .shortcut-tile-sub {
+  font-size: var(--wf-fs-sm);
+}
+/* "3 itens na lista" (abre a lista): uma linha, sem subir por cima do título. */
+.plan-app-tiles .shortcut-tile-link {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: var(--wf-fs-sm);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Perguntas, texto integral e rodapé ---------- */
+.diet-more {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.diet-more > h2 {
+  margin: 8px 0 0;
+  font-size: var(--wf-fs-lg);
+}
+.diet-highlights,
+.diet-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.diet-highlights li,
+.diet-questions li {
+  position: relative;
+  padding-left: 16px;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.diet-highlights li::before,
+.diet-questions li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--wf-tone-food-fg);
+}
+.diet-answer,
+.diet-text-toggle {
+  align-self: flex-start;
+  min-height: 44px;
+}
+.diet-text-toggle svg {
+  transition: transform 0.2s;
+}
+.diet-text-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.diet-text-panel {
+  scroll-margin-top: 96px;
+}
+.diet-text-panel[hidden] {
+  display: none;
+}
+.diet-more .notice,
+.diet-more .diet-plan-foot {
+  margin-top: 4px;
+}
+@media (max-width: 359px) {
+  .meal-card.plan-meal.is-open {
+    padding: 14px 12px;
+  }
+  /* 320 px: "Trocar refeição" e "Registrar" um sobre o outro (lado a lado não cabem com o ícone). */
+  .meal-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .plan-swap-meal,
+  .plan-register {
+    flex: 0 0 auto;
+  }
+  /* A pilha de emojis sai da refeição recolhida: o nome e "às 08:10" ficam inteiros ao lado da pílula. */
+  .meal-card.plan-meal.is-collapsed .glyph-stack {
+    display: none;
+  }
+  .meal-card.plan-meal.is-collapsed .meal-card-title {
+    white-space: normal;
+  }
+  .plan-app-tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .diet-week-day,
+  .plan-swap-meal,
+  .plan-register,
+  .diet-text-toggle svg {
+    transition: none;
+  }
+  .diet-week-day:active,
+  .plan-swap-meal:active:not(:disabled),
+  .plan-register:active:not(:disabled) {
+    transform: none;
+  }
+}

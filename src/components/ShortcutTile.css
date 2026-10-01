@@ -1,0 +1,128 @@
+/* ---------- Atalho com ícone (ShortcutTile) ----------
+   tile: 72 px na grade de 2 colunas (Dieta "Para facilitar") · row: linha de 72 px com seta (Hoje). */
+.shortcut-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 72px;
+  padding: 12px 14px;
+  border-radius: 20px;
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+  transition:
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+.shortcut-tile:hover {
+  box-shadow: var(--wf-shadow-float);
+}
+.shortcut-tile:active {
+  transform: scale(0.99);
+}
+.shortcut-tile.is-row {
+  border-radius: 24px;
+  padding: 12px 12px 12px 14px;
+}
+.shortcut-tile-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.shortcut-tile-title {
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--wf-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shortcut-tile.is-row .shortcut-tile-title {
+  font-size: var(--wf-fs-lg);
+}
+.shortcut-tile-sub {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  font-size: var(--wf-fs-base);
+  line-height: 1.35;
+  color: var(--wf-text-muted);
+}
+.shortcut-tile.lines-2 .shortcut-tile-sub {
+  -webkit-line-clamp: 2;
+}
+/* Só o texto (dica do plano, sem título): a frase em fs-sm 600, mais escura. */
+.shortcut-tile.is-text-only .shortcut-tile-sub {
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.shortcut-tile-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: 1px;
+}
+.shortcut-tile-chevron {
+  flex-shrink: 0;
+  color: var(--wf-text-muted);
+}
+/* O cartão todo é o botão principal; a segunda ação fica por cima. */
+.shortcut-tile-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+}
+.shortcut-tile-hit:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--wf-emerald) 45%, transparent);
+  outline-offset: 2px;
+}
+.shortcut-tile-action,
+.shortcut-tile-link {
+  position: relative;
+  z-index: 2;
+}
+.shortcut-tile-action {
+  flex-shrink: 0;
+  min-height: 40px;
+}
+.shortcut-tile-link {
+  align-self: flex-start;
+  min-height: 44px;
+  margin: -12px 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: var(--wf-fs-base);
+  font-weight: 700;
+  color: var(--wf-green-700);
+  text-align: left;
+}
+/* Linha em tela estreita (320 px): sem a seta (o cartão todo continua tocável), o título ao lado de "Registrar" cabe. */
+@media (max-width: 359px) {
+  .shortcut-tile.is-row {
+    gap: 10px;
+  }
+  .shortcut-tile.is-row .shortcut-tile-chevron {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shortcut-tile {
+    transition: none;
+  }
+  .shortcut-tile:active {
+    transform: none;
+  }
+}

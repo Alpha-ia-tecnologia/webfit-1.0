@@ -1,0 +1,55 @@
+# Dependências e saídas geradas (em todos os projetos)
+node_modules/
+build/
+dist/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.expo/
+.gradle/
+.kotlin/
+*.tsbuildinfo
+__pycache__/
+*.py[cod]
+
+# Logs, configurações locais e backups de trabalho
+*.log
+.local/
+.claude/
+.claude-flow/
+.codex/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+~$*
+
+# Segredos: versionar apenas modelos sem valores reais
+.env*
+!.env.example
+*.pem
+*.key
+*.p12
+*.p8
+*.jks
+*.keystore
+*.mobileprovision
+credentials.json
+service-account*.json
+
+# Bancos locais, exportações e pacotes instaláveis
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+*.dump
+*.backup
+*.apk
+*.aab
+*.ipa
+
+# Projetos nativos gerados pelo Expo
+/mobile/android/
+/mobile/ios/

@@ -1,0 +1,120 @@
+/* "Seu ciclo da semana" (SERINGA-11): dica da fase no Hoje e na folha "Aplicação registrada", e a
+   folha com as três fases. Superfície neutra, sem cor de alerta, sem animação. */
+.cycle-tip {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border-soft);
+  background: var(--wf-surface-2);
+}
+.cycle-tip.is-compact {
+  margin-top: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.cycle-tip p {
+  margin: 0;
+}
+.cycle-tip-kicker {
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--wf-text-2);
+}
+.cycle-tip.is-compact .cycle-tip-kicker {
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text);
+}
+.cycle-tip-day,
+.cycle-tip-habit,
+.cycle-phase-sub {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.cycle-tip-text {
+  font-size: var(--wf-fs-base);
+  line-height: 1.5;
+  color: var(--wf-text);
+}
+.cycle-tip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 6px;
+}
+.cycle-tip-add {
+  min-height: 44px;
+  padding: 8px 14px;
+}
+.cycle-tip-phases {
+  min-height: 44px;
+  font-size: var(--wf-fs-sm);
+}
+.cycle-tip-done {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.cycle-tip-done:focus-visible {
+  outline: 2px solid var(--wf-green-700);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ---------- Folha "Seu ciclo da semana" ---------- */
+.cycle-phases {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+}
+.cycle-phase {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border-soft);
+  background: var(--wf-surface);
+}
+.cycle-phase.is-current {
+  border-color: var(--wf-slate-300);
+  background: var(--wf-surface-2);
+}
+.cycle-phase-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cycle-phase-head h3 {
+  margin: 0;
+  font-size: var(--wf-fs-md);
+}
+.cycle-phase p {
+  margin: 0;
+}
+.cycle-phase-tips {
+  display: grid;
+  gap: 10px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.cycle-phase-tips > li {
+  display: grid;
+  gap: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--wf-border-soft);
+}
+.cycle-phase-tips .cycle-tip-add {
+  justify-self: start;
+  margin-top: 4px;
+}
+.cycle-note {
+  margin: 12px 0 0;
+}

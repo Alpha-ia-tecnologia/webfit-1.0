@@ -1,0 +1,195 @@
+/* ---------- Faixa da semana (fidelidade visual, conceitos 01 e 03) ----------
+   "rings" (Hoje): rótulo "Seg" em cima, anel contínuo de presença; hoje numa pílula branca elevada.
+   "dots" (Diário): rótulo "SEX", número e um ponto nos dias com registro; o dia escolhido em navy.
+   Sem bordas nos dias, sem marca de falta nem sequência. */
+.week-strip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+}
+.week-days {
+  flex: 1;
+  display: grid;
+  /* Colunas fluidas: 7 dias cabem nos 288 px do Hoje a 320 px, sem rolagem lateral. */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  min-width: 0;
+  max-width: 440px;
+  padding: 4px 2px;
+  /* O gesto horizontal troca a semana; a rolagem vertical da página continua. */
+  touch-action: pan-y;
+}
+.week-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  height: 68px;
+  padding: 6px 2px;
+  border: 0;
+  border-radius: 20px;
+  background: transparent;
+  color: var(--wf-text-muted);
+  transition:
+    transform 0.15s,
+    background 0.2s,
+    box-shadow 0.2s;
+}
+.week-chip:hover:not(:disabled) {
+  color: var(--wf-text-2);
+}
+.week-chip:active:not(:disabled) {
+  transform: scale(0.95);
+}
+.week-chip:focus-visible {
+  outline: 2px solid var(--wf-green-700);
+  outline-offset: 2px;
+}
+/* Dia que ainda não chegou: sem ação e sem cobrança; o texto segue legível (AA), só sem anel. */
+.week-chip:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.week-chip-day {
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ---------- rings (Hoje) ---------- */
+.is-rings .week-chip-day {
+  font-size: var(--wf-fs-md);
+  text-transform: capitalize;
+}
+.is-rings .week-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(30px, 100%);
+  aspect-ratio: 1;
+}
+.is-rings .week-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.is-rings .week-ring strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.week-track {
+  stroke: var(--wf-surface-2);
+}
+.week-track.is-future {
+  stroke: var(--wf-border);
+  stroke-dasharray: 2 3;
+}
+.week-arc {
+  stroke: var(--wf-green-500);
+}
+.is-rings .week-chip.is-future .week-ring strong {
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+/* Hoje: pílula branca elevada, rótulo verde. */
+.is-rings .week-chip.today {
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+.is-rings .week-chip.today .week-chip-day {
+  font-weight: 800;
+  color: var(--wf-green-700);
+}
+
+/* ---------- dots (Diário) ---------- */
+.is-dots .week-chip {
+  gap: 4px;
+  border-radius: 22px;
+}
+.is-dots .week-chip-day {
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.week-number {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+}
+.week-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--wf-slate-300);
+}
+.week-dot.is-on {
+  background: var(--wf-green-500);
+  box-shadow: none;
+}
+/* Dia escolhido: pílula navy (--wf-inverse também no escuro), texto claro e o ponto verde. */
+.is-dots .week-chip.active {
+  background: var(--wf-inverse);
+  color: var(--wf-on-fill-slate);
+  box-shadow: 0 8px 16px -6px color-mix(in srgb, var(--wf-navy) 50%, transparent);
+}
+.is-dots .week-chip.active .week-number {
+  color: var(--wf-white);
+}
+
+.week-arrow {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  color: var(--wf-text-muted);
+}
+.week-arrow:hover:not(:disabled) {
+  color: var(--wf-text-2);
+  background: var(--wf-surface-2);
+}
+.week-arrow:disabled {
+  opacity: 0.35;
+}
+.header-strip .week-strip {
+  justify-content: center;
+}
+.hoje-week {
+  margin-bottom: 14px;
+}
+@media (max-width: 600px) {
+  /* No celular, deslizar e o teclado trocam o dia; o calendário fica no cabeçalho. */
+  .week-strip.is-browsable .week-arrow {
+    display: none;
+  }
+}
+@media (max-width: 359px) {
+  .week-days {
+    gap: 2px;
+  }
+  .is-dots .week-chip-day {
+    letter-spacing: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .week-chip {
+    transition: none;
+  }
+  .week-chip:active:not(:disabled) {
+    transform: none;
+  }
+}

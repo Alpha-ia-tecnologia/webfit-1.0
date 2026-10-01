@@ -1,0 +1,66 @@
+/* ---------- Anel da próxima dose estimada (NextDoseRing): Hoje e Seringa e dose ----------
+   Sempre no tom da medicação (ou claro sobre navy), nunca vermelho ou âmbar. */
+.dose-ring {
+  position: relative;
+  width: var(--dose-ring-size, 88px);
+  height: var(--dose-ring-size, 88px);
+  flex-shrink: 0;
+}
+.dose-ring svg {
+  width: 100%;
+  height: 100%;
+}
+.dose-ring-fill {
+  transition: stroke 0.3s var(--wf-ease);
+}
+.dose-ring-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+  color: var(--wf-tone-medication-fg);
+}
+.dose-ring-center strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-2xl);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+}
+.dose-ring-center strong.is-word {
+  font-size: var(--wf-fs-lg);
+}
+.dose-ring-center small {
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+/* Sobre o cartão navy da Seringa: trilho translúcido, arco em gradiente, ponta branca. */
+.dose-ring.is-inverse .dose-ring-track {
+  stroke: color-mix(in srgb, var(--wf-white) 16%, transparent);
+}
+.dose-ring-end {
+  fill: var(--wf-white);
+}
+.dose-ring.is-inverse .dose-ring-center {
+  color: var(--wf-mint-300);
+}
+.dose-ring.is-inverse .dose-ring-center strong {
+  font-size: var(--wf-fs-5xl);
+  color: var(--wf-white);
+}
+.dose-ring.is-inverse .dose-ring-center strong.is-word {
+  font-size: var(--wf-fs-xl);
+}
+.dose-ring.is-inverse .dose-ring-center small {
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-on-fill-mint);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dose-ring-fill {
+    transition: none;
+  }
+}

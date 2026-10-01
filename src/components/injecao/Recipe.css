@@ -1,0 +1,480 @@
+/* Seringa e dose, conceito 10: "Próxima aplicação" (navy), "Minha dose de sempre", "Antes de aplicar"
+   e a faixa "Últimas aplicações". Só tokens (--wf-*), texto ≥ 12 px, alvos de 44 px; nada vermelho. */
+
+/* ---------- Próxima aplicação ---------- */
+.inj-next {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: var(--wf-radius-lg);
+  border: 1px solid var(--wf-inverse-border);
+  background:
+    radial-gradient(70% 95% at 0% 100%, color-mix(in srgb, var(--wf-green-500) 32%, transparent), transparent 72%),
+    radial-gradient(65% 90% at 100% 0%, color-mix(in srgb, var(--wf-sky-500) 22%, transparent), transparent 70%),
+    var(--wf-navy);
+  color: var(--wf-white);
+  box-shadow: var(--wf-shadow-float);
+}
+.inj-next-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--wf-white) 16%, transparent);
+  background: color-mix(in srgb, var(--wf-white) 8%, transparent);
+  color: var(--wf-on-fill-mint);
+}
+.inj-next-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+}
+.inj-next-kicker {
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--wf-green-500);
+}
+.inj-next-title {
+  margin: 0;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--wf-white);
+}
+.inj-next-line,
+.inj-next-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-on-fill-slate);
+}
+.inj-next-line svg {
+  flex-shrink: 0;
+  color: var(--wf-green-500);
+}
+.inj-next-hint {
+  font-size: var(--wf-fs-xs);
+}
+.inj-next-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  margin: 6px 0 0;
+  padding: 3px 12px 3px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--wf-white) 22%, transparent);
+  background: color-mix(in srgb, var(--wf-white) 8%, transparent);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-white);
+}
+.inj-next-chip svg {
+  flex-shrink: 0;
+  color: var(--wf-green-500);
+}
+
+/* ---------- Minha dose de sempre ---------- */
+.inj-card.inj-recipe {
+  gap: 10px;
+  padding: 16px 14px 6px;
+}
+.inj-recipe-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.inj-card.inj-recipe h2.inj-recipe-kicker {
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wf-green-700);
+}
+.inj-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--wf-surface-2);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.inj-badge svg {
+  flex-shrink: 0;
+  color: var(--wf-text-2);
+}
+.inj-recipe-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.inj-recipe-dose {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: 0;
+}
+.inj-recipe-dose strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-hero);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+}
+.inj-recipe-dose span {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-xl);
+  font-weight: 800;
+  color: var(--wf-accent-text-soft);
+}
+.inj-recipe-divider {
+  align-self: stretch;
+  width: 1px;
+  margin: 4px 0;
+  background: var(--wf-border);
+}
+.inj-recipe-vial {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+}
+.inj-recipe-vial > div {
+  display: flex;
+  flex-direction: column-reverse;
+}
+.inj-recipe-vial dd {
+  margin: 0;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  white-space: nowrap;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+}
+.inj-recipe-vial dt {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.inj-recipe-art {
+  width: 56px;
+  height: 56px;
+  margin-left: auto;
+}
+.inj-recipe-line {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-muted);
+}
+.inj-recipe-line li + li::before {
+  content: "·";
+  margin: 0 6px;
+}
+.inj-recipe-line li:first-child {
+  font-weight: 800;
+  color: var(--wf-text);
+}
+/* Placa de papel como a calculadora (decisão 8.9): a seringa se lê igual nos dois temas. */
+.inj-recipe-syringe {
+  margin: 2px -8px 0;
+  padding: 8px 5px 8px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border-soft);
+  background: linear-gradient(180deg, var(--wf-art-faint), var(--wf-art-paper) 45%, var(--wf-art-faint));
+}
+.inj-recipe-syringe .inj-figure-frame {
+  padding-bottom: 30px;
+}
+/* O desenho tem folga em cima e embaixo (flange): a escala e a pílula ficam junto do cilindro. */
+.inj-recipe-syringe .inj-syringe {
+  margin: 2px 0 0;
+}
+.inj-recipe-syringe .inj-scale {
+  height: 20px;
+}
+.inj-recipe-syringe .inj-scale span {
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  line-height: 20px;
+  color: color-mix(in srgb, var(--wf-art-ink) 62%, var(--wf-art-paper));
+}
+.inj-recipe-syringe .inj-scale span.on {
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  color: var(--wf-accent-fill);
+}
+.inj-recipe-syringe .inj-pill {
+  padding: 4px 12px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+  line-height: 20px;
+}
+.inj-recipe-caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  font-size: var(--wf-fs-xs);
+  color: color-mix(in srgb, var(--wf-art-ink) 62%, var(--wf-art-paper));
+}
+.inj-recipe-caption svg {
+  flex-shrink: 0;
+}
+.inj-card.inj-recipe .inj-recipe-cta {
+  gap: 10px;
+  min-height: 54px;
+  margin-top: 2px;
+  border-radius: 20px;
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  box-shadow: 0 14px 26px -12px color-mix(in srgb, var(--wf-green-600) 70%, transparent);
+}
+.inj-card.inj-recipe .inj-recipe-other {
+  align-self: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: -6px;
+  padding: 4px 12px;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-base);
+  font-weight: 700;
+  color: var(--wf-text);
+}
+.inj-card.inj-recipe .inj-recipe-other svg {
+  color: var(--wf-text-2);
+}
+
+/* ---------- Antes de aplicar ---------- */
+.inj-card.inj-safety {
+  gap: 12px;
+  padding: 16px 14px;
+}
+/* O .card > h2 global (8 px embaixo) vem depois no pacote: aqui o espaço é só o gap do cartão. */
+.inj-card.inj-safety h2 {
+  margin: 0;
+  font-size: var(--wf-fs-lg);
+}
+.inj-safety-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 6px;
+}
+.inj-safety-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 80px;
+  padding: 8px 8px 8px;
+  border-radius: 16px;
+  border: 1.5px solid var(--wf-border-soft);
+  background: var(--wf-surface-3);
+  color: var(--wf-text);
+  text-align: left;
+  transition: background 0.16s, border-color 0.16s;
+}
+.inj-safety-tile:hover {
+  border-color: var(--wf-border);
+}
+.inj-safety-tile.is-on {
+  border-color: var(--wf-mint-200);
+  background: var(--wf-mint-50);
+}
+.inj-safety-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 6px;
+  border-radius: 9px;
+  background: var(--wf-surface);
+  color: var(--wf-text-2);
+  box-shadow: var(--wf-shadow-card);
+}
+.inj-safety-box {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--wf-border);
+  background: var(--wf-surface);
+  color: var(--wf-white);
+}
+.inj-safety-tile.is-on .inj-safety-box {
+  border-color: var(--wf-green-600);
+  background: var(--wf-green-600);
+}
+.inj-safety-tile strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-base);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.inj-safety-tile small {
+  margin-top: 2px;
+  font-size: var(--wf-fs-xs);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--wf-text-muted);
+}
+.inj-safety-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.inj-safety-note svg {
+  flex-shrink: 0;
+  color: var(--wf-tone-water-fg);
+}
+
+/* ---------- Últimas aplicações (faixa) ---------- */
+.inj-card.inj-strip-card {
+  gap: 10px;
+  padding: 16px 14px;
+}
+.inj-strip-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.inj-card.inj-strip-card h2 {
+  font-size: var(--wf-fs-lg);
+}
+.inj-strip-head p {
+  margin: 2px 0 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-muted);
+}
+.inj-strip-all {
+  flex-shrink: 0;
+  min-height: 44px;
+  margin-top: -8px;
+  padding: 0 2px;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-base);
+  font-weight: 700;
+  color: var(--wf-sky-700);
+  white-space: nowrap;
+}
+.inj-strip-all:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.inj-strip {
+  display: grid;
+  grid-template-columns: repeat(var(--strip-cols, 4), minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.inj-strip li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  text-align: center;
+}
+/* Tracejado entre as molduras (20 + 16 + 6 + 58/2 = 71 px do topo): do centro da coluna anterior ao desta, fora das molduras (52 px). */
+.inj-strip li + li::before {
+  content: "";
+  position: absolute;
+  top: 71px;
+  left: calc(-50% + 32px);
+  right: calc(50% + 32px);
+  border-top: 1.5px dashed var(--wf-border);
+}
+.inj-strip-date {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  line-height: 20px;
+  color: var(--wf-text);
+}
+.inj-strip-ago {
+  font-size: var(--wf-fs-xs);
+  line-height: 16px;
+  color: var(--wf-text-muted);
+}
+.inj-strip .inj-body-mini.is-framed {
+  box-sizing: border-box;
+  width: 52px;
+  height: 58px;
+  margin: 6px 0;
+  padding: 3px;
+  border-radius: 14px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+}
+.inj-strip li.is-next .inj-body-mini.is-framed {
+  border: 1.5px dashed var(--wf-mint-300);
+}
+.inj-strip li.is-next .inj-strip-date {
+  color: var(--wf-green-700);
+}
+.inj-strip-site {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--wf-text-2);
+}
+.inj-mini-body {
+  fill: var(--wf-slate-100);
+  stroke: var(--wf-slate-300);
+  stroke-width: 2.4;
+}
+.inj-mini-dot {
+  fill: var(--wf-slate-500);
+  stroke: var(--wf-surface);
+  stroke-width: 2.4;
+}
+.inj-body-mini.tone-last .inj-mini-dot {
+  fill: var(--wf-amber-500);
+}
+.inj-body-mini.tone-next .inj-mini-dot {
+  fill: var(--wf-green-600);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inj-safety-tile {
+    transition: none;
+  }
+}

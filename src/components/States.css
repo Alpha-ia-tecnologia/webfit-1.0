@@ -1,0 +1,146 @@
+/* Estados vazios ilustrados e esqueletos de carregamento (SIS-06). */
+
+/* ---------- Estado vazio ---------- */
+.empty.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px 16px;
+}
+.empty.empty-state h3 {
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text);
+}
+.empty.empty-state p {
+  max-width: 34ch;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+.empty.empty-state .btn-sm {
+  margin-top: 6px;
+}
+.empty-art {
+  width: 88px;
+  height: 88px;
+  margin-bottom: 4px;
+}
+.empty-art.tone-food {
+  --art-bg: var(--wf-tone-food-bg);
+  --art-fill: var(--wf-tone-food-border);
+  --art-ink: var(--wf-tone-food-fg);
+}
+.empty-art.tone-habit {
+  --art-bg: var(--wf-tone-habit-bg);
+  --art-fill: var(--wf-tone-habit-border);
+  --art-ink: var(--wf-tone-habit-fg);
+}
+.empty-art.tone-body {
+  --art-bg: var(--wf-tone-body-bg);
+  --art-fill: var(--wf-tone-body-border);
+  --art-ink: var(--wf-tone-body-fg);
+}
+.empty-art.tone-medication {
+  --art-bg: var(--wf-tone-medication-bg);
+  --art-fill: var(--wf-tone-medication-border);
+  --art-ink: var(--wf-tone-medication-fg);
+}
+.empty-art.tone-attention {
+  --art-bg: var(--wf-tone-attention-bg);
+  --art-fill: var(--wf-tone-attention-border);
+  --art-ink: var(--wf-tone-attention-fg);
+}
+.empty-art.tone-water {
+  --art-bg: var(--wf-tone-water-bg);
+  --art-fill: var(--wf-tone-water-border);
+  --art-ink: var(--wf-tone-water-fg);
+}
+.empty-art.tone-mind {
+  --art-bg: var(--wf-tone-mind-bg);
+  --art-fill: var(--wf-tone-mind-border);
+  --art-ink: var(--wf-tone-mind-fg);
+}
+
+/* ---------- Esqueletos ---------- */
+.skeleton-block {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--wf-surface-3) 25%, var(--wf-surface-2) 50%, var(--wf-surface-3) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+.skeleton-rows {
+  display: grid;
+  gap: 12px;
+}
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.skeleton-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--wf-radius-sm);
+}
+.skeleton-lines {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+}
+.skeleton-lines i {
+  height: 10px;
+}
+.skeleton-lines i:first-child {
+  width: 55%;
+}
+.skeleton-lines i:last-child {
+  width: 80%;
+}
+.skeleton-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
+  gap: 8px;
+  height: 72px;
+}
+.skeleton-card {
+  display: grid;
+  gap: 14px;
+}
+.skeleton-title {
+  width: 40%;
+  height: 12px;
+}
+.skeleton-hero {
+  width: 60%;
+  height: 28px;
+  border-radius: var(--wf-radius-xs);
+}
+/* Abertura do app: a forma das telas no lugar do texto solto. */
+.app-skeleton {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+/* Tela sob demanda que não abriu (LazyScreen.tsx): no primeiro acesso, centrada como o esqueleto. */
+.onboarding-shell > .screen-error-page {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block {
+    animation: none;
+  }
+}

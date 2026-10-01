@@ -1,0 +1,946 @@
+/* Seringa e dose (Onda 2 · Lote 5): receita de sempre, calculadora compacta com barra fixa,
+   seringa legível com lupa, régua da bula, folha de confirmação e guia. Só tokens (--wf-*). */
+.inj-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+}
+.inj-guide-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+}
+.inj-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+}
+.inj-card h2 {
+  margin: 0;
+  font-size: var(--wf-fs-base);
+  font-weight: 800;
+}
+.inj-center {
+  text-align: center;
+}
+.inj-note {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.inj-screen :is(button, input, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--wf-green-700);
+  outline-offset: 2px;
+}
+
+/* ---------- Avisos ---------- */
+.inj-alert {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.55;
+}
+.inj-alert p {
+  margin: 0;
+  color: var(--wf-text-2);
+}
+.inj-alert svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.inj-alert.rose {
+  background: var(--wf-rose-50);
+  border-color: var(--wf-rose-200);
+  color: var(--wf-rose-700);
+}
+.inj-alert.neutral {
+  background: var(--wf-surface-2);
+  border-color: var(--wf-border);
+  color: var(--wf-text-2);
+}
+/* Aviso de aplicação recente: atenção neutra, sem vermelho e sem bloquear. */
+.inj-recent-warning {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-amber-200);
+  background: var(--wf-amber-50);
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-base);
+}
+.inj-recent-warning > svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--wf-amber-700);
+}
+.inj-recent-warning-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 6px;
+}
+.inj-recent-warning-actions .text-btn {
+  min-height: 44px;
+}
+
+/* Receita ("Minha dose de sempre", conceito 10): ver Recipe.css. */
+
+/* ---------- Como você aplica? ---------- */
+.inj-methods {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.inj-method {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 72px;
+  padding: 6px 4px 10px;
+  border-radius: 16px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface-3);
+  color: var(--wf-text-2);
+  text-align: center;
+  transition:
+    border-color 0.16s,
+    background 0.16s,
+    transform 0.12s;
+}
+.inj-method:hover {
+  border-color: var(--wf-slate-300);
+}
+.inj-method:active {
+  transform: scale(0.97);
+}
+.inj-method.on {
+  border-color: var(--wf-tone-medication-fg);
+  background: var(--wf-tone-medication-bg);
+  box-shadow: inset 0 0 0 1px var(--wf-tone-medication-fg);
+  color: var(--wf-text);
+}
+.inj-method-art {
+  width: 48px;
+  height: 48px;
+}
+.inj-method strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.inj-method small {
+  font-size: var(--wf-fs-2xs);
+  line-height: 1.25;
+  color: var(--wf-text-muted);
+}
+
+/* ---------- Medicação, frasco e dose ---------- */
+.inj-seg {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--wf-surface-3);
+}
+.inj-seg button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 4px;
+  border-radius: 12px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--wf-text-muted);
+  overflow-wrap: anywhere;
+  transition: background 0.16s, color 0.16s;
+}
+.inj-seg button.on {
+  background: var(--wf-surface);
+  color: var(--wf-text);
+  font-weight: 800;
+  box-shadow: var(--wf-shadow-card);
+}
+.inj-frasco {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-left: 4px;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.inj-frasco strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  color: var(--wf-text);
+}
+.inj-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 4px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-green-700);
+}
+.inj-toggle svg {
+  flex-shrink: 0;
+  transition: transform 0.2s var(--wf-ease);
+}
+.inj-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.inj-toggle-wide {
+  width: 100%;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: var(--wf-surface-3);
+  color: var(--wf-text-2);
+}
+.inj-conc {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--wf-surface-3);
+}
+.inj-conc .hint {
+  text-align: center;
+}
+.inj-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.inj-stepper .stepper-value strong {
+  font-size: var(--wf-fs-4xl);
+}
+.inj-conc .quick-chip,
+.inj-presets .quick-chip {
+  min-height: 44px;
+}
+.inj-dose-head {
+  display: grid;
+  gap: 2px;
+  padding-top: 4px;
+  border-top: 1px solid var(--wf-border-soft);
+}
+.inj-dose-head h2 {
+  padding-top: 8px;
+}
+.inj-dose-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.inj-dose-value {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  min-width: 150px;
+  min-height: 64px;
+  padding: 4px 14px;
+  border-radius: 18px;
+  border: 1.5px dashed var(--wf-border);
+  background: var(--wf-surface);
+  transition: border-color 0.16s;
+}
+.inj-dose-value:hover {
+  border-color: var(--wf-tone-medication-fg);
+}
+.inj-dose-value strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-6xl);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+}
+.inj-dose-input {
+  width: 170px;
+  min-height: 64px;
+  border-radius: 18px;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-3xl);
+  font-weight: 800;
+  text-align: center;
+}
+.fine-btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.inj-pen {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  height: 88px;
+  margin-inline: auto;
+}
+.inj-pen svg {
+  position: absolute;
+  inset: 12px 0;
+  width: 100%;
+  height: 64px;
+}
+.inj-pen-window {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.inj-pen .inj-dose-value {
+  border: 2px solid var(--wf-tone-medication-fg);
+  box-shadow: var(--wf-shadow-card);
+}
+
+/* ---------- Régua da bula ---------- */
+.inj-ruler {
+  container-type: inline-size;
+  display: grid;
+  gap: 10px;
+}
+.inj-ruler-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  row-gap: 4px;
+}
+.inj-ruler-track {
+  position: relative;
+  grid-row: 2;
+  grid-column: 1 / -1;
+  padding-bottom: 10px;
+  /* O invólucro do marcador tem a largura da trilha e anda por transform: sem isso, sobra rolagem lateral. */
+  overflow: hidden;
+}
+.inj-ruler-bands {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px;
+  height: 12px;
+}
+.inj-ruler-bands span {
+  border-radius: 999px;
+  background: var(--wf-surface-2);
+}
+.inj-ruler-bands span.on {
+  background: var(--wf-tone-medication-border);
+  box-shadow: inset 0 0 0 1.5px var(--wf-tone-medication-fg);
+}
+.inj-ruler-bands span.hatch {
+  background: repeating-linear-gradient(-45deg, var(--wf-rose-50) 0 4px, var(--wf-rose-200) 4px 8px);
+}
+.inj-ruler-bands span.hatch.on {
+  box-shadow: inset 0 0 0 1.5px var(--wf-rose-600);
+}
+/* O marcador anda com transform: o invólucro tem a largura da trilha, então translateX(%) é a posição. */
+.inj-ruler-pin {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 10px;
+  pointer-events: none;
+  transform: translateX(var(--pin));
+  transition: transform var(--wf-spring-snappy-duration) var(--wf-spring-snappy);
+}
+.inj-ruler-pin i {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 9px solid var(--wf-text);
+  transform: translateX(-50%);
+}
+.inj-ruler-label {
+  grid-row: 3;
+  justify-self: center;
+  white-space: nowrap;
+  font-size: var(--wf-fs-xs);
+  line-height: 1.3;
+  color: var(--wf-text-muted);
+}
+.inj-ruler-label.on {
+  font-weight: 800;
+  color: var(--wf-text);
+}
+/* Régua estreita (320–360 px): rótulos alternam acima e abaixo para "Manutenção" não colidir. */
+@container (max-width: 299px) {
+  .inj-ruler-label:nth-of-type(odd) {
+    grid-row: 1;
+  }
+}
+
+/* ---------- Seringa ---------- */
+.inj-syringes button {
+  min-height: 44px;
+}
+.inj-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px 12px;
+}
+.inj-hero-kicker {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text-muted);
+}
+.inj-hero-units {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-7xl);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--wf-green-700);
+  font-variant-numeric: tabular-nums;
+}
+.inj-hero-ml {
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.inj-hero-ml strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-xl);
+  font-weight: 800;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+}
+.inj-viewport {
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid var(--wf-border);
+  /* Placa de papel (decisão 8.9): a seringa se lê igual nos dois temas. */
+  background: linear-gradient(180deg, var(--wf-art-faint), var(--wf-art-paper) 40%, var(--wf-art-faint));
+}
+.inj-figure {
+  margin: 0;
+}
+.inj-figure-frame {
+  position: relative;
+  padding-bottom: 26px;
+}
+.inj-scale {
+  position: relative;
+  height: 16px;
+}
+.inj-scale span,
+.inj-lens-labels span {
+  position: absolute;
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  line-height: 16px;
+  color: color-mix(in srgb, var(--wf-art-ink) 82%, var(--wf-art-paper));
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+}
+.inj-scale span {
+  top: 0;
+}
+.inj-scale span.on,
+.inj-lens-labels span.on {
+  font-weight: 900;
+  color: var(--wf-accent-fill);
+}
+.inj-syringe {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.inj-liquid,
+.inj-plunger {
+  transition: transform var(--wf-spring-snappy-duration) var(--wf-spring-snappy);
+}
+.inj-pill {
+  position: absolute;
+  bottom: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--wf-accent-fill);
+  color: var(--wf-white);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  line-height: 16px;
+  white-space: nowrap;
+  box-shadow: var(--wf-shadow-card);
+}
+.inj-lens {
+  position: relative;
+  width: min(100%, 260px);
+  margin: 6px auto 0;
+  aspect-ratio: 10 / 3;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 2px solid var(--wf-art-line);
+  background: var(--wf-art-paper);
+  box-shadow: var(--wf-shadow-card);
+}
+.inj-lens svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.inj-lens-labels span {
+  bottom: 4px;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--wf-art-paper) 88%, transparent);
+}
+.inj-caption {
+  margin-top: 6px;
+  text-align: center;
+  font-size: var(--wf-fs-xs);
+  color: color-mix(in srgb, var(--wf-art-ink) 45%, var(--wf-art-muted));
+}
+.inj-tip {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--wf-mint-50);
+  color: var(--wf-green-700);
+}
+.inj-tip > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.inj-tip h3 {
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  color: var(--wf-green-700);
+}
+.inj-tip p {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.inj-manual {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}
+.inj-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  margin: 10px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wf-surface-2);
+  box-shadow: none;
+  cursor: pointer;
+}
+.inj-range:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.inj-range:focus {
+  box-shadow: none;
+  background: var(--wf-surface-2);
+}
+.inj-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--wf-primary);
+  border: 3px solid var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+  cursor: pointer;
+}
+.inj-range::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--wf-primary);
+  border: 3px solid var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+  cursor: pointer;
+}
+.inj-fine {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.inj-fine .fine-btn {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+}
+
+/* ---------- Local ---------- */
+.inj-sites {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.inj-sites button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  min-width: 104px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface-3);
+  color: var(--wf-text-2);
+  text-align: left;
+  transition: border-color 0.16s, background 0.16s;
+}
+.inj-sites button.on {
+  border-color: var(--wf-green-500);
+  background: var(--wf-mint-50);
+  box-shadow: inset 0 0 0 1px var(--wf-green-500);
+  color: var(--wf-green-800);
+}
+.inj-sites strong {
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+}
+.inj-site-pills {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.inj-site-pills button {
+  flex: 1 1 88px;
+  min-width: 0;
+  align-items: center;
+  border-radius: 999px;
+}
+.inj-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.inj-tag.suggested {
+  background: var(--wf-sky-100);
+  color: var(--wf-sky-700);
+}
+.inj-body-mini {
+  width: 56px;
+  height: 72px;
+  flex-shrink: 0;
+}
+.inj-site-indicator {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--wf-surface);
+  border: 1px solid var(--wf-border-soft);
+  box-shadow: var(--wf-shadow-card);
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  color: var(--wf-green-700);
+}
+
+/* ---------- Quando e observação ---------- */
+.inj-when-card {
+  gap: 0;
+  padding: 4px 18px;
+}
+.inj-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  color: var(--wf-text-2);
+}
+.inj-row > svg {
+  flex-shrink: 0;
+  color: var(--wf-text-muted);
+}
+.inj-row-text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text);
+}
+button.inj-row-text {
+  justify-content: space-between;
+  padding: 0;
+  color: var(--wf-text);
+}
+.inj-note-row {
+  border-top: 1px solid var(--wf-border-soft);
+}
+.inj-when-panel,
+.inj-note-row > div[id] {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 12px;
+}
+.inj-when-panel .quick-chip {
+  min-height: 44px;
+}
+.inj-cancel-edit {
+  align-self: center;
+  min-height: 44px;
+  font-size: var(--wf-fs-sm);
+}
+
+/* ---------- Barra fixa ---------- */
+html:has(.inj-bar) {
+  scroll-padding-bottom: 200px;
+}
+.inj-bar {
+  position: sticky;
+  bottom: 16px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 18px;
+  border-radius: 24px;
+  border: 1px solid var(--wf-border);
+  background: color-mix(in srgb, var(--wf-surface) 96%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--wf-shadow-float);
+}
+.inj-bar-dose {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.inj-bar-dose strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-xl);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+}
+.inj-bar-dose small {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.inj-bar-btn {
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 16px;
+  font-size: var(--wf-fs-base);
+}
+.inj-bar-btn[aria-disabled="true"] {
+  box-shadow: none;
+  filter: grayscale(0.7);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+body:has(.inj-bar) .toast {
+  bottom: 110px;
+}
+@media (min-width: 801px) {
+  body:has(.inj-bar) .quick-fab {
+    display: none;
+  }
+}
+@media (max-width: 800px) {
+  html:has(.inj-bar) {
+    scroll-padding-bottom: 290px;
+  }
+  /* A barra é o último item: basta o espaço para ela parar acima da navegação e do +. */
+  .main-content:has(.inj-bar) {
+    padding-bottom: 120px;
+  }
+  .inj-bar {
+    bottom: calc(104px + env(safe-area-inset-bottom));
+  }
+  body:has(.inj-bar) .toast {
+    bottom: calc(190px + env(safe-area-inset-bottom));
+  }
+}
+@media (max-height: 560px) {
+  .inj-bar {
+    position: static;
+  }
+}
+
+/* ---------- Folha de confirmação ---------- */
+.modal.inj-sheet {
+  gap: 16px;
+}
+.inj-checklist {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.inj-checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--wf-surface-3);
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.inj-checklist svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--wf-green-700);
+}
+.inj-checklist strong {
+  margin-right: 4px;
+  color: var(--wf-text);
+}
+.inj-sheet-when {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.inj-sheet-lines {
+  display: grid;
+  gap: 4px;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.inj-sheet-other {
+  align-self: flex-start;
+  min-height: 44px;
+  font-size: var(--wf-fs-sm);
+}
+.inj-sheet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.inj-sheet-actions > button {
+  flex: 1 1 180px;
+  min-height: 48px;
+}
+@media (max-width: 800px) {
+  .modal-overlay.inj-sheet-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal.inj-sheet {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 28px 28px 0 0;
+    padding: 20px 18px calc(20px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- Guia rápido ---------- */
+.inj-guide-track {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.inj-guide-track::-webkit-scrollbar {
+  display: none;
+}
+.inj-guide-track li {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  flex: 0 0 100%;
+  padding: 2px;
+  scroll-snap-align: start;
+}
+.inj-guide-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--wf-tone-medication-bg);
+  color: var(--wf-tone-medication-fg);
+}
+.inj-guide-track h3 {
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+}
+.inj-guide-track p {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.55;
+  color: var(--wf-text-2);
+}
+.inj-guide-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.inj-guide-nav .icon-btn {
+  width: 44px;
+  height: 44px;
+}
+.inj-guide-nav .icon-btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.inj-guide-nav span {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text-muted);
+}
+
+@media (max-width: 400px) {
+  .inj-card {
+    padding: 16px;
+  }
+  .inj-when-card {
+    padding: 4px 16px;
+  }
+  .inj-methods {
+    gap: 6px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inj-liquid,
+  .inj-plunger,
+  .inj-ruler-pin,
+  .inj-toggle svg,
+  .inj-method,
+  .inj-seg button {
+    transition: none;
+  }
+  .inj-guide-track {
+    scroll-behavior: auto;
+  }
+}

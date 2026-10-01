@@ -1,0 +1,225 @@
+/* Evolução, Onda 4 · Lote 2: destaques calculados, "Como calculamos" e bem-estar e sono. Só tokens. */
+
+/* ---------- Destaques (chips) ---------- */
+.insight-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.insight-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text-2);
+  background: var(--wf-surface-2);
+}
+.insight-chip::before {
+  content: "";
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--wf-border);
+}
+.insight-chip.tone-water::before {
+  background: var(--wf-tone-water-fg);
+}
+.insight-chip.tone-food::before {
+  background: var(--wf-tone-food-fg);
+}
+.insight-chip.tone-habit::before {
+  background: var(--wf-tone-habit-fg);
+}
+.insight-chip.tone-body::before {
+  background: var(--wf-tone-body-fg);
+}
+.insight-chip.tone-mind::before {
+  background: var(--wf-tone-mind-fg);
+}
+
+/* ---------- Cabeçalho "Últimos N dias": Como calculamos + Ver diário ---------- */
+.evol-days-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 14px;
+}
+.evol-days-actions .link-btn {
+  gap: 6px;
+  min-height: 44px;
+  font-size: var(--wf-fs-sm);
+}
+.evol-icon.mind {
+  color: var(--wf-tone-mind-fg);
+  background: var(--wf-tone-mind-bg);
+}
+.evol-icon.habit {
+  color: var(--wf-tone-habit-fg);
+  background: var(--wf-tone-habit-bg);
+}
+
+/* ---------- Como calculamos ---------- */
+.how-sheet section h3 {
+  margin: 0 0 6px;
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text);
+}
+.how-sheet section p {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.6;
+  color: var(--wf-text-2);
+}
+.how-sheet section p + p {
+  margin-top: 6px;
+}
+.how-sheet section + section {
+  padding-top: 14px;
+  border-top: 1px solid var(--wf-border-soft);
+}
+
+/* ---------- Bem-estar e sono ---------- */
+.wb-card .insight-chips {
+  margin: 0;
+}
+.wb-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+.wb-empty p {
+  margin: 0;
+}
+.wb-empty .btn-secondary {
+  min-height: 44px;
+}
+.wb-week,
+.wb-weekdays,
+.wb-heat {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wb-week li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 6px 0 8px;
+  border-radius: 14px;
+}
+.wb-week li.is-today,
+.wb-heat li.is-today {
+  outline: 2px solid var(--wf-marker);
+  outline-offset: -2px;
+}
+.wb-weekday,
+.wb-hours,
+.wb-weekdays span {
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--wf-text-2);
+}
+.wb-weekdays span {
+  text-align: center;
+}
+.wb-face {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+}
+.wb-face svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.wb-face-empty {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  border: 2px dashed var(--wf-border);
+  border-radius: 50%;
+}
+/* Cápsula de sono: a altura do preenchimento é proporcional às horas (até 12 h). */
+.wb-sleep {
+  position: relative;
+  display: block;
+  width: 12px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--wf-indigo-50);
+}
+.wb-sleep i {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 999px;
+  background: var(--wf-indigo-500);
+}
+.wb-heat li {
+  position: relative;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: 100%;
+  max-width: 40px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+.wb-heat li > svg,
+.wb-heat .wb-face-empty {
+  width: 24px;
+  height: 24px;
+}
+.wb-legend {
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.wb-cross {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--wf-border-soft);
+}
+.wb-cross p {
+  margin: 0;
+}
+.wb-cross-text {
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  color: var(--wf-text);
+}
+.wb-cross-detail {
+  font-size: var(--wf-fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text-muted);
+}
+.wb-cross strong {
+  white-space: nowrap;
+  color: var(--wf-text);
+}

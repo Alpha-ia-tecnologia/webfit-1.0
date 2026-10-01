@@ -1,0 +1,20 @@
+/* Impressão do "Relatório para consulta" (ESPACO-08). Só regras de estrutura: as cores e a
+   tipografia do relatório vêm de REPORT_CSS (tinta clara fixa, também no tema escuro). Na tela o
+   relatório fica fora do layout; ao imprimir, só ele aparece e o papel fica sem o fundo do app. */
+.report-print-root {
+  display: none;
+}
+@media print {
+  html.is-printing-report body > *:not(.report-print-root) {
+    display: none !important;
+  }
+  html.is-printing-report,
+  html.is-printing-report body {
+    height: auto !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+  html.is-printing-report .report-print-root {
+    display: block;
+  }
+}

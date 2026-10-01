@@ -1,0 +1,224 @@
+/* Folhas de água e bem-estar (HOJE-03, HOJE-07): sem cara de formulário. */
+.quick-entry {
+  gap: 18px;
+}
+
+/* ---------- Água: número grande, ±50 ml e tamanhos comuns ---------- */
+.water-editor {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+.water-editor-label {
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.water-editor-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+}
+.water-step {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--wf-tone-water-border);
+  background: var(--wf-tone-water-bg);
+  color: var(--wf-tone-water-fg);
+  transition:
+    transform var(--wf-spring-snappy-duration) var(--wf-spring-snappy),
+    background 0.2s;
+}
+.water-step:hover:not(:disabled) {
+  background: var(--wf-sky-100);
+}
+.water-step:active:not(:disabled) {
+  transform: scale(0.9);
+}
+.water-editor-big {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+}
+.water-editor-big input {
+  width: 5ch;
+  /* Onde houver suporte, o campo abraça o número (3 a 4 dígitos). */
+  field-sizing: content;
+  min-width: 3ch;
+  padding: 4px 6px;
+  border-radius: var(--wf-radius-md);
+  border-color: transparent;
+  background: var(--wf-surface-3);
+  text-align: center;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-6xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--wf-tone-water-fg);
+  font-variant-numeric: tabular-nums;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.water-editor-big input::-webkit-outer-spin-button,
+.water-editor-big input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.water-editor-big > span {
+  font-size: var(--wf-fs-lg);
+  font-weight: 700;
+  color: var(--wf-text-muted);
+}
+
+/* ---------- Chips (volumes, sono, marcadores) ---------- */
+.entry-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.entry-fieldset .entry-chips {
+  justify-content: flex-start;
+}
+.entry-chips button {
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.entry-chips button:hover {
+  border-color: var(--wf-mint-200);
+  background: var(--wf-mint-50);
+}
+.entry-chips button[aria-pressed="true"] {
+  border-color: var(--wf-accent-fill);
+  background: var(--wf-accent-fill);
+  color: var(--wf-white);
+}
+.water-editor .entry-chips button[aria-pressed="true"] {
+  border-color: var(--wf-sky-600);
+  background: var(--wf-sky-600);
+}
+
+/* ---------- Bem-estar ---------- */
+.mood-picker,
+.entry-fieldset {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.mood-picker legend,
+.entry-fieldset legend {
+  padding: 0;
+  margin-bottom: 10px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.mood-options {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.mood-option {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 8px 2px;
+  border-radius: var(--wf-radius-md);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    transform var(--wf-spring-snappy-duration) var(--wf-spring-snappy),
+    background 0.2s,
+    border-color 0.2s;
+}
+.mood-option span {
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--wf-text-muted);
+}
+.mood-option:hover {
+  background: var(--wf-surface-3);
+}
+.mood-option:active {
+  transform: scale(0.94);
+}
+.mood-option:has(input:checked) {
+  border-color: var(--wf-green-600);
+  background: var(--wf-mint-50);
+}
+.mood-option:has(input:checked) span {
+  color: var(--wf-text);
+  font-weight: 700;
+}
+.mood-option:has(input:focus-visible) {
+  outline: 3px solid rgb(0 208 132 / 0.45);
+  outline-offset: 2px;
+}
+
+/* ---------- "Hoje · agora ▸ alterar" ---------- */
+.when-row {
+  display: grid;
+  gap: 12px;
+}
+.when-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 6px 6px 14px;
+  border-radius: var(--wf-radius-md);
+  background: var(--wf-surface-3);
+  border: 1px solid var(--wf-border-soft);
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.when-summary > svg {
+  color: var(--wf-text-muted);
+}
+.when-summary > span {
+  flex: 1;
+  font-variant-numeric: tabular-nums;
+}
+.when-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-green-700);
+}
+.when-toggle:hover {
+  background: var(--wf-mint-50);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .water-step,
+  .mood-option {
+    transition: none;
+  }
+}

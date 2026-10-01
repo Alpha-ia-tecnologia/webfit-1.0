@@ -1,0 +1,127 @@
+/* Controles de app (SIS-08): seleção em folha e rádio da marca. */
+.field > .field-label {
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.picker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  border-radius: 14px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface-3);
+  color: var(--wf-text);
+  font-size: var(--wf-fs-sm);
+  text-align: left;
+}
+.picker-trigger > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.picker-trigger > svg {
+  flex-shrink: 0;
+  color: var(--wf-text-muted);
+}
+.picker-trigger:hover:not(:disabled) {
+  border-color: var(--wf-mint-200);
+}
+.picker-trigger[aria-expanded="true"] {
+  border-color: var(--wf-green-500);
+  background: var(--wf-surface);
+}
+.picker-options {
+  display: grid;
+  gap: 6px;
+}
+.picker-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 14px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border-soft);
+  background: var(--wf-surface-3);
+  font-size: var(--wf-fs-md);
+  font-weight: 600;
+  color: var(--wf-text);
+  cursor: pointer;
+}
+.picker-option > span {
+  flex: 1;
+}
+.picker-option > svg {
+  color: var(--wf-green-700);
+}
+.picker-option:hover {
+  background: var(--wf-mint-50);
+}
+.picker-option:has(input:checked) {
+  border-color: var(--wf-mint-200);
+  background: var(--wf-mint-50);
+}
+
+/* ---------- Busca (SIS-08): um campo só para o Diário, alimentos e folhas ---------- */
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 0 12px;
+  border-radius: 14px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  color: var(--wf-text-muted);
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s;
+}
+.search-field:focus-within {
+  border-color: var(--wf-green-600);
+  box-shadow: 0 0 0 4px rgb(16 185 129 / 0.16);
+}
+.search-field input,
+.search-field input:focus {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  color: var(--wf-text);
+}
+.search-field input::-webkit-search-cancel-button {
+  appearance: none;
+}
+.search-field-lg {
+  gap: 10px;
+  min-height: 58px;
+  padding: 0 8px 0 16px;
+  border-radius: 20px;
+  border-width: 2px;
+  box-shadow: 0 12px 26px -20px rgb(15 23 42 / 0.6);
+}
+.search-field-lg input,
+.search-field-lg input:focus {
+  min-height: 52px;
+  font-size: var(--wf-fs-lg);
+}
+.search-clear {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--wf-surface-2);
+  color: var(--wf-text-2);
+}

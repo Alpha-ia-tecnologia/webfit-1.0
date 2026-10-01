@@ -1,0 +1,220 @@
+/* ---------- Modo preparo em tela cheia (AGENTE-11): mesmo diálogo da receita, fundo azul-marinho ---------- */
+.modal-overlay.cook-overlay {
+  padding: 0;
+  background: var(--wf-inverse);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.modal.recipe-sheet.is-cooking {
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: 100dvh;
+  padding: 18px 16px calc(24px + env(safe-area-inset-bottom));
+  border-radius: 0;
+  background: var(--wf-inverse);
+  color: var(--wf-white);
+  box-shadow: none;
+  animation: none;
+}
+/* Coluna de leitura de até 640 px, centralizada. */
+.recipe-sheet.is-cooking > * {
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+}
+.recipe-sheet.is-cooking h2 {
+  color: var(--wf-white);
+}
+.recipe-sheet.is-cooking .icon-btn {
+  border-color: var(--wf-on-fill-slate);
+  background: transparent;
+  color: var(--wf-white);
+}
+.recipe-sheet.is-cooking :focus-visible {
+  outline: 2px solid var(--wf-on-fill-mint);
+  outline-offset: 2px;
+}
+.recipe-sheet.is-cooking .recipe-step-mode {
+  gap: 18px;
+}
+.recipe-sheet.is-cooking .recipe-step-mode h3 {
+  color: var(--wf-on-fill-mint);
+}
+.recipe-sheet.is-cooking .recipe-step-text {
+  color: var(--wf-white);
+  font-size: var(--wf-fs-2xl);
+  line-height: 1.4;
+}
+.recipe-sheet.is-cooking .recipe-chip {
+  background: color-mix(in srgb, var(--wf-white) 12%, transparent);
+  color: var(--wf-white);
+}
+.recipe-sheet.is-cooking .btn-secondary {
+  border-color: var(--wf-on-fill-slate);
+  background: transparent;
+  box-shadow: none;
+  color: var(--wf-white);
+}
+.recipe-sheet.is-cooking .btn-secondary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--wf-white) 10%, transparent);
+}
+.recipe-sheet.is-cooking .text-btn {
+  color: var(--wf-on-fill-mint);
+}
+.cook-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cook-awake {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--wf-on-fill-mint) 14%, transparent);
+  color: var(--wf-on-fill-mint);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+}
+.cook-awake-hint {
+  margin: 0;
+  color: var(--wf-on-fill-slate);
+  font-size: var(--wf-fs-xs);
+  text-align: center;
+}
+.cook-progress {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 4px;
+}
+.cook-progress > span {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--wf-navy-soft);
+}
+.cook-progress > .is-done {
+  background: var(--wf-on-fill-mint);
+}
+.cook-deduct {
+  min-height: 48px;
+}
+
+/* Timer do passo: anel que enche com o tempo (sem transição com movimento reduzido). */
+.cook-timer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+}
+.cook-ring {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 132px;
+  height: 132px;
+}
+.cook-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.cook-ring-track {
+  stroke: var(--wf-navy-soft);
+}
+.cook-ring-fill {
+  stroke: var(--wf-on-fill-mint);
+  transition: stroke-dasharray 0.9s linear;
+}
+.cook-clock {
+  position: relative;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-3xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-white);
+}
+.cook-timer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cook-timer-actions button {
+  min-height: 44px;
+}
+
+/* ---------- Descontar da despensa ---------- */
+.deduct-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.deduct-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--wf-border-soft);
+}
+.deduct-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.deduct-row h3 {
+  margin: 0;
+  font-size: var(--wf-fs-md);
+  overflow-wrap: anywhere;
+}
+.deduct-detail {
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.deduct-stepper {
+  display: grid;
+  grid-template-columns: 44px minmax(96px, auto) 44px;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+}
+.deduct-amount {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.deduct-summary {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.deduct-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.deduct-actions .btn,
+.deduct-actions .btn-secondary {
+  min-height: 44px;
+}
+
+@media (min-width: 390px) {
+  .recipe-sheet.is-cooking .recipe-step-text {
+    font-size: var(--wf-fs-3xl);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cook-ring-fill {
+    transition: none;
+  }
+}

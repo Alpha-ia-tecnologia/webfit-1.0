@@ -1,0 +1,80 @@
+{
+  "expo": {
+    "name": "WebFit",
+    "slug": "webfit",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "webfit",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F6F8FB",
+    "ios": {
+      "bundleIdentifier": "com.webfit.app",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "O WebFit usa a câmera para fotografar refeições, alimentos, compras realizadas e laudos que você decidir registrar.",
+        "NSPhotoLibraryUsageDescription": "O WebFit acessa suas fotos para reconhecer alimentos e compras realizadas ou anexar refeições e laudos escolhidos por você."
+      }
+    },
+    "android": {
+      "package": "com.webfit.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#F6F8FB",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "name": "WebFit",
+      "themeColor": "#00D084",
+      "backgroundColor": "#F6F8FB"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F6F8FB",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120
+        }
+      ],
+      "expo-sqlite",
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O WebFit acessa suas fotos para reconhecer alimentos e compras realizadas ou anexar refeições e laudos escolhidos por você.",
+          "cameraPermission": "O WebFit usa a câmera para fotografar refeições, alimentos, compras realizadas e laudos que você decidir registrar."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#00d084"
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "O WebFit usa o microfone apenas para ditar mensagens ao agente quando você toca no botão de voz.",
+          "speechRecognitionPermission": "O WebFit usa o reconhecimento de fala do sistema para transcrever o que você dita ao agente."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "reactCompiler": false
+    }
+  }
+}

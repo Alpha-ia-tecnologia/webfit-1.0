@@ -1,0 +1,46 @@
+name: Verificar WebFit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            mobile/package-lock.json
+      - name: Verificar arquivos do repositório
+        run: node scripts/check-repo.mjs
+      - name: Instalar web e API
+        run: npm ci
+      - name: Verificar tipos web e API
+        run: npm run lint
+      - name: Testar regras e agente com provedores simulados
+        run: npm test
+      - name: Compilar web
+        run: npm run build
+      - name: Preparar Chrome para as jornadas
+        run: node node_modules/@playwright/test/cli.js install --with-deps chrome
+      - name: Testar jornadas do navegador com IA simulada
+        run: node node_modules/@playwright/test/cli.js test
+      - name: Instalar mobile
+        run: npm --prefix mobile ci
+      - name: Verificar tipos mobile
+        run: npm --prefix mobile run typecheck
+      - name: Exportar bundle Android
+        run: npm --prefix mobile run export:android

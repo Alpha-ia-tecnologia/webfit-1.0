@@ -1,0 +1,234 @@
+/* Estoque do frasco ou caneta (SERINGA-12): desenho estático, quantidade, chips e avisos neutros.
+   O âmbar aparece só no "usar até" vencido; nunca vermelho. */
+.stock-art {
+  flex-shrink: 0;
+  overflow: visible;
+}
+.stock-cap {
+  fill: var(--wf-slate-400);
+}
+.stock-glass {
+  fill: var(--wf-surface);
+  stroke: var(--wf-slate-300);
+  stroke-width: 2;
+}
+.stock-liquid {
+  fill: var(--wf-tone-medication-fg);
+  fill-opacity: 0.35;
+}
+
+.stock-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.stock-chip {
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface-2);
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--wf-text-2);
+}
+.stock-chip.is-past {
+  border-color: var(--wf-tone-attention-border);
+  background: var(--wf-tone-attention-bg);
+  color: var(--wf-tone-attention-fg);
+}
+.stock-notices {
+  display: grid;
+  gap: 8px;
+}
+.stock-notice {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface-2);
+  font-size: var(--wf-fs-sm);
+  line-height: 1.5;
+  color: var(--wf-text-2);
+}
+.stock-notice.is-past {
+  border-color: var(--wf-tone-attention-border);
+  background: var(--wf-tone-attention-bg);
+  color: var(--wf-tone-attention-fg);
+}
+
+/* ---------- Meu tratamento ---------- */
+.stock-summary {
+  display: grid;
+  gap: 12px;
+}
+.stock-summary-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.stock-summary-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.stock-title {
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.stock-amount {
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+}
+.stock-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.stock-btn,
+.stock-open {
+  min-height: 44px;
+}
+.stock-open {
+  align-self: flex-start;
+  font-size: var(--wf-fs-sm);
+}
+
+/* ---------- Seringa: linha compacta ---------- */
+.stock-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  min-height: 56px;
+  padding: 8px 14px;
+}
+.stock-row-copy {
+  display: grid;
+  flex: 1 1 120px;
+  min-width: 0;
+}
+.stock-row-title {
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.stock-row-amount {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+}
+.stock-row-edit {
+  min-height: 44px;
+  font-size: var(--wf-fs-sm);
+}
+
+/* ---------- Folha "Aplicação registrada" ---------- */
+.saved-stock {
+  display: grid;
+  gap: 8px;
+}
+.saved-stock-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+
+/* ---------- Folha do estoque ---------- */
+.stock-methods {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.stock-methods legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.stock-method-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--wf-surface-3);
+}
+.stock-method {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 6px 4px;
+  border-radius: 12px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  text-align: center;
+  color: var(--wf-text-2);
+  cursor: pointer;
+}
+.stock-method:has(input:checked) {
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+  color: var(--wf-text);
+}
+.stock-method:has(input:focus-visible) {
+  outline: 2px solid var(--wf-green-700);
+  outline-offset: 2px;
+}
+.stock-stepper {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 8px;
+  max-width: 260px;
+}
+.stock-stepper input {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.stock-step {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface-2);
+  color: var(--wf-text-2);
+}
+.stock-step:hover:not(:disabled) {
+  border-color: var(--wf-slate-300);
+}
+.stock-step:disabled {
+  opacity: 0.45;
+}
+.stock-save {
+  min-height: 48px;
+}
+.stock-remove {
+  min-height: 44px;
+  align-self: center;
+  font-size: var(--wf-fs-sm);
+}
+.stock-clear {
+  min-height: 44px;
+  align-self: flex-start;
+  margin-top: -8px;
+  font-size: var(--wf-fs-sm);
+}
+.saved-rows li.saved-stock-row,
+.saved-rows li.saved-cycle-row {
+  align-items: flex-start;
+}
+.saved-cycle-row .cycle-tip {
+  flex: 1;
+  min-width: 0;
+}

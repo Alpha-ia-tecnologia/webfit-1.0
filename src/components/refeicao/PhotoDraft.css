@@ -1,0 +1,139 @@
+/* Rascunho da foto do prato (DIARIO-04): itens, confiança, alimento da TACO e incertezas. */
+.photo-draft {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--wf-border-soft);
+}
+.photo-draft h3 {
+  font-size: var(--wf-fs-md);
+}
+.photo-draft .notice {
+  margin: 0;
+}
+.photo-draft.is-done {
+  padding-top: 12px;
+}
+.photo-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.photo-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: var(--wf-radius-md);
+  background: var(--wf-surface-2);
+  border: 1px solid var(--wf-border-soft);
+}
+.photo-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+}
+/* Caixa de 20 px com área de toque de 44 px. */
+.photo-item-head input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 12px;
+  margin-right: 0;
+}
+.photo-item-name {
+  font-weight: 700;
+  color: var(--wf-text);
+  overflow-wrap: anywhere;
+}
+.photo-confidence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.photo-confidence i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.photo-confidence.is-high i {
+  background: var(--wf-green-600);
+}
+.photo-confidence.is-medium i {
+  background: var(--wf-amber-500);
+}
+.photo-confidence.is-low i {
+  background: var(--wf-slate-400);
+}
+.photo-candidates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.photo-candidate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text);
+  background: var(--wf-surface);
+  border: 1px solid var(--wf-border);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.photo-candidate:has(input:checked) {
+  background: var(--wf-mint-50);
+  border-color: var(--wf-green-500);
+}
+.photo-candidate-prep {
+  font-size: var(--wf-fs-xs);
+  font-weight: 500;
+  color: var(--wf-text-muted);
+}
+.photo-missing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.photo-missing .text-btn {
+  min-height: 44px;
+}
+.photo-uncertain-title {
+  font-weight: 700;
+}
+.photo-uncertain ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  list-style: disc;
+}
+.photo-draft-add {
+  align-self: flex-start;
+  min-height: 44px;
+}
+@media (max-width: 480px) {
+  .photo-draft-add {
+    align-self: stretch;
+  }
+}

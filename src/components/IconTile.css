@@ -1,0 +1,31 @@
+/* Bloco de ícone (SIS-11): o tom vem de IconTile (--tile-bg / --tile-fg). */
+.icon-tile {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--wf-radius-sm);
+  background: var(--tile-bg, var(--wf-tone-neutral-bg));
+  color: var(--tile-fg, var(--wf-tone-neutral-fg));
+  font-size: var(--wf-fs-xl);
+  line-height: 1;
+  user-select: none;
+}
+.icon-tile-sm {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--wf-radius-xs);
+  font-size: var(--wf-fs-xs);
+}
+.icon-tile-lg {
+  width: 44px;
+  height: 44px;
+  font-size: var(--wf-fs-2xl);
+}
+.icon-tile-xl {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--wf-radius-lg);
+  font-size: var(--wf-fs-6xl);
+}

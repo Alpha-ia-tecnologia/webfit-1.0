@@ -1,0 +1,447 @@
+.starter-entry {
+  width: min(100%, 640px);
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+  /* Margem lateral de 16 px no celular: o conteúdo não encosta nas bordas. */
+  padding: 24px 16px 48px;
+}
+.starter-intro {
+  text-align: center;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+.starter-intro h1 {
+  margin: 0;
+}
+.starter-mark {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  color: var(--wf-green-700);
+  background: var(--wf-mint-50);
+}
+.starter-choices {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.starter-choices legend {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+.starter-choices label,
+.starter-consent,
+.starter-habit {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.starter-choices label,
+.starter-habit {
+  padding: 12px;
+  border: 1px solid var(--wf-border);
+  border-radius: 12px;
+}
+.starter-choices input,
+.starter-consent input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.starter-choices small,
+.starter-habit small,
+.starter-records small {
+  display: block;
+  color: var(--wf-text-muted);
+  font-size: var(--wf-fs-xs);
+}
+.starter-water {
+  font-size: var(--wf-fs-3xl);
+  color: var(--wf-blue);
+}
+.starter-records {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.starter-records li {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 44px;
+}
+.starter-records .overflow-menu .icon-btn {
+  width: 44px;
+  height: 44px;
+}
+/* ---------- Início do primeiro acesso (onboarding/StarterHome.tsx) ---------- */
+/* Combinado: checkbox nativo transparente sobre a linha; a marca redonda de 32 px é o desenho. */
+.starter-habit {
+  position: relative;
+  align-items: center;
+  min-height: 56px;
+  transition:
+    border-color 0.18s,
+    background 0.18s;
+}
+.starter-habit-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.starter-habit.is-done {
+  border-color: var(--wf-mint-200);
+  background: var(--wf-mint-50);
+}
+.starter-habit:has(.starter-habit-input:focus-visible) {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 2px;
+}
+.starter-check {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--wf-slate-300);
+  background: var(--wf-surface);
+  color: var(--wf-white);
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.starter-habit:hover .starter-check {
+  border-color: var(--wf-green-600);
+}
+.starter-habit.is-done .starter-check {
+  border-color: var(--wf-green-600);
+  background: var(--wf-green-600);
+}
+.starter-check-mark {
+  display: grid;
+  place-items: center;
+}
+.starter-habit-text {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--wf-text);
+  overflow-wrap: anywhere;
+}
+/* Água: só os copos do que foi bebido (nunca copos vazios, sem meta implícita). */
+.starter-water-card > .starter-water {
+  display: block;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.starter-cups {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 6px;
+  margin-top: 10px;
+}
+.starter-cup {
+  flex-shrink: 0;
+}
+.starter-cup-glass {
+  fill: var(--wf-surface);
+  stroke: var(--wf-sky-300);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.starter-cup-water {
+  fill: var(--wf-sky-400);
+}
+.starter-cups-more {
+  align-self: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--wf-tone-water-bg);
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* O que a anamnese libera: chips neutros. */
+.starter-unlocks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.starter-unlocks li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-tone-neutral-border);
+  background: var(--wf-tone-neutral-bg);
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+}
+.starter-unlocks svg {
+  flex-shrink: 0;
+  color: var(--wf-tone-neutral-fg);
+}
+/* Folha "Backup e dados". */
+.starter-data-sheet {
+  gap: 16px;
+}
+.starter-backup-status {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+}
+.starter-backup-status.ok {
+  color: var(--wf-green-800);
+  background: var(--wf-mint-50);
+}
+.starter-backup-status.attention {
+  color: var(--wf-tone-attention-fg);
+  background: var(--wf-tone-attention-bg);
+}
+.starter-data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.starter-data-actions > button {
+  min-height: 44px;
+}
+.starter-erase {
+  align-self: flex-start;
+  min-height: 44px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .starter-habit,
+  .starter-check {
+    transition: none;
+  }
+}
+/* ---------- Primeiro acesso em 3 telas (onboarding/StarterFlow.tsx) ---------- */
+.starter-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.starter-flow-top {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+}
+.starter-flow-spacer {
+  width: 44px;
+  height: 44px;
+}
+.starter-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.starter-dots li {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--wf-border);
+  transition:
+    width 0.25s var(--wf-ease),
+    background 0.25s;
+}
+.starter-dots li.on {
+  background: var(--wf-green-600);
+}
+.starter-dots li.on:last-of-type,
+.starter-dots li.on:has(+ li:not(.on)) {
+  width: 22px;
+}
+.starter-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.starter-screen h1 {
+  margin: 0;
+  font-size: var(--wf-fs-3xl);
+  line-height: 1.15;
+}
+.starter-screen h1:focus {
+  outline: none;
+}
+.starter-welcome {
+  align-items: center;
+  text-align: center;
+}
+.starter-art {
+  width: min(100%, 240px);
+  height: auto;
+}
+.starter-values {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 4px 0 8px;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.starter-values li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text-2);
+}
+.starter-values li > span {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  color: var(--wf-green-700);
+  background: var(--wf-mint-50);
+}
+.starter-cta {
+  justify-content: center;
+  width: 100%;
+  min-height: 52px;
+  border-radius: 999px;
+}
+.starter-restore {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 12px;
+  margin-top: 4px;
+}
+/* Objetivos em cartões com ícone (rádio nativo por baixo, focável). */
+.starter-goals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.starter-goals legend {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+.starter-goal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 112px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  font-weight: 600;
+  line-height: 1.35;
+  cursor: pointer;
+  transition:
+    border-color 0.16s,
+    background 0.16s,
+    box-shadow 0.16s;
+}
+.starter-goal input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.starter-goal:has(input:focus-visible) {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 3px;
+}
+.starter-goal.on {
+  border-color: var(--wf-green-600);
+  background: var(--wf-mint-50);
+  box-shadow: inset 0 0 0 1px var(--wf-green-600);
+}
+.starter-goal-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  color: var(--wf-green-700);
+  background: var(--wf-mint-50);
+}
+.starter-goal.on .starter-goal-icon {
+  color: var(--wf-white);
+  background: var(--wf-accent-fill);
+}
+.starter-choices label.on {
+  border-color: var(--wf-green-600);
+  background: var(--wf-mint-50);
+}
+.starter-privacy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+}
+.starter-privacy .starter-consent {
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  font-weight: 600;
+}
+.starter-privacy .starter-consent input.switch {
+  width: 46px;
+  height: 28px;
+  margin: 0;
+}
+.starter-privacy .hint {
+  margin: 0;
+}
+@media (max-width: 360px) {
+  .starter-goals {
+    grid-template-columns: 1fr;
+  }
+  .starter-goal {
+    min-height: 0;
+    flex-direction: row;
+    align-items: center;
+  }
+}

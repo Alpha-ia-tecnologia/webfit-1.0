@@ -1,0 +1,132 @@
+/* ---------- Cartão selecionável (RadioCard) ----------
+   O rádio nativo fica invisível mas focável; o cartão mostra o estado e o foco. */
+.radio-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border-radius: 20px;
+  background: var(--wf-surface);
+  box-shadow:
+    inset 0 0 0 1px var(--wf-border-soft),
+    var(--wf-shadow-card);
+  cursor: pointer;
+  transition:
+    box-shadow 0.2s,
+    background 0.2s;
+}
+.radio-card:hover:not(.is-disabled) {
+  box-shadow:
+    inset 0 0 0 1px var(--wf-border),
+    var(--wf-shadow-card);
+}
+.radio-card.is-checked {
+  box-shadow:
+    inset 0 0 0 2px var(--wf-green-500),
+    0 0 0 4px var(--wf-mint-50),
+    var(--wf-shadow-card);
+}
+.radio-card:has(.radio-card-input:focus-visible) {
+  outline: 3px solid color-mix(in srgb, var(--wf-emerald) 45%, transparent);
+  outline-offset: 2px;
+}
+.radio-card.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+/* Rádio nativo transparente cobrindo o cartão: o toque cai nele (e nos testes, check() funciona),
+   continua na árvore de acessibilidade, no Tab e nas setas do grupo. */
+.radio-card input.radio-card-input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: none;
+  opacity: 0;
+  cursor: pointer;
+}
+.radio-card input.radio-card-input:disabled {
+  cursor: not-allowed;
+}
+.radio-card-media {
+  display: flex;
+  flex-shrink: 0;
+}
+.radio-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.radio-card-title {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--wf-text);
+}
+.radio-card-subtitle {
+  font-size: var(--wf-fs-base);
+  color: var(--wf-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.radio-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.radio-card-indicator {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--wf-slate-300);
+  color: var(--wf-white);
+}
+.radio-card.is-checked .radio-card-indicator.is-check {
+  background: var(--wf-accent-fill);
+  box-shadow: none;
+}
+.radio-card.is-checked .radio-card-indicator.is-radio {
+  box-shadow:
+    inset 0 0 0 2px var(--wf-green-600),
+    inset 0 0 0 6px var(--wf-surface);
+  background: var(--wf-green-600);
+}
+/* Bloco grande lado a lado (Sim/Não da caneta): mídia no topo, indicador no canto. */
+.radio-card.is-tile {
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 118px;
+  padding: 16px;
+}
+.radio-card.is-tile .radio-card-indicator {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+.radio-card.is-tile .radio-card-title {
+  font-size: var(--wf-fs-2xl);
+}
+.radio-card.is-tile.is-checked {
+  background: linear-gradient(160deg, var(--wf-mint-50), var(--wf-surface));
+}
+@media (prefers-reduced-motion: reduce) {
+  .radio-card {
+    transition: none;
+  }
+}

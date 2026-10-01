@@ -1,0 +1,81 @@
+/* ---------- Barra de segmentos / progresso (SegmentMeter) ----------
+   Trilho --wf-surface-2, raio cheio, cor do domínio em --meter-fill. Sem vermelho por passar da meta. */
+.segment-meter {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+.segment-meter.is-sm {
+  --meter-height: 4px;
+}
+.segment-meter.is-md {
+  --meter-height: 6px;
+}
+.segment-meter.is-lg {
+  --meter-height: 8px;
+}
+.segment-meter i {
+  flex: 1;
+  min-width: 4px;
+  height: var(--meter-height);
+  border-radius: 999px;
+  background: var(--wf-surface-2);
+}
+.segment-meter i.is-on {
+  background: var(--meter-fill);
+}
+/* Ingrediente que falta: só o contorno âmbar (a pílula "Falta: …" diz o nome). */
+.segment-meter i.is-missing {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--wf-amber-500);
+}
+.segment-meter.is-bar {
+  height: var(--meter-height);
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--wf-surface-2);
+}
+.segment-meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--meter-fill);
+}
+/* Linha "ícone · rótulo … valor" com a barra embaixo. */
+.progress-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+.progress-row-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.progress-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+.progress-row-label {
+  font-size: var(--wf-fs-md);
+  font-weight: 600;
+  color: var(--wf-text);
+}
+.progress-row-value {
+  font-size: var(--wf-fs-base);
+  color: var(--wf-text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.progress-row-value strong {
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  color: var(--wf-text);
+}

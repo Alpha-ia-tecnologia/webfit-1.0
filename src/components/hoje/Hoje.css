@@ -1,0 +1,1592 @@
+/* Tela Hoje (Onda 1): anéis do dia, próximo passo, bem-estar, água e combinados. */
+
+/* ---------- Anéis do dia ---------- */
+.day-hero {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 18px 18px 16px;
+  border-radius: 28px;
+}
+.day-hero-grid {
+  display: grid;
+  grid-template-columns: 164px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+.day-ring {
+  position: relative;
+  width: 164px;
+  aspect-ratio: 1;
+}
+/* Trilhos: o de energia neutro; os dos macros na cor do macro, bem clara. */
+.day-ring-track {
+  stroke: var(--wf-surface-2);
+}
+.day-ring-track.is-protein {
+  stroke: color-mix(in srgb, var(--wf-macro-protein) 16%, transparent);
+}
+.day-ring-track.is-carbs {
+  stroke: color-mix(in srgb, var(--wf-macro-carbs) 16%, transparent);
+}
+.day-ring-track.is-fat {
+  stroke: color-mix(in srgb, var(--wf-macro-fat) 18%, transparent);
+}
+.day-ring svg {
+  width: 100%;
+  height: 100%;
+}
+.day-ring-arc {
+  transition: stroke-dasharray 0.6s var(--wf-ease);
+}
+/* Toque no anel alterna restantes e consumidas. */
+.day-ring.is-toggle {
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  transition: transform var(--wf-spring-snappy-duration) var(--wf-spring-snappy);
+}
+.day-ring.is-toggle:active {
+  transform: scale(0.96);
+}
+.day-ring-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 2px;
+}
+.day-ring-center strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-5xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+}
+.day-ring-center strong.is-long {
+  font-size: var(--wf-fs-3xl);
+}
+.day-ring-center strong.day-ring-word {
+  font-size: var(--wf-fs-md);
+  letter-spacing: -0.01em;
+}
+.day-ring-center span {
+  /* Cabe dentro do anel de gordura (raio 42): o rótulo quebra em duas linhas. */
+  max-width: 80px;
+  margin-inline: auto;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--wf-text-muted);
+}
+.day-tiles {
+  display: grid;
+  gap: 10px;
+}
+/* Tiles de água e combinados: fundo cinza-claro, mini-anel com ícone, número grande, sem barras. */
+.day-tile {
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-height: 82px;
+  padding: 12px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--wf-border-soft);
+  background: var(--wf-surface-3);
+  color: inherit;
+  text-align: left;
+  transition:
+    transform 0.15s var(--wf-ease),
+    border-color 0.2s;
+}
+.day-tile.water {
+  padding: 0;
+}
+.day-tile-main {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 80px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+.day-tile:hover {
+  border-color: var(--wf-mint-200);
+}
+button.day-tile:active,
+.day-tile-main:active {
+  transform: scale(0.98);
+}
+.day-tile-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.day-tile-label {
+  font-size: var(--wf-fs-md);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+/* Mini-anel de 28 px com o ícone no meio. */
+.tile-ring {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+}
+.tile-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.tile-ring.is-water {
+  color: var(--wf-tone-water-fg);
+}
+.tile-ring.is-water .tile-ring-track {
+  stroke: var(--wf-sky-100);
+}
+.tile-ring.is-water .tile-ring-fill {
+  stroke: var(--wf-blue);
+}
+.tile-ring.is-habits {
+  color: var(--wf-tone-habit-fg);
+}
+.tile-ring.is-habits .tile-ring-track {
+  stroke: var(--wf-surface-2);
+}
+.tile-ring.is-habits .tile-ring-fill {
+  stroke: var(--wf-tone-habit-fg);
+}
+.day-tile strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-2xl);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.day-tile strong small {
+  font-family: var(--wf-font);
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--wf-text-muted);
+}
+/* "+" de um copo: círculo de 32 px desenhado dentro de um alvo de 44 px. */
+.day-tile-add {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 6px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--wf-sky-100);
+  background-clip: content-box;
+  color: var(--wf-sky-700);
+  transition: transform 0.15s var(--wf-ease);
+}
+.day-tile-add:active {
+  transform: scale(0.9);
+}
+.day-macros {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--wf-border-soft);
+  padding-top: 14px;
+}
+.day-macro {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding-inline: 10px;
+}
+.day-macro:first-child {
+  padding-left: 2px;
+}
+.day-macro + .day-macro {
+  border-left: 1px solid var(--wf-border-soft);
+}
+.day-macro-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--wf-fs-md);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.day-macro strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.day-macro strong small {
+  font-family: var(--wf-font);
+  font-size: var(--wf-fs-md);
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--wf-text-muted);
+}
+/* Barras de 4 px sob os macros (Diário): o valor em texto já diz o progresso. */
+.day-macro-bar {
+  display: block;
+  height: 4px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: var(--wf-surface-3);
+  overflow: hidden;
+}
+.day-macro-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transform-origin: left;
+  transition: transform 0.4s var(--wf-ease);
+}
+.day-macro-bar > .macro-protein {
+  background: var(--wf-macro-protein);
+}
+.day-macro-bar > .macro-carbs {
+  background: var(--wf-macro-carbs);
+}
+.day-macro-bar > .macro-fat {
+  background: var(--wf-macro-fat);
+}
+.dot.macro-protein {
+  background: var(--wf-macro-protein);
+}
+.dot.macro-carbs {
+  background: var(--wf-macro-carbs);
+}
+.dot.macro-fat {
+  background: var(--wf-macro-fat);
+}
+/* "Como calculamos": só o (i) no canto do cartão (alvo de 44 px), fora do desenho do anel. */
+.day-explain {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--wf-text-muted);
+}
+.day-explain:hover {
+  background: var(--wf-surface-3);
+  color: var(--wf-text);
+}
+
+/* ---------- Resumo do dia (cartão navy) ---------- */
+.next-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  column-gap: 10px;
+  padding: 18px 14px;
+  border-radius: 28px;
+  background:
+    radial-gradient(75% 90% at 100% 0%, color-mix(in srgb, var(--wf-emerald) 18%, transparent), transparent 70%),
+    radial-gradient(70% 80% at 0% 100%, color-mix(in srgb, var(--wf-blue) 26%, transparent), transparent 70%),
+    var(--wf-navy);
+  color: var(--wf-white);
+  overflow: hidden;
+  box-shadow: var(--wf-shadow-float);
+}
+.next-step-icon {
+  display: grid;
+  place-items: center;
+  align-self: start;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--wf-gradient-fab);
+  color: var(--wf-white);
+}
+.next-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.next-step-kicker {
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wf-on-fill-mint);
+}
+.next-step h2 {
+  margin-top: -4px;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--wf-white);
+}
+.next-step-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0;
+  margin: 2px 0 0;
+  list-style: none;
+}
+.next-step-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  background: rgb(255 255 255 / 0.08);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-on-fill-slate);
+}
+.next-step-chips li > span:not(.sr-only) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.next-step-chips li svg {
+  flex-shrink: 0;
+}
+.next-step-chips .is-water svg {
+  color: var(--wf-sky-400);
+}
+.next-step-chips .is-habit svg {
+  color: var(--wf-on-fill-sky);
+}
+.next-step-chips .is-pantry svg {
+  color: var(--wf-on-fill-amber);
+}
+.next-step-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.next-step-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 16px;
+  background: var(--wf-white);
+  color: var(--wf-navy);
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  transition: transform 0.15s var(--wf-ease);
+}
+.next-step-cta svg {
+  color: var(--wf-accent-fill);
+}
+.next-step-cta:active,
+.next-step-ask:active {
+  transform: scale(0.97);
+}
+.next-step-ask {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  margin-left: auto;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.1);
+  color: var(--wf-white);
+}
+
+/* ---------- Bem-estar ---------- */
+.mood-card {
+  display: grid;
+  gap: 12px;
+}
+.mood-card h2 {
+  font-size: var(--wf-fs-md);
+}
+.mood-faces {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.mood-face {
+  display: grid;
+  place-items: center;
+  padding: 6px 0;
+  border-radius: 14px;
+  transition: transform 0.15s var(--wf-ease), background 0.2s;
+}
+.mood-face:hover {
+  background: var(--wf-surface-3);
+}
+.mood-face:active {
+  transform: scale(0.92);
+}
+.mood-card.done {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+}
+.mood-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.mood-copy .muted {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--wf-fs-xs);
+}
+.mood-sleep {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--wf-indigo-50);
+  color: var(--wf-indigo-700);
+  font-weight: 600;
+}
+
+.mood-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--wf-tone-mind-bg);
+  box-shadow: inset 0 0 0 1px var(--wf-tone-mind-border);
+  color: var(--wf-text-2);
+  font-weight: 600;
+}
+
+/* ---------- Água ---------- */
+.water-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+.water-glass {
+  width: 56px;
+  height: 72px;
+  flex-shrink: 0;
+}
+.water-glass-fill {
+  transition: transform 0.7s var(--wf-ease);
+}
+.water-amount {
+  display: grid;
+  gap: 2px;
+}
+.water-amount strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-3xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--wf-tone-water-fg);
+  font-variant-numeric: tabular-nums;
+}
+.water-amount .muted {
+  font-size: var(--wf-fs-xs);
+}
+.water-taps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+.water-tap {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-tone-water-border);
+  background: var(--wf-tone-water-bg);
+  color: var(--wf-tone-water-fg);
+  transition: transform 0.15s var(--wf-ease), background 0.2s;
+}
+.water-tap span {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text);
+}
+.water-tap small {
+  font-size: var(--wf-fs-2xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.water-tap:hover {
+  background: var(--wf-sky-100);
+}
+.water-tap:active {
+  transform: scale(0.96);
+}
+/* Semana em 72 px com a meta tracejada (HOJE-03). */
+.water-chart {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 10px 10px 8px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border-soft);
+  background: linear-gradient(180deg, var(--wf-sky-50), var(--wf-surface-3));
+}
+.water-chart-legend {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.water-chart-legend i {
+  width: 14px;
+  border-top: 2px dashed var(--wf-sky-600);
+}
+.water-chart-plot {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+  height: 72px;
+}
+.water-chart-goal {
+  position: absolute;
+  inset-inline: -4px;
+  z-index: 1;
+  border-top: 2px dashed var(--wf-sky-600);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.water-chart-col {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 100%;
+}
+.water-chart-bar {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 22px;
+  padding-top: 3px;
+  border-radius: 999px;
+  background: linear-gradient(0deg, var(--wf-blue), var(--wf-sky-100));
+  color: var(--wf-surface);
+  transition: height 0.6s var(--wf-ease);
+}
+.water-chart-bar.empty {
+  height: 4px;
+  padding: 0;
+  background: var(--wf-surface-2);
+}
+.water-chart-col.met .water-chart-bar {
+  background: linear-gradient(0deg, var(--wf-sky-600), var(--wf-blue));
+}
+.water-chart-col.today .water-chart-bar:not(.empty) {
+  box-shadow: 0 0 0 2px var(--wf-surface), 0 0 0 4px var(--wf-mint-200);
+}
+.water-chart-col.future {
+  opacity: 0.5;
+}
+.water-chart-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  text-align: center;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.water-chart-days .today {
+  color: var(--wf-text);
+  font-weight: 800;
+}
+
+/* ---------- Combinados ---------- */
+.card.combinados {
+  padding: 16px 14px 18px;
+  border-radius: 28px;
+}
+.combinados-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding-left: 6px;
+}
+.combinados-head h2 {
+  margin-right: auto;
+  font-size: var(--wf-fs-xl);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.combinados-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.combinados-count strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  color: var(--wf-text);
+}
+.combinados-count small {
+  margin-left: -4px;
+  font-size: var(--wf-fs-md);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.segment-ring {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+/* ⋯ do cabeçalho: círculo cinza de 36 px dentro de um alvo de 44 px. */
+.overflow-menu > .icon-btn.combinados-more {
+  width: 44px;
+  height: 44px;
+  padding: 4px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--wf-surface-2);
+  background-clip: content-box;
+  color: var(--wf-text-2);
+}
+.combinados-finish {
+  min-height: 44px;
+}
+.combinados .combinado-list {
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.combinados .combinado {
+  flex-wrap: nowrap;
+  gap: 4px;
+  min-height: 56px;
+  padding: 8px 8px 8px 10px;
+  border-radius: 18px;
+  border: 1px solid var(--wf-border-soft);
+  background: var(--wf-surface-3);
+  box-shadow: none;
+}
+.combinados .combinado label {
+  gap: 12px;
+}
+.combinados .combinado.done {
+  background: var(--wf-mint-50);
+  border-color: var(--wf-mint-200);
+}
+.combinados .combinado-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--wf-tone-habit-bg);
+  color: var(--wf-tone-habit-fg);
+}
+.combinados .combinado.tone-mint .combinado-icon {
+  background: var(--wf-mint-50);
+  color: var(--wf-green-700);
+}
+.combinados .combinado.tone-sky .combinado-icon {
+  background: var(--wf-sky-50);
+  color: var(--wf-sky-700);
+}
+.combinados .combinado.tone-indigo .combinado-icon {
+  background: var(--wf-indigo-50);
+  color: var(--wf-indigo-700);
+}
+.combinados .combinado.tone-amber .combinado-icon {
+  background: var(--wf-amber-50);
+  color: var(--wf-amber-700);
+}
+.combinados .combinado.done .combinado-icon {
+  background: var(--wf-surface);
+  color: var(--wf-green-700);
+}
+.combinado-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.combinados .combinado-title {
+  flex: none;
+  font-size: var(--wf-fs-base);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--wf-text);
+}
+.combinados .combinado.done .combinado-title {
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--wf-green-800);
+}
+.combinado-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.combinados .combinado-tag {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.combinados .combinado.done .combinado-tag {
+  background: none;
+  font-weight: 700;
+  color: var(--wf-green-700);
+}
+/* Check redondo de 40 px: aro cinza; feito = gradiente verde com o check branco. */
+.combinados .combinado-check {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--wf-slate-300);
+}
+.combinados .combinado.done .combinado-check {
+  border: 0;
+  background: var(--wf-gradient-btn);
+  box-shadow: var(--wf-shadow-float);
+  color: var(--wf-white);
+  animation: combinado-pop var(--wf-spring-snappy-duration) var(--wf-spring-snappy);
+}
+/* O check é desenhado (SIS-09). */
+.combinados .combinado.done .combinado-check svg path {
+  stroke-dasharray: 24;
+  animation: check-draw 0.32s var(--wf-ease) both;
+}
+@keyframes check-draw {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes combinado-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.combinados .combinado {
+  position: relative;
+}
+.combinados-done {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--wf-radius-md);
+  background: var(--wf-mint-50);
+  color: var(--wf-green-700);
+  font-weight: 700;
+  font-size: var(--wf-fs-sm);
+}
+.combinados-done .link-btn {
+  margin-left: auto;
+}
+.suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ---------- Refeições em linha do tempo (fora de cartão) ---------- */
+.meals-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.meals-section > .section-header {
+  padding-left: 2px;
+}
+.meal-timeline {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Hora (44) · ponto (16) · cartão. O trilho liga os pontos: metade de cima e de baixo de cada item. */
+.timeline-item {
+  --rail-x: 49px;
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 16px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 2px;
+}
+.timeline-time {
+  font-size: var(--wf-fs-base);
+  font-weight: 800;
+  color: var(--wf-text-2);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.timeline-item.is-slot .timeline-time {
+  color: var(--wf-text-muted);
+}
+.timeline-dot {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--wf-emerald);
+  box-shadow: 0 0 0 3px var(--wf-mint-100);
+}
+.timeline-dot.is-hollow {
+  background: var(--wf-bg);
+  box-shadow: inset 0 0 0 2px var(--wf-slate-300);
+}
+.timeline-item.has-prev::before,
+.timeline-item.rail-solid::after,
+.timeline-item.rail-dashed::after {
+  content: "";
+  position: absolute;
+  left: var(--rail-x);
+  width: 2px;
+  border-radius: 999px;
+}
+/* Metade de cima: vem do item anterior (cheia até uma refeição feita; tracejada até a vaga). */
+.timeline-item.has-prev::before {
+  top: -6px;
+  bottom: calc(50% + 9px);
+  background: var(--wf-mint-200);
+}
+.timeline-item.has-prev.is-slot::before,
+.timeline-item.rail-dashed::after {
+  background: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--wf-text-muted) 55%, transparent) 0 3px,
+    transparent 3px 7px
+  );
+}
+/* Metade de baixo: vai até o próximo item. */
+.timeline-item.rail-solid::after,
+.timeline-item.rail-dashed::after {
+  top: calc(50% + 9px);
+  bottom: -6px;
+}
+.timeline-item.rail-solid::after {
+  background: var(--wf-mint-200);
+}
+.timeline-item > .meal-card {
+  min-width: 0;
+}
+
+/* Vaga da linha do tempo: o subtítulo quebra em vez de cortar (conceito: "sugerido às 19:30"). */
+.timeline-item.is-slot .meal-card-subtitle {
+  white-space: normal;
+  font-size: var(--wf-fs-sm);
+}
+.timeline-item.is-slot > .meal-card {
+  padding: 12px;
+}
+.timeline-item.is-slot .meal-card-head {
+  gap: 10px;
+}
+.timeline-item.is-slot .meal-card-tile {
+  width: 40px;
+  height: 40px;
+}
+.timeline-item.is-slot .timeline-add {
+  padding: 0 10px 0 8px;
+}
+/* "+ Adicionar" da vaga: pílula verde de 40 px (alvo de 44). */
+.timeline-add {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0 12px 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wf-accent-fill);
+  color: var(--wf-white);
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+  white-space: nowrap;
+  transition: transform 0.15s var(--wf-ease);
+}
+.timeline-add::after {
+  content: "";
+  position: absolute;
+  inset: -2px 0;
+}
+.timeline-add:hover {
+  background: var(--wf-accent-fill-strong);
+}
+.timeline-add:active {
+  transform: scale(0.97);
+}
+
+/* ---------- Comece seu dia ---------- */
+.start-card {
+  display: grid;
+  gap: 16px;
+}
+.start-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.start-art {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+}
+.start-kicker {
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wf-green-700);
+}
+.start-card.noite .start-kicker {
+  color: var(--wf-indigo-700);
+}
+.start-head h2 {
+  font-size: var(--wf-fs-xl);
+}
+.start-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.start-tile {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-height: 88px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid transparent;
+  text-align: left;
+  transition: transform 0.15s;
+}
+.start-tile:active {
+  transform: scale(0.96);
+}
+.start-tile:focus-visible {
+  outline: 2px solid var(--wf-green-700);
+  outline-offset: 2px;
+}
+.start-tile strong {
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text);
+}
+.start-tile span {
+  font-size: var(--wf-fs-2xs);
+  color: var(--wf-text-muted);
+}
+.start-tile.food {
+  background: var(--wf-tone-food-bg);
+  border-color: var(--wf-tone-food-border);
+  color: var(--wf-tone-food-fg);
+}
+.start-tile.water {
+  background: var(--wf-tone-water-bg);
+  border-color: var(--wf-tone-water-border);
+  color: var(--wf-tone-water-fg);
+}
+.start-tile.mind {
+  background: var(--wf-tone-mind-bg);
+  border-color: var(--wf-tone-mind-border);
+  color: var(--wf-tone-mind-fg);
+}
+
+@media (max-width: 380px) {
+  .start-tiles {
+    grid-template-columns: 1fr;
+  }
+  .start-tile {
+    min-height: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .start-tile {
+    transition: none;
+  }
+}
+/* ---------- Celebração gentil e entrada de registros (SIS-09) ---------- */
+.water-card,
+.combinados {
+  position: relative;
+}
+.water-card.is-celebrating::after,
+.combinados.is-celebrating::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: celebrate-glow 1.8s var(--wf-ease) both;
+}
+.water-card.is-celebrating::after {
+  --glow: color-mix(in srgb, var(--wf-blue) 28%, transparent);
+}
+.combinados.is-celebrating::after {
+  --glow: color-mix(in srgb, var(--wf-tone-habit-fg) 28%, transparent);
+}
+.water-card.is-celebrating .water-glass {
+  animation: celebrate-lift var(--wf-spring-gentle-duration) var(--wf-spring-gentle);
+}
+@keyframes celebrate-glow {
+  0% {
+    box-shadow: 0 0 0 0 var(--glow);
+  }
+  35% {
+    box-shadow: 0 0 0 8px var(--glow);
+  }
+  100% {
+    box-shadow: 0 0 0 16px transparent;
+  }
+}
+@keyframes celebrate-lift {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-6px) scale(1.06);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+.timeline-item.is-entering {
+  animation: entry-in var(--wf-spring-gentle-duration) var(--wf-spring-gentle) both;
+}
+@keyframes entry-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Medicação injetável (HOJE-05) ---------- */
+/* Widget da caneta: anel de 78 px · remédio, próxima e última · mapa com o local sugerido (botão). */
+.card.injection-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px 14px 18px 16px;
+  border-radius: 28px;
+}
+.inj-card-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+.injection-card:not(.is-estimate) .inj-card-main {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.injection-card .dose-ring-center strong {
+  font-size: var(--wf-fs-4xl);
+}
+.injection-card .dose-ring-center small {
+  font-size: var(--wf-fs-sm);
+}
+.inj-card-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+.inj-card-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--wf-fs-base);
+  font-weight: 800;
+  color: var(--wf-tone-medication-fg);
+}
+.inj-card-kicker:focus-visible {
+  outline: 2px solid var(--wf-green-700);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.inj-card-next {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--wf-text);
+}
+.inj-card-last {
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-muted);
+}
+.inj-card-copy .hint {
+  margin-top: 2px;
+}
+/* "Como você está?": chip menta de 36 px (alvo de 44). */
+.inj-mood-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  margin-top: 8px;
+  padding: 0 12px 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-mint-200);
+  background: var(--wf-mint-50);
+  font-size: var(--wf-fs-base);
+  font-weight: 700;
+  color: var(--wf-green-700);
+}
+.inj-mood-chip::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+}
+/* O mapa é o botão "Calcular dose e registrar": o ponto sugerido em verde, o local embaixo. */
+.inj-card-site {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 48px;
+  max-width: 56px;
+  padding: 4px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: inherit;
+  text-align: center;
+}
+.inj-card-site:hover {
+  background: var(--wf-surface-3);
+}
+.inj-card-site .inj-body-mini {
+  width: 44px;
+  height: 78px;
+}
+.inj-card-site .inj-body-mini circle[fill="var(--wf-tone-medication-fg)"] {
+  fill: var(--wf-emerald);
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--wf-emerald) 60%, transparent));
+}
+.inj-card-site strong {
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--wf-green-700);
+}
+.inj-card-register {
+  justify-self: start;
+  min-height: 44px;
+}
+/* "Seu ciclo da semana" recolhido numa linha de 44 px; o conteúdo abre embaixo. */
+.inj-cycle {
+  border-top: 1px dashed var(--wf-border);
+  padding-top: 4px;
+}
+.inj-cycle-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  font-size: var(--wf-fs-base);
+  font-weight: 600;
+  color: var(--wf-text-2);
+  text-align: left;
+}
+.inj-cycle-toggle strong {
+  font-weight: 800;
+  color: var(--wf-text);
+}
+.inj-cycle-toggle svg {
+  flex-shrink: 0;
+  color: var(--wf-text-muted);
+  transition: transform 0.2s var(--wf-ease);
+}
+.inj-cycle-toggle[aria-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+/* O título do bloco já está no botão: aqui só o conteúdo (o grupo continua rotulado por ele). */
+.inj-cycle-body .cycle-tip-kicker {
+  display: none;
+}
+@media (max-width: 359px) {
+  .inj-card-main {
+    gap: 10px;
+  }
+  .injection-card .dose-ring {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+/* ---------- Editar Hoje ---------- */
+.home-edit {
+  /* Pílula no centro: justify-self vale na grade do desktop; align-self, na coluna flex do celular. */
+  justify-self: center;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.home-edit:hover {
+  border-color: var(--wf-mint-200);
+  background: var(--wf-mint-50);
+}
+.home-layout-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.home-layout-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 6px 8px 6px 12px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border-soft);
+  background: var(--wf-surface-3);
+}
+.home-layout-item.is-hidden .home-layout-name {
+  color: var(--wf-text-muted);
+  text-decoration: line-through;
+}
+.home-layout-name {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text);
+}
+.home-layout-moves {
+  display: flex;
+  gap: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .day-ring.is-toggle,
+  .water-card.is-celebrating::after,
+  .combinados.is-celebrating::after,
+  .water-card.is-celebrating .water-glass,
+  .timeline-item.is-entering,
+  .combinados .combinado.done .combinado-check,
+  .combinados .combinado.done .combinado-check svg path {
+    animation: none;
+    transition: none;
+  }
+}
+/* Abaixo de 380 px o anel sobe e os tiles descem, um embaixo do outro na largura toda: "Combinados" e
+   "1,75 / 2,5 L" cabem inteiros. Os macros descem um degrau para rótulo e valor caberem na coluna. */
+@media (max-width: 379px) {
+  .day-hero-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .day-tiles {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+  .day-macro {
+    padding-inline: 6px;
+  }
+  .day-macro-label {
+    font-size: var(--wf-fs-sm);
+  }
+  .day-macro strong {
+    font-size: var(--wf-fs-xl);
+  }
+  .day-macro strong small {
+    font-size: var(--wf-fs-sm);
+  }
+}
+/* Abaixo de 360 px: a vaga vira um "+" redondo (o nome continua "Adicionar jantar") e o título da refeição
+   pode ocupar duas linhas, para "sugerido às 19:30" e "Café da manhã" não virarem reticências. */
+@media (max-width: 359px) {
+  .timeline-item.is-slot .timeline-add {
+    justify-content: center;
+    width: 40px;
+    padding: 0;
+  }
+  .timeline-add-text {
+    display: none;
+  }
+  .timeline-item .meal-card-title {
+    white-space: normal;
+  }
+}
+
+/* ---------- Linhas compactas: "Do seu plano" e despensa (com o "Use primeiro" embaixo) ---------- */
+.hoje-pantry-row {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-radius: 24px;
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+.hoje-pantry-row > .shortcut-tile {
+  background: transparent;
+  box-shadow: none;
+}
+.hoje-pantry-row > .use-first-strip {
+  margin: 0 14px 14px;
+  padding-top: 12px;
+}
+/* No Hoje, o título e os chips já dizem o que vence: a frase fica só para o leitor de tela (densidade do conceito). */
+.hoje-pantry-row .use-first-lead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Grade do Hoje (SIS-12) ----------
+   Abaixo de 1024 px: a mesma coluna de sempre (gap herdado de .page-content, 16 ou 14 px; as
+   seções entram direto no fluxo). A partir de 1024 px: 12 colunas, semana e "Editar Hoje" na linha
+   inteira, anéis ao lado do próximo passo e as seções em grupos na ordem da pessoa (data-span e
+   data-rows vêm de bentoLayout): pares, pilhas (um cartão alto por duas linhas ao lado de dois
+   baixos) ou uma seção na linha inteira. Nada muda de ordem: a grade só posiciona na ordem do DOM
+   (o posicionamento automático preenche a pilha sem precisar de linha fixa). */
+.hoje-grid,
+.hoje-lead-side {
+  display: flex;
+  flex-direction: column;
+  gap: inherit;
+}
+.hoje-slot {
+  display: contents;
+}
+@media (min-width: 1024px) {
+  .hoje-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
+  }
+  .hoje-grid > .hoje-week,
+  .hoje-grid > .home-edit {
+    grid-column: 1 / -1;
+  }
+  .hoje-grid > .home-edit {
+    justify-self: center;
+  }
+  .hoje-grid > .day-hero {
+    grid-column: span 7;
+  }
+  .hoje-grid > .hoje-lead-side {
+    grid-column: span 5;
+    min-width: 0;
+  }
+  /* O último cartão da coluna lateral (próximo passo ou "Comece seu dia") acompanha a altura dos anéis. */
+  .hoje-lead-side > :last-child {
+    flex: 1 1 auto;
+    align-content: start;
+  }
+  /* Resumo esticado: título no topo; a ação ancorada embaixo. */
+  .hoje-lead-side > .next-step {
+    align-content: stretch;
+  }
+  .hoje-lead-side > .next-step .next-step-actions {
+    margin-top: auto;
+  }
+  .hoje-slot {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  /* Cartões do mesmo grupo com a mesma altura; o conteúdo fica no topo. */
+  .hoje-slot > * {
+    flex: 1 1 auto;
+    align-content: start;
+  }
+  /* A linha do tempo das refeições não tem cartão (conceito 01): fica da altura do conteúdo, sem vão embaixo. */
+  .hoje-slot > .meals-section {
+    flex: 0 0 auto;
+  }
+  .hoje-slot[data-rows="2"] {
+    grid-row: span 2;
+  }
+  .hoje-slot[data-span="5"] {
+    grid-column: span 5;
+  }
+  .hoje-slot[data-span="6"] {
+    grid-column: span 6;
+  }
+  .hoje-slot[data-span="7"] {
+    grid-column: span 7;
+  }
+  .hoje-slot[data-span="12"] {
+    grid-column: 1 / -1;
+  }
+  /* As células vão de ~310 a ~600 px: nada pode depender da largura da janela para caber. */
+  .hoje-slot .section-head {
+    flex-wrap: wrap;
+  }
+  /* "Comece seu dia" na coluna lateral (~310–340 px): os três atalhos viram linhas, ícone à esquerda. */
+  .hoje-lead-side .start-tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hoje-lead-side .start-tile {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 12px;
+    min-height: 0;
+  }
+  .hoje-lead-side .start-tile > svg {
+    grid-row: span 2;
+  }
+  /* Bem-estar esticado pela pilha: título no topo, rostos no meio do espaço que sobra. */
+  .hoje-slot > .mood-card:not(.done) {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .hoje-slot > .mood-card:not(.done) .mood-faces {
+    align-content: center;
+  }
+  /* Bem-estar na linha inteira: faixa com o título à esquerda e os rostos à direita. */
+  .hoje-slot[data-span="12"] > .mood-card:not(.done) {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto;
+    align-items: center;
+    column-gap: 24px;
+  }
+  .hoje-slot[data-span="12"] > .mood-card:not(.done) .mood-faces {
+    justify-self: end;
+    width: min(100%, 440px);
+  }
+  /* Água: a semana ocupa o que sobrar do cartão (as barras são % do gráfico, que cresce). */
+  .hoje-slot > .water-card {
+    display: grid;
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+  }
+  .hoje-slot > .water-card .water-chart {
+    grid-template-rows: minmax(72px, 1fr) auto;
+  }
+  .hoje-slot > .water-card .water-chart:has(.water-chart-legend) {
+    grid-template-rows: auto minmax(72px, 1fr) auto;
+  }
+  .hoje-slot > .water-card .water-chart-plot {
+    height: auto;
+  }
+  /* Água na linha inteira: faixa com copo e toques à esquerda e a semana à direita. */
+  .hoje-slot[data-span="12"] > .water-card {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      "head chart"
+      "main chart"
+      "taps chart";
+    column-gap: 24px;
+  }
+  .hoje-slot[data-span="12"] > .water-card > .section-head {
+    grid-area: head;
+  }
+  .hoje-slot[data-span="12"] > .water-card > .water-main {
+    grid-area: main;
+  }
+  .hoje-slot[data-span="12"] > .water-card > .water-taps {
+    grid-area: taps;
+    align-self: end;
+  }
+  .hoje-slot[data-span="12"] > .water-card > .water-chart {
+    grid-area: chart;
+    margin-top: 0;
+  }
+}
+@media (min-width: 1280px) {
+  .hoje-grid > .day-hero {
+    grid-column: span 8;
+  }
+  .hoje-grid > .hoje-lead-side {
+    grid-column: span 4;
+  }
+}

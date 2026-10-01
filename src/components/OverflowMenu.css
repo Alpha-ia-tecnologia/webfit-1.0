@@ -1,0 +1,74 @@
+/* Menu "⋯" de ações secundárias. */
+.overflow-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+/* Fantasma: só o ⋯ em cinza, sem caixa; o alvo continua com 44 px. */
+.overflow-menu > .icon-btn.is-ghost {
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--wf-text-muted);
+}
+.overflow-menu > .icon-btn.is-ghost:hover:not(:disabled),
+.overflow-menu > .icon-btn.is-ghost[aria-expanded="true"] {
+  background: var(--wf-surface-2);
+  color: var(--wf-text);
+}
+.overflow-menu-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 210px;
+  padding: 6px;
+  border-radius: var(--wf-radius-md);
+  background: var(--wf-surface);
+  border: 1px solid var(--wf-border-soft);
+  box-shadow: var(--wf-shadow-float);
+  animation: wf-fade-up 0.18s var(--wf-ease) both;
+}
+/* A animação de entrada (.stagger-*) deixa cada seção num contexto de empilhamento próprio: com o
+   menu aberto, a seção sobe acima das irmãs seguintes, que senão cobririam as últimas ações
+   (ex.: "Excluir" da última refeição do Diário sob "Água e bem-estar"). */
+:is(.stagger-1, .stagger-2, .stagger-3, .stagger-4, .stagger-5):has(.overflow-menu-list) {
+  position: relative;
+  z-index: 5;
+}
+/* Abre para cima e alinhado à esquerda do botão (barra fixa no pé da tela). */
+.overflow-menu-list.is-top-start {
+  top: auto;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: auto;
+}
+.overflow-menu-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  text-align: left;
+  color: var(--wf-text);
+}
+.overflow-menu-list button svg {
+  color: var(--wf-green-700);
+}
+.overflow-menu-list button:hover:not(:disabled),
+.overflow-menu-list button:focus-visible {
+  background: var(--wf-mint-50);
+}
+.overflow-menu-list button:disabled {
+  color: var(--wf-text-muted);
+  cursor: not-allowed;
+}
+.overflow-menu-list button:disabled svg {
+  color: var(--wf-text-muted);
+}

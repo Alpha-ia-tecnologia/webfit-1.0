@@ -1,0 +1,209 @@
+/* "Essencial" e "Relatório para consulta" (ESPACO-08). Ficha de consulta: faixa no tom da
+   medicação, fichas por grupo (alergias em âmbar de atenção), nada em vermelho. Só tokens. */
+
+/* ---------- Folha Essencial (aberta pelo mosaico do perfil de saúde) ---------- */
+.essential-sheet {
+  gap: 14px;
+}
+.essential-sheet > .essential-sub {
+  margin: -6px 0 0;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.4;
+  color: var(--wf-text-muted);
+}
+.essential-summary {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--wf-radius-sm);
+  border-left: 4px solid var(--wf-tone-medication-fg);
+  background: var(--wf-surface-2);
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text);
+}
+.essential-details {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.essential-group h3 {
+  margin: 0 0 6px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--wf-text-muted);
+}
+.essential-chips {
+  --chip-bg: var(--wf-tone-neutral-bg);
+  --chip-border: var(--wf-tone-neutral-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.essential-chips.tone-attention {
+  --chip-bg: var(--wf-tone-attention-bg);
+  --chip-border: var(--wf-tone-attention-border);
+}
+.essential-chips.tone-medication {
+  --chip-bg: var(--wf-tone-medication-bg);
+  --chip-border: var(--wf-tone-medication-border);
+}
+.essential-chip {
+  max-width: 100%;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--chip-border);
+  background: var(--chip-bg);
+  color: var(--wf-text);
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.essential-note {
+  margin: 6px 0 0;
+  font-size: var(--wf-fs-xs);
+  line-height: 1.45;
+  color: var(--wf-text-muted);
+}
+.essential-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--wf-border-soft);
+}
+.essential-actions .essential-edit {
+  min-height: 44px;
+  padding: 0 4px;
+}
+.essential-actions .essential-report {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  flex: 0 1 auto;
+}
+@media (max-width: 359px) {
+  .essential-actions .essential-report {
+    flex: 1 1 100%;
+  }
+}
+
+/* ---------- Relatório para consulta (folha) ---------- */
+.report-sheet {
+  gap: 16px;
+}
+.report-intro {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.55;
+  color: var(--wf-text-2);
+}
+.report-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.report-sections legend {
+  margin-bottom: 6px;
+  padding: 0;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+/* Hover só com contorno: o fundo não muda, então a dica cinza segue AA sobre a superfície. */
+.report-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border-radius: var(--wf-radius-sm);
+  box-shadow: inset 0 0 0 1px transparent;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.report-option:hover {
+  box-shadow: inset 0 0 0 1px var(--wf-border);
+}
+.report-option:focus-within {
+  outline: 2px solid var(--wf-mint-300);
+  outline-offset: -2px;
+}
+.report-option input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+}
+.report-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.report-option-label {
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  color: var(--wf-text);
+}
+.report-option-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--wf-fs-xs);
+  line-height: 1.45;
+  color: var(--wf-text-muted);
+}
+.report-option-note {
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.report-option.is-off {
+  cursor: default;
+}
+.report-option.is-off:hover {
+  box-shadow: inset 0 0 0 1px transparent;
+}
+.report-option.is-off .report-option-label {
+  color: var(--wf-text-muted);
+}
+.report-sheet textarea {
+  resize: vertical;
+}
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.report-actions > button {
+  min-height: 48px;
+}
+.report-actions > .btn {
+  flex: 1 1 220px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.report-actions > .btn-secondary {
+  flex: 0 1 auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .report-option {
+    transition: none;
+  }
+}

@@ -1,0 +1,447 @@
+/* "Sua semana" (Onda 4 · Lote 2): cartão do Hoje/Evolução, stories e folha da imagem. Só tokens;
+   anima só transform e opacity; sem movimento reduzido, nada anda sozinho. */
+
+/* ---------- Cartão ---------- */
+@media (min-width: 1024px) {
+  .hoje-grid > .hoje-recap {
+    grid-column: 1 / -1;
+  }
+}
+.card.week-recap {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.week-recap-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.week-recap-head h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  margin: 0;
+  font-size: var(--wf-fs-lg);
+}
+.week-recap-range {
+  font-family: var(--wf-font);
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.icon-btn.week-recap-dismiss {
+  width: 44px;
+  height: 44px;
+  margin: -8px -8px 0 0;
+}
+.recap-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@container (min-width: 640px) {
+  .recap-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.recap-tile {
+  position: relative;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: var(--wf-surface-3);
+  box-shadow: inset 0 0 0 1px var(--wf-border-soft);
+}
+.recap-tile-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+.recap-tile-visual > svg {
+  margin-bottom: 2px;
+}
+.recap-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 2px;
+  border-radius: 10px;
+}
+.recap-icon.tone-habit {
+  color: var(--wf-tone-habit-fg);
+  background: var(--wf-tone-habit-bg);
+}
+.recap-icon.tone-body {
+  color: var(--wf-tone-body-fg);
+  background: var(--wf-tone-body-bg);
+}
+.recap-icon.tone-water {
+  color: var(--wf-tone-water-fg);
+  background: var(--wf-tone-water-bg);
+}
+.recap-icon.tone-food {
+  color: var(--wf-tone-food-fg);
+  background: var(--wf-tone-food-bg);
+}
+.recap-icon.tone-mind {
+  color: var(--wf-tone-mind-fg);
+  background: var(--wf-tone-mind-bg);
+}
+.recap-label {
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.recap-value {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-xl);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  color: var(--wf-text);
+}
+.recap-detail {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+/* Variação neutra (navy), nunca vermelha nem verde, como nas pesagens. */
+.recap-delta {
+  max-width: 100%;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-white);
+  background: var(--wf-inverse);
+  box-shadow: inset 0 0 0 1px var(--wf-inverse-border);
+}
+.btn.week-recap-open {
+  align-self: flex-start;
+  min-height: 44px;
+}
+
+/* ---------- Stories ---------- */
+.modal.stories-modal {
+  gap: 12px;
+  overflow: hidden;
+}
+/* "Fechar" do Modal tem 40 px; nos stories em tela cheia todo controle tem 44 px. */
+.modal.stories-modal > .row-between .icon-btn {
+  width: 44px;
+  height: 44px;
+}
+@media (max-width: 599px) {
+  .modal-overlay.stories-overlay {
+    padding: 0;
+  }
+  .modal.stories-modal {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 16px;
+    border-radius: 0;
+  }
+}
+@media (min-width: 600px) {
+  .modal.stories-modal {
+    width: min(440px, 100%);
+    height: min(780px, 92dvh);
+  }
+}
+.stories {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+.story-progress {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+}
+.story-seg {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--wf-surface-2);
+}
+.story-seg i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--wf-marker);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.story-seg.is-done i {
+  transform: scaleX(1);
+}
+.story-seg.is-active:not(.is-done) i {
+  animation: story-fill linear forwards;
+}
+.stories.is-paused .story-seg.is-active i {
+  animation-play-state: paused;
+}
+@keyframes story-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.story-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  touch-action: pan-y;
+  user-select: none;
+}
+.story-slide {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 8px;
+  animation: wf-fade-up 0.3s var(--wf-ease) both;
+}
+.story-slide p {
+  margin: 0;
+}
+.story-title {
+  margin: 0;
+  font-size: var(--wf-fs-2xl);
+  font-weight: 800;
+  color: var(--wf-text);
+}
+.story-range {
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.story-lead {
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text-2);
+}
+.story-lead strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-4xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text);
+}
+.story-rings {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.story-rings li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.story-ring {
+  display: block;
+  width: 100%;
+  max-width: 44px;
+  aspect-ratio: 1;
+}
+.story-ring svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.story-ring-day {
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.story-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.story-big strong {
+  display: block;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-5xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text);
+}
+.story-big span {
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-muted);
+}
+.story-bars {
+  --bar-from: var(--wf-sky-100);
+  --bar-to: var(--wf-blue);
+}
+.story-bars .evol-bars {
+  height: 120px;
+}
+.story-line {
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text-2);
+}
+.story-empty {
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text-muted);
+}
+.story-habits {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.story-habits li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--wf-border-soft);
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text);
+}
+.story-habit-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.story-habit-days {
+  flex-shrink: 0;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text-2);
+}
+.story-weight {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--wf-surface-3);
+  box-shadow: inset 0 0 0 1px var(--wf-border-soft);
+}
+.story-weight .recap-label {
+  flex-basis: 100%;
+}
+.story-wins {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.story-wins li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--wf-fs-md);
+  font-weight: 600;
+  color: var(--wf-text);
+}
+.story-wins svg {
+  flex-shrink: 0;
+  color: var(--wf-tone-food-fg);
+}
+.story-share {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 6px;
+}
+.story-share .btn-secondary {
+  min-height: 44px;
+}
+.story-controls {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+.story-controls > :first-child {
+  justify-self: start;
+}
+.story-controls > :last-child {
+  justify-self: end;
+}
+.story-controls .btn,
+.story-controls .btn-secondary {
+  min-height: 44px;
+  padding-inline: 14px;
+}
+.icon-btn.story-pause {
+  width: 44px;
+  height: 44px;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Mesma especificidade da regra da animação e depois dela: a barra ativa fica cheia, parada. */
+  .stories .story-seg.is-active i {
+    animation: none;
+    transform: scaleX(1);
+  }
+  .story-slide {
+    animation: none;
+  }
+}
+
+/* ---------- Imagem da semana ---------- */
+.share-preview-frame {
+  display: grid;
+  place-items: center;
+  min-height: 270px;
+}
+.share-preview,
+.share-preview-skeleton {
+  width: 216px;
+  height: 270px;
+  border-radius: 16px;
+}
+.share-preview {
+  display: block;
+  object-fit: contain;
+  box-shadow:
+    0 0 0 1px var(--wf-border),
+    var(--wf-shadow-card);
+}
+.share-error {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-tone-danger-fg);
+}
+.share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.share-actions .btn,
+.share-actions .btn-secondary {
+  min-height: 44px;
+}

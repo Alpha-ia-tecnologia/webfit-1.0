@@ -1,0 +1,298 @@
+/* Controles de horário da anamnese (Onda 3 · Lote 1): caneta (frequência, dia e última aplicação)
+   e a linha do dia. Só tokens; alvos de 44 px. */
+/* ---------- Caneta: frequência, dia e última aplicação ---------- */
+.pen-schedule {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  outline: none;
+}
+.pen-schedule[aria-invalid="true"] {
+  padding-left: 12px;
+  border-left: 3px solid var(--wf-rose-400);
+}
+.pen-field {
+  display: grid;
+  gap: 8px;
+}
+.pen-field-label {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  color: var(--wf-text);
+}
+.pen-radios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pen-radio {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+  transition:
+    background 0.16s,
+    border-color 0.16s,
+    color 0.16s;
+}
+.pen-radio:hover {
+  border-color: var(--wf-slate-300);
+}
+.pen-radio.on {
+  background: var(--wf-accent-fill);
+  border-color: var(--wf-accent-fill);
+  color: var(--wf-white);
+}
+.pen-radio.is-day {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+}
+.pen-radio.is-varies.on {
+  background: var(--wf-text-2);
+  border-color: var(--wf-text-2);
+  color: var(--wf-surface);
+}
+.pen-radio:focus-visible,
+.pen-last-toggle:focus-visible,
+.known-change:focus-visible {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 2px;
+}
+.pen-last {
+  display: grid;
+  gap: 6px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--wf-border);
+}
+.pen-last .hint {
+  margin: 0;
+}
+.pen-last-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-green-700);
+  background: var(--wf-mint-50);
+}
+.pen-last-toggle[aria-expanded="true"] {
+  background: var(--wf-mint-100);
+}
+.pen-last-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 8px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--wf-tone-medication-border);
+  background: var(--wf-tone-medication-bg);
+}
+.pen-last-panel[hidden] {
+  display: none;
+}
+.pen-last-preview {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--wf-surface);
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--wf-text);
+}
+.pen-last-confirm {
+  justify-self: start;
+  min-height: 44px;
+}
+.pen-last-confirm[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.pen-last-confirmed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  color: var(--wf-green-700);
+}
+.pen-last-confirmed p {
+  flex: 1 1 160px;
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text);
+}
+.pen-last-known p {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+
+/* ---------- Linha do dia ---------- */
+.day-timeline {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  outline: none;
+}
+.day-timeline[aria-invalid="true"] {
+  padding-left: 12px;
+  border-left: 3px solid var(--wf-rose-400);
+}
+/* As alças nas pontas passam 22 px da trilha: o recuo evita rolagem lateral. */
+.dt-track {
+  padding: 0 22px;
+}
+.dt-inner {
+  position: relative;
+  padding: 44px 0;
+  touch-action: pan-y;
+}
+.dt-bar {
+  position: relative;
+  height: 56px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--wf-surface-2);
+}
+.dt-night {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--wf-tone-body-bg);
+}
+.dt-tick {
+  position: absolute;
+  bottom: 6px;
+  height: 16px;
+  line-height: 16px;
+  transform: translateX(-50%);
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text-muted);
+}
+.dt-tick::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  width: 1px;
+  height: 10px;
+  background: var(--wf-border);
+}
+.dt-tick.is-first {
+  transform: translateX(2px);
+}
+.dt-tick.is-first::before {
+  left: 0;
+}
+.dt-tick.is-last {
+  transform: translateX(calc(-100% - 2px));
+}
+.dt-tick.is-last::before {
+  left: auto;
+  right: 0;
+}
+.dt-handle {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  border-radius: 50%;
+  outline: none;
+  cursor: grab;
+  touch-action: none;
+}
+.dt-handle.is-top {
+  top: 0;
+}
+.dt-handle.is-bottom {
+  bottom: 0;
+}
+.dt-handle:focus-visible,
+.dt-handle.is-active {
+  z-index: 2;
+}
+.dt-handle-dot {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--wf-surface);
+  background: var(--wf-accent-fill);
+  color: var(--wf-white);
+  box-shadow: var(--wf-shadow-card);
+}
+.dt-handle.is-top .dt-handle-dot {
+  background: var(--wf-tone-body-fg);
+  color: var(--wf-surface);
+}
+.dt-handle:focus-visible .dt-handle-dot {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 2px;
+}
+.dt-handle.is-active {
+  cursor: grabbing;
+}
+.dt-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+  background: var(--wf-surface-2);
+}
+.dt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dt-legend-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+}
+.dt-legend-btn strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text);
+}
+.dt-legend-btn.is-empty strong {
+  color: var(--wf-text-muted);
+}
+.dt-legend-btn:hover {
+  border-color: var(--wf-slate-300);
+}
+.dt-summary {
+  margin: 0;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  color: var(--wf-text);
+}

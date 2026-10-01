@@ -1,0 +1,296 @@
+/* Respostas do agente por blocos (SIS-02, conceito 05): seções, cartão da semana, opções de
+   refeição, gráficos, propostas e respostas rápidas. */
+.chat-row.has-blocks {
+  gap: 12px;
+}
+.chat-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.chat-section + .chat-section {
+  margin-top: 4px;
+}
+.chat-section-label {
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  color: var(--wf-text-muted);
+}
+.chat-card-title {
+  margin: 0;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--wf-text);
+  overflow-wrap: anywhere;
+}
+.chat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+/* Cartão da semana: título, datas, selo neutro de kcal e 4 linhas com barra. */
+.week-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px;
+  border-radius: 24px;
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+.week-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.week-card-heading {
+  min-width: 0;
+}
+.week-card-heading h4 {
+  margin: 0;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--wf-text);
+}
+.week-card-heading p {
+  margin: 2px 0 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-muted);
+}
+.week-card-badge.pill-chip {
+  flex-shrink: 1;
+  min-width: 0;
+}
+.week-card-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.week-card-rows .progress-row {
+  align-items: center;
+}
+.week-card-rows .progress-row-body {
+  gap: 6px;
+}
+.week-card-rows .icon-tile {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+.week-card-rows .progress-row-label {
+  font-size: var(--wf-fs-base);
+}
+.week-card-rows .progress-row-value {
+  font-size: var(--wf-fs-sm);
+}
+.week-card-rows .progress-row-value strong {
+  font-size: var(--wf-fs-base);
+}
+.week-card-chips {
+  display: flex;
+  gap: 8px;
+  margin: 0 -16px -4px;
+  padding: 16px 16px 4px;
+  border-top: 1px dashed var(--wf-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  mask-image: linear-gradient(to right, black 82%, transparent);
+  -webkit-mask-image: linear-gradient(to right, black 82%, transparent);
+}
+.week-card-chips::-webkit-scrollbar {
+  display: none;
+}
+/* 36 px à vista e 44 de toque (a faixa rola; o respiro de cima e de baixo recebe o toque). */
+.week-card-chips .prompt-pill {
+  position: relative;
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: var(--wf-fs-sm);
+}
+.week-card-chips .prompt-pill::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+}
+/* "O que considerei": chips de contorno acima das opções. */
+.considered-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.considered-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text);
+  background: var(--wf-surface);
+  border: 1px solid var(--wf-border);
+}
+.considered-chip.is-allergen svg {
+  color: var(--wf-tone-warn-fg);
+}
+.considered-chip.is-goal svg {
+  color: var(--wf-green-700);
+}
+/* Opções de refeição: cartões selecionáveis na vertical e um só "Registrar no jantar". */
+.meal-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.meal-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.meal-choice-list .radio-card {
+  gap: 10px;
+}
+.meal-choice-list .radio-card-title {
+  font-size: var(--wf-fs-md);
+}
+.meal-choice-list .radio-card-subtitle {
+  font-size: var(--wf-fs-sm);
+}
+.meal-choice-glyph.food-glyph {
+  border-radius: 16px;
+  background: linear-gradient(145deg, var(--wf-tone-food-bg), var(--wf-sky-50));
+}
+.meal-choice-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+/* Pílulas de 24 px em 13 px: "420 kcal · 35 g prot. · 15 min" numa linha, como no conceito. */
+.meal-choice .meal-choice-pills .pill-chip {
+  gap: 3px;
+  min-height: 24px;
+  padding: 0 7px;
+  font-size: var(--wf-fs-sm);
+}
+.meal-choice .meal-choice-pills .pill-chip svg {
+  width: 13px;
+  height: 13px;
+}
+.meal-choice-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 2px;
+}
+.meal-choice-register.btn {
+  flex: 1;
+  min-height: 48px;
+  border-radius: 16px;
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  gap: 8px;
+}
+.meal-choice-save.icon-btn {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: var(--wf-surface);
+  border: 1px solid var(--wf-border);
+  box-shadow: var(--wf-shadow-card);
+  color: var(--wf-text-2);
+}
+/* Gráfico do app dentro da conversa (mesmos cartões da Evolução). */
+.chat-chart {
+  min-width: 0;
+  max-width: 420px;
+}
+.chat-chart .card.evol-mini {
+  padding: 14px;
+}
+.chat-weight {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  overflow: hidden;
+}
+.chat-weight h4 {
+  margin: 0;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text);
+}
+/* Propostas (combinado, registro): a pessoa confirma; nada é salvo sozinho. */
+.action-eyebrow {
+  margin: 0;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wf-tone-habit-fg);
+}
+.action-card .chat-card-title {
+  margin-top: -6px;
+}
+.action-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.action-btn {
+  align-self: flex-start;
+  min-height: 44px;
+}
+.action-done {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-green-700);
+  background: var(--wf-mint-50);
+}
+.action-done:focus-visible {
+  outline: 3px solid var(--wf-green-500);
+  outline-offset: 2px;
+}
+/* Respostas rápidas no fim da última resposta: uma fila que rola, sem quebrar. */
+.chat-suggestions {
+  flex-wrap: nowrap;
+  margin: 0 -16px;
+  padding: 2px 16px 4px;
+}

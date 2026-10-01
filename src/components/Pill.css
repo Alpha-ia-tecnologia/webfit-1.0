@@ -1,0 +1,94 @@
+/* ---------- Pílula de informação (Pill) ----------
+   O tom vem de --wf-tone-{domínio}-fg/-bg/-border, os mesmos do tema claro e escuro. */
+.pill-chip {
+  /* Texto AA sobre o fundo do tom (o fg do domínio, em alguns tons, só serve de ícone). */
+  --pill-fg: var(--wf-text-2);
+  --pill-bg: var(--wf-tone-neutral-bg);
+  --pill-border: var(--wf-tone-neutral-border);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  border-radius: 999px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.pill-chip > span:not(.sr-only) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pill-chip.is-sm {
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: var(--wf-fs-sm);
+}
+.pill-chip.is-md {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: var(--wf-fs-base);
+}
+.pill-chip.is-soft {
+  color: var(--pill-fg);
+  background: var(--pill-bg);
+  box-shadow: inset 0 0 0 1px var(--pill-border);
+}
+.pill-chip.is-outline {
+  color: var(--pill-fg);
+  background: var(--wf-surface);
+  box-shadow: inset 0 0 0 1px var(--wf-border);
+}
+.pill-chip.is-solid.tone-food {
+  color: var(--wf-white);
+  background: var(--wf-accent-fill);
+}
+.pill-chip.is-solid.tone-neutral {
+  color: var(--wf-on-fill-slate);
+  background: var(--wf-inverse);
+}
+.pill-chip.tone-water {
+  --pill-fg: var(--wf-sky-700);
+  --pill-bg: var(--wf-tone-water-bg);
+  --pill-border: var(--wf-tone-water-border);
+}
+.pill-chip.tone-food {
+  --pill-fg: var(--wf-green-700);
+  --pill-bg: var(--wf-tone-food-bg);
+  --pill-border: var(--wf-tone-food-border);
+}
+.pill-chip.tone-habit {
+  --pill-fg: var(--wf-teal-700);
+  --pill-bg: var(--wf-tone-habit-bg);
+  --pill-border: var(--wf-tone-habit-border);
+}
+.pill-chip.tone-body {
+  --pill-fg: var(--wf-indigo-700);
+  --pill-bg: var(--wf-tone-body-bg);
+  --pill-border: var(--wf-tone-body-border);
+}
+.pill-chip.tone-medication {
+  --pill-fg: var(--wf-tone-medication-fg);
+  --pill-bg: var(--wf-tone-medication-bg);
+  --pill-border: var(--wf-tone-medication-border);
+}
+.pill-chip.tone-mind {
+  --pill-fg: color-mix(in srgb, var(--wf-tone-mind-fg) 75%, var(--wf-text));
+  --pill-bg: var(--wf-tone-mind-bg);
+  --pill-border: var(--wf-tone-mind-border);
+}
+.pill-chip.tone-attention {
+  --pill-fg: var(--wf-amber-900);
+  --pill-bg: var(--wf-amber-100);
+  --pill-border: var(--wf-amber-200);
+}
+.pill-chip.tone-warn {
+  --pill-fg: var(--wf-tone-warn-fg);
+  --pill-bg: var(--wf-tone-warn-bg);
+  --pill-border: var(--wf-tone-warn-border);
+}
+.pill-chip.tone-danger {
+  --pill-fg: var(--wf-rose-700);
+  --pill-bg: var(--wf-tone-danger-bg);
+  --pill-border: var(--wf-tone-danger-border);
+}

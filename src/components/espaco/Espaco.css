@@ -1,0 +1,831 @@
+/* Meu espaço (conceito 11): identidade com anel da anamnese, próxima consulta, abas com ícones,
+   metas visuais e dados em linhas curtas. Só tokens; o topo navy é igual nos dois temas. */
+.profile-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 18px 20px;
+  border-radius: var(--wf-radius-lg);
+  border: 1px solid var(--wf-inverse-border);
+  color: var(--wf-white);
+  background:
+    radial-gradient(
+      90% 80% at 100% 0%,
+      color-mix(in srgb, var(--wf-sky-600) 34%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      70% 80% at 0% 100%,
+      color-mix(in srgb, var(--wf-green-500) 26%, transparent),
+      transparent 62%
+    ),
+    var(--wf-navy);
+  box-shadow: var(--wf-shadow-float);
+}
+.profile-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+/* Avatar de 82 px: anel em degradê (quanto da anamnese está respondido), disco com a inicial e o
+   selo verde quando está completa. O disco usa verde-azulado escuro: a inicial branca (36 px) passa 3:1. */
+.profile-hero-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 82px;
+  height: 82px;
+}
+.profile-hero-ring {
+  position: absolute;
+  inset: 0;
+}
+.profile-hero-ring-track {
+  fill: none;
+  stroke: color-mix(in srgb, var(--wf-white) 14%, transparent);
+  stroke-width: 4;
+}
+.profile-hero-ring-arc {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.profile-hero-ring .ring-stop-a {
+  stop-color: var(--wf-teal-500);
+}
+.profile-hero-ring .ring-stop-b {
+  stop-color: var(--wf-sky-500);
+}
+.profile-hero-disc {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-5xl);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--wf-white);
+  background: linear-gradient(135deg, var(--wf-teal-600), var(--wf-sky-600));
+}
+.profile-hero-badge {
+  position: absolute;
+  right: -2px;
+  bottom: 2px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--wf-white);
+  background: var(--wf-accent-fill);
+  box-shadow: 0 0 0 3px var(--wf-navy);
+}
+.profile-hero-id {
+  flex: 1;
+  min-width: 0;
+}
+.profile-hero-id {
+  padding-right: 34px;
+}
+.profile-hero-id h2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--wf-fs-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--wf-white);
+}
+.profile-hero-id p {
+  margin-top: 4px;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-on-fill-slate);
+  font-variant-numeric: tabular-nums;
+}
+/* Lápis de 36 px como no conceito, com toque de 44 (::after). */
+.profile-hero-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  color: var(--wf-white);
+  background: color-mix(in srgb, var(--wf-white) 10%, transparent);
+  transition: background-color 0.18s;
+}
+.profile-hero-btn::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
+.profile-hero-btn:hover {
+  background: color-mix(in srgb, var(--wf-white) 18%, transparent);
+}
+.profile-hero-btn:focus-visible,
+.profile-hero-chip:focus-visible {
+  outline: 2px solid var(--wf-white);
+  outline-offset: 2px;
+}
+.profile-hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.profile-hero-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 11px 0 9px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--wf-white);
+  background: color-mix(in srgb, var(--wf-white) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--wf-white) 18%, transparent);
+}
+.profile-hero-chip.is-anamnese {
+  color: var(--wf-on-fill-mint);
+  background: color-mix(in srgb, var(--wf-green-500) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--wf-green-500) 45%, transparent);
+  transition: background-color 0.18s;
+}
+/* Toque de 44 px no chip de 34 px. */
+.profile-hero-chip.is-anamnese::after {
+  content: "";
+  position: absolute;
+  inset: -5px 0;
+}
+.profile-hero-chip.is-anamnese:hover {
+  background: color-mix(in srgb, var(--wf-green-500) 26%, transparent);
+}
+
+/* ---------- Próxima consulta (acima das abas) ---------- */
+.consulta-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 14px 14px 2px;
+}
+.consulta-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--wf-border-soft);
+}
+.consulta-text {
+  flex: 1;
+  min-width: 0;
+}
+.consulta-kicker-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+.consulta-card .consulta-kicker {
+  margin: 0;
+  font-family: var(--wf-font);
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  /* Mais estreito que os outros kickers: "em 5 dias" cabe na mesma linha a 390 px, como no conceito. */
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--wf-text-muted);
+}
+/* .consulta-card na frente: o tamanho da Pill (.pill-chip.is-sm) vem depois no pacote. */
+.consulta-card .consulta-when.pill-chip {
+  min-height: 22px;
+  padding: 0 7px;
+  font-size: var(--wf-fs-xs);
+}
+.consulta-name {
+  margin: 4px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--wf-text);
+}
+.consulta-meta {
+  margin: 2px 0 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* 38 px à vista como no conceito; toque de 44 (::after). */
+.consulta-save {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  color: var(--wf-green-700);
+  background: var(--wf-mint-50);
+  box-shadow: inset 0 0 0 1px var(--wf-mint-200);
+  transition: background-color 0.18s;
+}
+.consulta-save::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+}
+.consulta-save:hover {
+  background: var(--wf-mint-100);
+}
+.consulta-save:focus-visible,
+.consulta-foot:focus-visible {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 2px;
+}
+.consulta-main.is-empty .consulta-name {
+  font-size: var(--wf-fs-lg);
+}
+.consulta-link {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.consulta-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 0;
+  color: var(--wf-text-muted);
+  text-align: left;
+}
+.consulta-foot > svg {
+  flex-shrink: 0;
+}
+.consulta-foot-label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text-2);
+}
+.consulta-foot-action {
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  color: var(--wf-green-700);
+}
+.consulta-foot:hover .consulta-foot-action {
+  text-decoration: underline;
+}
+
+/* ---------- Abas (uma linha, ícones sempre visíveis) ---------- */
+.espaco-tabs .segmented {
+  padding: 5px;
+  border-radius: 18px;
+  background: var(--wf-slate-100);
+}
+.espaco-tabs .segmented-indicator {
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc((100% - 10px) / var(--segments));
+  border-radius: 14px;
+}
+.espaco-tabs .segmented button {
+  min-height: 44px;
+  gap: 8px;
+  font-size: var(--wf-fs-base);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.espaco-tabs .segmented button.active {
+  font-weight: 800;
+  color: var(--wf-text);
+}
+.espaco-tabs .segmented button svg {
+  flex-shrink: 0;
+}
+
+/* Títulos de seção com ação à direita */
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.section-title-row h2 {
+  font-size: var(--wf-fs-lg);
+}
+.section-title-row .link-btn {
+  min-height: 44px;
+  font-size: var(--wf-fs-sm);
+}
+/* Corpo e perfil de saúde: espaco/Health.css. */
+/* ---------- Metas diárias ---------- */
+.goals-card.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+.goals-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px 12px;
+}
+.goals-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  min-width: 0;
+}
+.goals-card .goals-head h2 {
+  margin: 0;
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.goals-origin-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+}
+/* Origem das metas em texto simples: check verde quando é sua; neutro no automático. */
+.goal-origin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--wf-text-muted);
+}
+.goal-origin svg {
+  flex-shrink: 0;
+  color: var(--wf-tone-neutral-fg);
+}
+.goal-origin.manual svg {
+  color: var(--wf-tone-food-fg);
+}
+.goals-how-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -4px 0 -4px -6px;
+  border-radius: 50%;
+  color: var(--wf-text-muted);
+}
+.goals-how-btn:hover,
+.goals-how-btn[aria-expanded="true"] {
+  color: var(--wf-sky-700);
+}
+.goals-edit::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+}
+.goals-how-btn:focus-visible,
+.goals-edit:focus-visible {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 2px;
+}
+/* 36 px à vista como no conceito; toque de 44 (::after). */
+.goals-edit {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0 12px 0 10px;
+  border-radius: 12px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+  color: var(--wf-text);
+  background: var(--wf-slate-100);
+  transition: background-color 0.18s;
+}
+.goals-edit:hover {
+  background: var(--wf-slate-200);
+}
+.goals-card > .goals-calm {
+  margin: 0;
+}
+.goal-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+.goal-tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--wf-surface);
+  box-shadow: inset 0 0 0 1px var(--wf-border-soft);
+}
+.goal-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.goal-art svg {
+  display: block;
+}
+.goal-art.is-energy {
+  width: 50px;
+  height: 50px;
+  color: var(--wf-tone-food-fg);
+}
+.goal-art.is-energy > svg:first-child {
+  position: absolute;
+  inset: 0;
+}
+.goal-art .goal-art-stop-a {
+  stop-color: var(--wf-green-500);
+}
+.goal-art .goal-art-stop-b {
+  stop-color: var(--wf-sky-500);
+}
+.goal-art.is-water {
+  width: 44px;
+  height: 50px;
+}
+.goal-art .goal-drop-stop-a {
+  stop-color: var(--wf-sky-300);
+}
+.goal-art .goal-drop-stop-b {
+  stop-color: var(--wf-sky-500);
+}
+.goal-drop-shine {
+  fill: none;
+  stroke: var(--wf-white);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+.goal-tile > div {
+  min-width: 0;
+}
+.goal-tile strong {
+  display: block;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-xl);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text);
+  white-space: nowrap;
+}
+.goal-tile small {
+  display: block;
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.goals-card .goals-macro-bar.macro-bar > span {
+  height: 10px;
+}
+.goals-card .goals-macro-bar.macro-bar {
+  gap: 4px;
+}
+/* Não .goals-macros: é a lista de pílulas do GoalsWidget da anamnese (o CSS dela vazava aqui). */
+.goals-card .goals-macro-columns .macro-col-value strong {
+  font-size: var(--wf-fs-lg);
+}
+.goals-card .goals-macro-columns .macro-col-value small {
+  font-size: var(--wf-fs-sm);
+}
+.goals-card .goals-macro-columns .macro-col-label {
+  font-size: var(--wf-fs-xs);
+}
+.goals-how[hidden] {
+  display: none;
+}
+.goals-how {
+  padding-top: 12px;
+  border-top: 1px dashed var(--wf-border);
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.goals-how p + p {
+  margin-top: 8px;
+}
+.goal-ruler {
+  position: relative;
+  height: 58px;
+  margin: 6px 28px 12px;
+}
+.goal-ruler-track {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--wf-surface-3), var(--wf-mint-200));
+}
+.goal-ruler-stop {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-top: 24px;
+  transform: translateX(-50%);
+  font-size: var(--wf-fs-2xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+  white-space: nowrap;
+}
+.goal-ruler-stop::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--wf-surface);
+  border: 3px solid var(--wf-text-muted);
+}
+.goal-ruler-stop.meta::before {
+  border-color: var(--wf-green-600);
+}
+.goal-ruler-stop b {
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text);
+  font-variant-numeric: tabular-nums;
+}
+/* Meu tratamento (ESPACO-X3): medicação, frequência e degraus de dose, no tom da medicação. */
+.treatment-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.treatment-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.treatment-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: var(--wf-tone-medication-bg);
+  color: var(--wf-tone-medication-fg);
+}
+.treatment-card h2 {
+  margin: 0;
+  font-size: var(--wf-fs-lg);
+}
+.treatment-summary {
+  margin: 2px 0 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.treatment-next {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--wf-tone-medication-bg);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text);
+}
+.treatment-card h3 {
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+  color: var(--wf-text-2);
+}
+.dose-steps {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  overflow: hidden;
+}
+.dose-step {
+  display: grid;
+  grid-template-rows: auto 72px auto;
+  justify-items: center;
+  flex: 1 1 0;
+  gap: 4px;
+  min-width: 0;
+  text-align: center;
+}
+.dose-step strong {
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  color: var(--wf-text);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.dose-step-track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  border-radius: 10px;
+  background: var(--wf-surface-3);
+}
+.dose-step-bar {
+  display: block;
+  width: min(100%, 36px);
+  border-radius: 10px 10px 6px 6px;
+  background: linear-gradient(180deg, var(--wf-tone-medication-fg), var(--wf-violet-100));
+}
+.dose-step small {
+  font-size: var(--wf-fs-xs);
+  line-height: 1.3;
+  color: var(--wf-text-muted);
+}
+.treatment-open {
+  align-self: flex-start;
+  min-height: 44px;
+  font-size: var(--wf-fs-sm);
+}
+/* Dados */
+.data-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.data-card > h2 {
+  margin: 0;
+}
+.privacy-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.privacy-lines li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--wf-text-2);
+}
+.privacy-lines svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--wf-green-700);
+}
+.data-card > .backup-status {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+}
+.backup-status.ok {
+  color: var(--wf-green-800);
+  background: var(--wf-mint-50);
+}
+.backup-status.attention {
+  color: var(--wf-tone-attention-fg);
+  background: var(--wf-tone-attention-bg);
+}
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.inventory-grid > div {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--wf-surface-2);
+}
+.inventory-grid dt {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.inventory-grid dd {
+  margin: 2px 0 0;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text);
+}
+.data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.data-more summary {
+  cursor: pointer;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-green-700);
+}
+.data-more p {
+  margin-top: 8px;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.danger-card {
+  border-color: var(--wf-tone-danger-border);
+}
+.danger-card > h2 {
+  margin-bottom: 6px;
+}
+@media (max-width: 420px) {
+  .inventory-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+/* Telefones estreitos (320–370 px): números e abas um degrau menores, nada quebra a linha. */
+@media (max-width: 370px) {
+  .profile-hero-id h2 {
+    font-size: var(--wf-fs-xl);
+  }
+  .goal-tile {
+    gap: 8px;
+    padding: 12px 10px;
+  }
+  .goal-tile strong {
+    font-size: var(--wf-fs-lg);
+  }
+  .espaco-tabs .segmented button {
+    gap: 6px;
+    font-size: var(--wf-fs-sm);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .segmented-indicator,
+  .profile-hero-btn,
+  .profile-hero-chip.is-anamnese,
+  .consulta-save,
+  .goals-edit {
+    transition: none;
+  }
+}
+.espaco-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- Ajustar metas (folha) ---------- */
+.goals-sheet {
+  gap: 18px;
+}
+.goals-sheet > .hint {
+  margin: 0;
+}
+.goals-sheet .stepper {
+  padding: 10px 12px;
+  border-radius: 18px;
+}
+.goals-sheet .stepper-value strong {
+  font-size: var(--wf-fs-3xl);
+}
+.goals-sheet .quick-chips:empty {
+  display: none;
+}
+.goals-sheet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.goals-sheet-actions > button {
+  flex: 1 1 180px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.goals-sheet-anamnese {
+  align-self: center;
+}

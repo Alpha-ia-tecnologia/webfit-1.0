@@ -1,0 +1,477 @@
+/* ---------- Use primeiro (AGENTE-13): Despensa e o bloco do Hoje; tom de atenção, nunca vermelho ---------- */
+.use-first {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-color: var(--wf-tone-warn-border);
+}
+.use-first h2,
+.use-first-strip h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.use-first h2 {
+  font-size: var(--wf-fs-lg);
+}
+.use-first h2:focus {
+  outline: none;
+}
+.use-first h2 svg,
+.use-first-strip h3 svg {
+  flex-shrink: 0;
+  color: var(--wf-tone-warn-fg);
+}
+.card.use-first > p {
+  margin: 0;
+}
+.use-first-lead {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.5;
+  color: var(--wf-text-2);
+}
+.use-first-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.use-first-chip,
+.use-first-more {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  max-width: 100%;
+  padding: 6px 12px 6px 9px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-sm);
+}
+.use-first-chip {
+  background: var(--wf-tone-warn-bg);
+  box-shadow: inset 0 0 0 1px var(--wf-tone-warn-border);
+  color: var(--wf-text);
+}
+.use-first-emoji {
+  font-size: var(--wf-fs-md);
+  line-height: 1;
+}
+.use-first-name {
+  min-width: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.use-first-when {
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--wf-tone-warn-fg);
+}
+.use-first-more {
+  padding-inline: 12px;
+  background: var(--wf-surface-2);
+  color: var(--wf-text-2);
+  font-weight: 700;
+}
+.use-first-create {
+  align-self: flex-start;
+  min-height: 44px;
+}
+.card.use-first > .hint {
+  margin: 0;
+}
+/* "Use primeiro" no topo da Despensa (conceito 06): âmbar suave, nunca alarme. */
+.use-first.is-hero {
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--wf-amber-200);
+  border-radius: var(--wf-radius-lg);
+  background: linear-gradient(135deg, var(--wf-amber-50) 0%, var(--wf-surface) 90%);
+  box-shadow: var(--wf-shadow-card);
+}
+.use-first-hero-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.use-first-hero-title {
+  min-width: 0;
+}
+.use-first.is-hero h2 {
+  margin: 0;
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.use-first-window {
+  margin: 2px 0 0;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.35;
+  color: var(--wf-text-muted);
+}
+.use-first-go {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--wf-inverse-border);
+  border-radius: var(--wf-radius-sm);
+  background: var(--wf-inverse);
+  color: var(--wf-on-fill-slate);
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  white-space: nowrap;
+}
+/* 36 px visíveis como no conceito; o alvo continua com 44 px. */
+.use-first-go::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+}
+.use-first-go:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+.use-first-go:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.use-first-go:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.use-first-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.use-first-tile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "glyph when"
+    "name name";
+  align-items: start;
+  gap: 6px 8px;
+  min-width: 0;
+  padding: 8px 10px 10px;
+  border-radius: 18px;
+  background: var(--wf-surface);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--wf-amber-500) 12%, transparent);
+}
+.use-first-tile-glyph {
+  display: grid;
+  grid-area: glyph;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--wf-radius-sm);
+  background: var(--wf-amber-50);
+  font-size: var(--wf-fs-xl);
+  line-height: 1;
+}
+.use-first-tile-when {
+  display: inline-flex;
+  grid-area: when;
+  justify-self: end;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--wf-amber-100);
+  color: var(--wf-amber-900);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.use-first-tile-name {
+  grid-area: name;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-base);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.use-first-tile.is-more {
+  display: grid;
+  place-items: center;
+  grid-template-areas: none;
+  color: var(--wf-text-2);
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+}
+@media (max-width: 359px) {
+  .use-first-hero-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .use-first-go {
+    justify-content: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .use-first-go:active:not(:disabled) {
+    transform: none;
+  }
+}
+/* No Hoje, o bloco fica dentro do cartão da despensa (sem nova seção do "Editar Hoje"). */
+.pantry-entry.has-use-first {
+  flex-wrap: wrap;
+}
+.use-first-strip {
+  display: flex;
+  flex-basis: 100%;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--wf-border-soft);
+}
+.use-first-strip h3 {
+  font-size: var(--wf-fs-md);
+}
+.use-first-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.use-first-actions .btn-secondary,
+.use-first-actions .text-btn {
+  min-height: 44px;
+}
+.use-first-actions .text-btn {
+  padding: 0 4px;
+  font-size: var(--wf-fs-sm);
+}
+
+/* ---------- Lista de compras (AGENTE-08) ---------- */
+.shop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.shop-list-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+}
+.shop-summary {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.shop-list-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.shop-share {
+  min-height: 44px;
+}
+.shop-sections {
+  display: grid;
+  gap: 16px;
+}
+.shop-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.shop-group h3 {
+  margin: 0 0 2px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wf-text-muted);
+}
+.shop-rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.shop-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  border-bottom: 1px solid var(--wf-border-soft);
+}
+.shop-row:last-child {
+  border-bottom: 0;
+}
+.shop-row-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 0;
+}
+.shop-name {
+  font-size: var(--wf-fs-md);
+  font-weight: 600;
+  color: var(--wf-text);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.shop-meta {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+  overflow-wrap: anywhere;
+}
+.shop-meta:empty {
+  display: none;
+}
+.shop-row.is-checked .shop-name {
+  color: var(--wf-text-muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+.shop-tag {
+  margin-top: 2px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--wf-mint-50);
+  color: var(--wf-green-800);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+}
+.shop-remove {
+  width: 44px;
+  height: 44px;
+}
+.shop-add {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.shop-add label {
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.shop-add-row {
+  display: flex;
+  gap: 8px;
+}
+.shop-add-row input {
+  flex: 1;
+  min-height: 44px;
+}
+.shop-add-row .btn-secondary {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.shop-store {
+  align-self: stretch;
+  min-height: 48px;
+}
+.shop-none {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.5;
+  color: var(--wf-text-2);
+}
+.shop-sheet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.shop-sheet-actions .btn,
+.shop-sheet-actions .btn-secondary {
+  min-height: 44px;
+}
+
+/* Caixa de marcar: o input nativo (invisível) cobre os 44 px; o visto é um traço que se desenha. */
+.shop-check {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+}
+.shop-check input {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.shop-check-box {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 2px solid var(--wf-slate-300);
+  background: var(--wf-surface);
+  pointer-events: none;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.shop-check-box svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--wf-white);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  transition: stroke-dashoffset 240ms var(--wf-ease);
+}
+.shop-check input:checked + .shop-check-box {
+  border-color: var(--wf-accent-fill);
+  background: var(--wf-accent-fill);
+}
+.shop-check input:checked + .shop-check-box svg {
+  stroke-dashoffset: 0;
+}
+.shop-check input:focus-visible + .shop-check-box {
+  outline: 2px solid var(--wf-green-700);
+  outline-offset: 3px;
+}
+@media (min-width: 1024px) {
+  .shop-sections {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    align-items: start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shop-check-box,
+  .shop-check-box svg {
+    transition: none;
+  }
+}

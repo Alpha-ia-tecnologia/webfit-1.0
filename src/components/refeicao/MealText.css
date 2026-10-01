@@ -1,0 +1,105 @@
+/* Descrever refeição (DIARIO-07): folha, rascunho e o aviso "Falta porção" no prato e na bandeja.
+   "Falta porção" é atenção, nunca erro: ponto âmbar e texto âmbar escuro, sem vermelho. */
+.meal-text-form {
+  display: grid;
+  gap: 12px;
+}
+.meal-text-form textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+.meal-text-form p {
+  margin: 0;
+}
+.meal-text-count {
+  justify-self: end;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.meal-text-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.meal-text-actions .btn,
+.meal-text-actions .btn-secondary {
+  min-height: 44px;
+}
+.meal-text-draft {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.meal-text-draft h3 {
+  font-size: var(--wf-fs-md);
+}
+.meal-text-draft > p {
+  margin: 0;
+}
+.meal-text-portion {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-2);
+  overflow-wrap: anywhere;
+}
+.meal-text-portion.is-missing {
+  color: var(--wf-amber-900);
+}
+.meal-text-dot,
+.food-portion-flag i {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wf-amber-500);
+}
+.meal-text-portion .meal-text-dot {
+  align-self: center;
+}
+
+/* No prato: "Falta porção" ao lado de "No prato" e o "Manter porção". */
+.food-portion-pending {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 12px;
+}
+.food-portion-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  color: var(--wf-amber-900);
+}
+.food-portion-pending .text-btn {
+  min-height: 44px;
+}
+
+/* Bandeja: ponto de 6 px no item e a contagem embaixo do total. */
+.tray-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--wf-amber-500);
+}
+.tray-pending {
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  color: var(--wf-amber-900);
+}
+
+@media (max-width: 480px) {
+  .meal-text-actions .btn,
+  .meal-text-actions .btn-secondary {
+    flex: 1 1 100%;
+  }
+}

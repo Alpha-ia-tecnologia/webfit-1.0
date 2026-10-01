@@ -1,0 +1,633 @@
+.anamnese.onboarding {
+  max-width: 1210px;
+  grid-template-columns: 310px minmax(0, 720px);
+  gap: 52px;
+  align-items: start;
+}
+.anamnese .onboarding-aside {
+  position: sticky;
+  top: 28px;
+}
+.anamnese .onboarding-aside > p {
+  color: var(--wf-text-muted);
+}
+.anamnese .step-list {
+  margin: 23px 0;
+}
+.anamnese .step-list li {
+  position: relative;
+  color: var(--wf-text-muted);
+}
+.anamnese .step-list li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  width: 1px;
+  height: 17px;
+  background: var(--wf-border);
+  top: 39px;
+  left: 12px;
+}
+.anamnese .step-list .current {
+  color: var(--wf-green-700);
+}
+.anamnese .step-list .current > span {
+  box-shadow: 0 0 0 5px var(--wf-mint-100);
+}
+.anamnese .aside-note {
+  color: var(--wf-text-muted);
+}
+.anamnese .onboarding-form {
+  padding: 29px;
+  background: var(--wf-surface);
+}
+.anamnese-step-progress {
+  display: flex;
+  gap: 6px;
+  margin-top: 13px;
+}
+.anamnese-step-progress > span {
+  height: 5px;
+  flex: 1;
+  background: var(--wf-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.anamnese-step-progress > span > span {
+  display: block;
+  height: 100%;
+  background: var(--wf-green-600);
+  border-radius: inherit;
+  transform-origin: left;
+}
+.anamnese-stage {
+  min-width: 0;
+}
+/* Título da etapa: o nome aparece na barra; o h2 fica só para leitores de tela e para o foco. */
+.anamnese-stage-heading {
+  margin: 0;
+}
+.anamnese-stage-heading h2:focus {
+  outline: none;
+}
+/* "ⓘ Por quê?" na linha de ajuda da 1ª pergunta (ou numa linha própria) e o painel da etapa. */
+.q-about {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  margin: -12px 0;
+  padding: 0 2px;
+  border: 0;
+  border-radius: var(--wf-radius-xs);
+  background: none;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-base);
+  font-weight: 800;
+  color: var(--wf-green-700);
+}
+.q-about:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.q-about:focus-visible {
+  outline: 2px solid var(--wf-green-600);
+  outline-offset: 2px;
+}
+.anamnese-about {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.6;
+  color: var(--wf-text-2);
+  background: var(--wf-surface-2);
+}
+.anamnese-about p {
+  margin: 0;
+}
+.anamnese-about .text-btn {
+  justify-self: start;
+  min-height: 40px;
+}
+.anamnese-about-line {
+  display: grid;
+  gap: 10px;
+}
+.anamnese-question-card {
+  padding: 22px;
+  border: 1px solid var(--wf-border-soft);
+  background: var(--wf-surface);
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.04);
+  transition:
+    border-color 220ms,
+    box-shadow 220ms;
+}
+.anamnese-question-card.is-complete {
+  border-color: var(--wf-mint-200);
+  box-shadow: 0 6px 20px rgb(0 208 132 / 0.14);
+}
+.anamnese-card-heading {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--wf-border-soft);
+  color: var(--wf-green-700);
+}
+.anamnese-card-heading svg {
+  flex-shrink: 0;
+}
+.anamnese-card-heading h3 {
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-sm);
+}
+.anamnese-card-check {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--wf-green-600);
+  color: var(--wf-white);
+}
+.anamnese-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px 16px;
+}
+.anamnese-field-slot {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.anamnese-field-slot.is-compact {
+  grid-column: auto;
+}
+.anamnese .field > label {
+  color: var(--wf-text-2);
+  line-height: 1.55;
+}
+.anamnese .hint {
+  color: var(--wf-text-muted);
+}
+/* Eco acolhedor depois de uma resposta-chave */
+.anamnese-echo {
+  margin: 10px 0 0;
+}
+.anamnese-echo:empty {
+  display: none;
+}
+.anamnese-echo > span {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.45;
+  color: var(--wf-green-800);
+  background: var(--wf-mint-50);
+  border: 1px solid color-mix(in srgb, var(--wf-mint-200) 60%, transparent);
+}
+.anamnese-echo svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--wf-green-700);
+}
+/* Escolha única em cartões: mesmo visual dos chips (AnamneseInputs.css) */
+.anamnese-choice-field {
+  position: relative;
+}
+.anamnese-choice-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.anamnese-choice-mode {
+  flex-shrink: 0;
+  color: var(--wf-green-700);
+  font-size: var(--wf-fs-2xs);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+  padding: 3px 0;
+}
+.anamnese .choice-chip input[type="radio"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.anamnese .choice-chip:has(input:focus-visible) {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 3px;
+}
+.anamnese-choice-field > .hint,
+.anamnese-choice-field > .field-error {
+  margin-top: 9px;
+}
+.anamnese select.anamnese-native-select {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+/* Sim/não como interruptor; consentimentos com pontos curtos e caminho dos dados */
+.switch-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface);
+  transition:
+    background 160ms,
+    border-color 160ms;
+}
+.switch-field.is-checked {
+  background: var(--wf-mint-50);
+  border-color: var(--wf-mint-200);
+}
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  cursor: pointer;
+}
+.switch-label {
+  font-size: var(--wf-fs-sm);
+  font-weight: 650;
+  line-height: 1.45;
+  color: var(--wf-text);
+}
+.switch-row input.switch {
+  flex-shrink: 0;
+}
+.switch-field > .hint,
+.switch-field > .field-error {
+  margin: 0;
+}
+.consent-flow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--wf-surface-2);
+}
+.consent-flow > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.consent-flow > div:first-child {
+  flex: 1;
+}
+.consent-flow-caption {
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  color: var(--wf-text-muted);
+}
+.consent-flow ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.consent-flow li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-2);
+  background: var(--wf-surface);
+  border: 1px solid var(--wf-border);
+}
+.consent-flow .is-providers {
+  flex-direction: column;
+}
+.consent-flow .is-providers li {
+  color: var(--wf-white);
+  background: var(--wf-inverse);
+  border-color: var(--wf-inverse-border);
+}
+.consent-flow-arrow {
+  flex-shrink: 0;
+  color: var(--wf-text-muted);
+}
+.consent-points {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.consent-points li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.45;
+  color: var(--wf-text-2);
+}
+.consent-points svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--wf-green-700);
+}
+.switch-field .link-btn {
+  align-self: flex-start;
+  min-height: 32px;
+  font-size: var(--wf-fs-sm);
+}
+.terms-label {
+  font-weight: 700;
+  color: var(--wf-text);
+}
+/* Restaurar backup na primeira etapa (antes ficava no hero) */
+.anamnese-restore {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px dashed var(--wf-border);
+}
+.anamnese-restore .hint {
+  margin: 0;
+}
+/* Anexos: área tracejada no lugar do input de arquivo nativo */
+.anamnese-exams h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.exam-dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 12px 0 4px;
+  padding: 20px 16px;
+  border-radius: 18px;
+  border: 2px dashed var(--wf-mint-200);
+  background: var(--wf-mint-50);
+  color: var(--wf-green-700);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background 160ms,
+    border-color 160ms;
+}
+.exam-dropzone strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: var(--wf-fs-md);
+  color: var(--wf-green-800);
+}
+.exam-dropzone span {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.exam-dropzone:hover,
+.exam-dropzone.is-dragging {
+  border-color: var(--wf-green-500);
+  background: var(--wf-mint-100);
+}
+.exam-dropzone:has(input:focus-visible) {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 3px;
+}
+.exam-dropzone.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.anamnese-form-footer {
+  padding-top: 3px;
+}
+.anamnese-form-footer .form-actions {
+  align-items: center;
+}
+.anamnese .review-group {
+  background: var(--wf-surface);
+}
+.anamnese .review-group dt {
+  color: var(--wf-text-muted);
+}
+.anamnese .review-group dd {
+  margin-left: 0;
+  color: var(--wf-text-2);
+}
+.anamnese-start-card {
+  background: var(--wf-mint-50);
+  border-color: var(--wf-mint-200);
+}
+.anamnese-start-card h3 {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.anamnese-start-card p + p {
+  margin-top: 8px;
+}
+.anamnese-step-check {
+  display: grid;
+  place-items: center;
+}
+.anamnese-review-badge {
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 600;
+  color: var(--wf-green-800);
+  background: var(--wf-mint-50);
+}
+@media (max-width: 1100px) {
+  .anamnese.onboarding {
+    grid-template-columns: 255px minmax(0, 1fr);
+    gap: 30px;
+  }
+  .anamnese .onboarding-form {
+    padding: 24px;
+  }
+  .anamnese .onboarding-aside h1 {
+    font-size: var(--wf-fs-4xl);
+  }
+}
+@media (max-width: 800px) {
+  .anamnese.onboarding {
+    display: block;
+    max-width: 710px;
+  }
+  /* Sem hero repetido: no celular a barra de etapa é o único cabeçalho. */
+  .anamnese .onboarding-aside {
+    display: none;
+  }
+  /* Página inteira sobre o fundo, com um brilho menta no alto à direita (sem cartão em volta). */
+  .anamnese.onboarding {
+    position: relative;
+    isolation: isolate;
+    padding: 0 0 calc(112px + env(safe-area-inset-bottom, 0px));
+    background: var(--wf-bg);
+  }
+  .anamnese.onboarding::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: -1;
+    width: 100%;
+    height: 440px;
+    background: radial-gradient(
+      70% 90% at 100% 0,
+      var(--wf-mint-50),
+      transparent 72%
+    );
+    pointer-events: none;
+  }
+  .anamnese .onboarding-form {
+    padding: 0 16px;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .anamnese .onboarding-form form.stack {
+    gap: 28px;
+    margin-top: 22px;
+  }
+  /* Perguntas sem cartão: separadas por um fio e 28 px de ritmo. */
+  .anamnese-question-card,
+  .anamnese-question-card.is-complete {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .anamnese-question-card + .anamnese-question-card {
+    padding-top: 28px;
+    border-top: 1px solid var(--wf-border);
+  }
+  .anamnese-card-heading {
+    padding: 0;
+    margin: 0 0 12px;
+    border: 0;
+  }
+  .anamnese-card-heading svg,
+  .anamnese-card-check {
+    display: none;
+  }
+  .anamnese-card-heading h3 {
+    font-family: var(--wf-font);
+    font-size: var(--wf-fs-sm);
+    font-weight: 700;
+    color: var(--wf-text-muted);
+  }
+  /* Uma pergunta só no grupo: ela já é o título (o do grupo segue para leitores de tela). */
+  .anamnese-card-heading.is-solo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  .anamnese-fields {
+    gap: 28px;
+  }
+  .anamnese-start-card,
+  .anamnese-start-card.card {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+}
+@media (max-width: 480px) {
+  .anamnese-fields {
+    column-gap: 11px;
+  }
+  .consent-flow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .consent-flow-arrow {
+    align-self: center;
+    transform: rotate(90deg);
+  }
+  .consent-flow .is-providers {
+    flex-direction: row;
+  }
+}
+.anamnese-confetti {
+  position: relative;
+  height: 0;
+  z-index: 1;
+}
+.anamnese-confetti span {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  opacity: 0;
+  background: hsl(calc(var(--i) * 26deg) 70% 55%);
+  --angle: calc(var(--i) * 25.7deg);
+  animation: anamnese-burst 1100ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation-delay: calc(var(--i) * 25ms);
+}
+@keyframes anamnese-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+        calc(-50% + cos(var(--angle)) * 150px),
+        calc(sin(var(--angle)) * -120px - 30px)
+      )
+      rotate(540deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .anamnese *,
+  .anamnese *::before,
+  .anamnese *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

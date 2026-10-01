@@ -1,0 +1,27 @@
+/* Navegação: dica do atalho N no "Registro rápido" da barra lateral (SIS-12).
+   No celular (≤ 800 px) o botão inteiro some junto com a dica: lá o registro é o "+" da barra. */
+.nav-kbd {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: var(--wf-radius-xs);
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+  background: rgb(255 255 255 / 0.16);
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: center;
+}
+/* Barra lateral de 200 px (801–1100 px): ícone, rótulo e dica cabem numa linha. */
+@media (max-width: 1100px) {
+  .navigation .nav-add {
+    gap: 5px;
+    padding-inline: 10px;
+  }
+  .nav-kbd {
+    min-width: 20px;
+    padding: 0 5px;
+  }
+}

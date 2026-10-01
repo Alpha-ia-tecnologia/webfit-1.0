@@ -1,0 +1,114 @@
+/* Progresso da IA em etapas reais (contexto → especialista → segurança → revisão). */
+.ai-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: var(--wf-radius-md);
+  background: var(--wf-surface);
+  border: 1px solid var(--wf-mint-200);
+  box-shadow: var(--wf-shadow-card);
+}
+.ai-progress-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ai-progress-head strong {
+  display: block;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text);
+}
+.ai-progress-detail {
+  margin-top: 2px;
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.ai-progress-orb {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  color: var(--wf-white);
+  background: var(--wf-gradient-btn);
+  box-shadow: 0 6px 16px -6px rgb(5 150 105 / 0.55);
+  animation: wf-gentle 2.4s ease-in-out infinite;
+}
+.ai-progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--wf-surface-3);
+  overflow: hidden;
+}
+.ai-progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--wf-gradient);
+  transform-origin: left center;
+  transition: transform 0.6s var(--wf-ease);
+}
+.ai-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ai-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.ai-step-dot {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--wf-surface-3);
+  color: var(--wf-text-muted);
+}
+.ai-step.done {
+  color: var(--wf-text-2);
+}
+.ai-step.done .ai-step-dot {
+  background: var(--wf-mint-100);
+  color: var(--wf-green-700);
+}
+.ai-step.active {
+  color: var(--wf-green-800);
+}
+.ai-step.active .ai-step-dot {
+  color: var(--wf-white);
+  background: var(--wf-green-600);
+  box-shadow: 0 0 0 4px var(--wf-mint-100);
+  animation: wf-pulse 1.6s ease-in-out infinite;
+}
+.ai-progress > .btn-secondary {
+  align-self: flex-start;
+}
+/* Esqueleto do resultado */
+.ai-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: var(--wf-radius-md);
+  background: var(--wf-surface);
+  border: 1px solid var(--wf-border-soft);
+}
+@media (max-width: 380px) {
+  .ai-steps {
+    grid-template-columns: 1fr;
+  }
+}

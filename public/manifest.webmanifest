@@ -1,0 +1,22 @@
+{
+  "id": "/",
+  "name": "WebFit - Saúde & Nutrição",
+  "short_name": "WebFit",
+  "lang": "pt-BR",
+  "description": "Acompanhamento de alimentação, água, medidas e rotina.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F6F8FB",
+  "theme_color": "#00D084",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Registrar água", "short_name": "Água", "url": "/?atalho=agua" },
+    { "name": "Registrar refeição", "short_name": "Refeição", "url": "/?atalho=refeicao" },
+    { "name": "Registro rápido", "short_name": "Registro rápido", "url": "/?atalho=registro" }
+  ]
+}

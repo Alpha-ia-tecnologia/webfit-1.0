@@ -1,0 +1,38 @@
+/* Evolução com "Ocultar números do corpo" (ESPACO-13): a jornada vira o estado (quantas
+   pesagens, a próxima) e o atalho para a preferência; a lista mostra só datas e origens. */
+.journey-hidden {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--wf-radius-md);
+  border: 1px dashed var(--wf-tone-body-border);
+  background: var(--wf-surface);
+}
+.journey-hidden p {
+  margin: 0;
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--wf-text);
+}
+.journey-card > .journey-adjust {
+  align-self: flex-start;
+  min-height: 44px;
+}
+.weigh-weight.is-hidden {
+  font-family: var(--wf-font);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.evol-report {
+  display: flex;
+  justify-content: center;
+}
+.evol-report > .link-btn {
+  min-height: 44px;
+  padding: 0 12px;
+  gap: 6px;
+  font-size: var(--wf-fs-sm);
+}

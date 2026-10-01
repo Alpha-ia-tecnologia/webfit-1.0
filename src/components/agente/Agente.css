@@ -1,0 +1,491 @@
+/* Meu agente (conceito 05): conversa em primeiro lugar, página inteira rola e a barra fica fixa. */
+.agent-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* Avatar do agente no cabeçalho do app (espaço "lead"): círculo de 44 px e ponto de status. */
+.agent-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--wf-white);
+  background: var(--wf-gradient-fab);
+  box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--wf-sky-500) 70%, transparent);
+}
+.agent-avatar-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--wf-green-500);
+  box-shadow: 0 0 0 2px var(--wf-surface);
+}
+.agent-avatar-dot.is-off {
+  background: var(--wf-slate-400);
+}
+.agent-notice {
+  margin: 0;
+}
+/* Pílula do contexto de hoje com 3 mini anéis: número em destaque, unidade menor. */
+.context-pill {
+  border-radius: 22px;
+  background: var(--wf-surface);
+  border: 1px solid var(--wf-border-soft);
+  box-shadow: var(--wf-shadow-card);
+}
+.context-pill summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 44px;
+  padding: 6px 12px 6px 14px;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.context-pill summary::-webkit-details-marker {
+  display: none;
+}
+.context-pill .chevron {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--wf-text-muted);
+  transition: transform 0.2s;
+}
+.context-pill[open] .chevron {
+  transform: rotate(180deg);
+}
+.context-ring {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: var(--wf-fs-md);
+  color: var(--wf-text);
+  white-space: nowrap;
+}
+.context-ring strong {
+  font-family: var(--wf-font-heading);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.context-unit {
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.mini-ring {
+  flex-shrink: 0;
+}
+.mini-ring-track,
+.mini-ring-fill {
+  fill: none;
+  stroke-width: 3;
+}
+.mini-ring-track {
+  stroke: var(--wf-surface-3);
+}
+.mini-ring-fill {
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s var(--wf-ease);
+}
+.context-ring.food .mini-ring-fill {
+  stroke: var(--wf-text);
+}
+.context-ring.water .mini-ring-fill {
+  stroke: var(--wf-tone-water-fg);
+}
+.context-ring.protein .mini-ring-fill {
+  stroke: var(--wf-macro-protein);
+}
+.context-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 4px 12px 12px;
+}
+.context-mini {
+  min-width: 0;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--wf-surface-2);
+  text-align: center;
+}
+.context-mini dt {
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wf-text-muted);
+}
+.context-mini dd {
+  display: flex;
+  flex-direction: column;
+  margin: 2px 0 0;
+}
+.context-mini strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-base);
+  color: var(--wf-text);
+}
+.context-mini small {
+  font-size: var(--wf-fs-2xs);
+  color: var(--wf-text-muted);
+}
+/* Conversa na própria página, com separadores de data */
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0 8px;
+}
+.chat-day {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 6px 0 -2px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wf-text-muted);
+}
+.chat-day::before,
+.chat-day::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--wf-border);
+}
+.chat-system {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-2);
+  background: var(--wf-surface-3);
+}
+.chat-system svg {
+  color: var(--wf-green-700);
+}
+.chat-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 12px;
+  text-align: center;
+}
+.chat-empty-art {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 4px;
+  border-radius: 20px;
+  color: var(--wf-green-700);
+  background: linear-gradient(135deg, var(--wf-mint-100), var(--wf-sky-50));
+}
+.chat-empty h2 {
+  font-size: var(--wf-fs-lg);
+}
+.chat-empty p {
+  max-width: 320px;
+  color: var(--wf-text-2);
+}
+.chat-typing-steps {
+  display: inline-flex;
+  gap: 3px;
+}
+.chat-typing-steps i {
+  width: 14px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--wf-surface-3);
+  transition: background 0.3s;
+}
+.chat-typing-steps i.on {
+  background: var(--wf-green-500);
+}
+/* Cartão da dieta gerada; compacto na conversa (≈ 100 px), o resumo abre em "Ver resumo". */
+.diet-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+.diet-summary.is-compact {
+  gap: 10px;
+  padding: 12px 14px;
+}
+.diet-summary-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.diet-summary-head > div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.diet-summary-head strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  color: var(--wf-text);
+}
+.diet-summary-head > div > span {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.diet-summary-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: var(--wf-tone-food-fg);
+  background: var(--wf-tone-food-bg);
+}
+.diet-summary-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  color: var(--wf-green-700);
+  background: var(--wf-mint-50);
+}
+.diet-summary-points {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.diet-summary-points li {
+  position: relative;
+  padding-left: 16px;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.diet-summary-points li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--wf-tone-food-fg);
+}
+.diet-summary-text {
+  font-size: var(--wf-fs-sm);
+}
+.diet-summary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+}
+/* Barra fixa: "+", campo em pílula com o ditado dentro e o envio redondo; acima das abas no celular. */
+.agent-screen .chat-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin: 0 -4px;
+  padding: 12px 4px 12px;
+  background: linear-gradient(to bottom, transparent, var(--wf-bg) 16px);
+}
+.agent-screen .chat-shortcuts {
+  padding: 0 0 10px;
+}
+.prompt-pill.diet {
+  color: var(--wf-green-800);
+}
+.chat-counter {
+  margin: 0 0 6px auto;
+  width: fit-content;
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.chat-end {
+  height: 1px;
+  scroll-margin-bottom: 16px;
+}
+/* Campo de arquivo da foto do prato: aberto pelo menu "+", fora da leitura e do foco. */
+.chat-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  clip-path: inset(50%);
+  pointer-events: none;
+}
+/* Painel "O que o agente considera" */
+.context-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+.context-chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.context-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--wf-mint-50);
+  border: 1px solid var(--wf-mint-100);
+}
+.context-chip > span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.context-chip strong {
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text);
+}
+.context-chip small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--wf-fs-2xs);
+  color: var(--wf-text-2);
+}
+.context-chip-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: var(--wf-green-700);
+  background: var(--wf-surface);
+}
+.context-chip.off {
+  background: var(--wf-surface-2);
+  border-color: var(--wf-border-soft);
+}
+.context-chip.off .context-chip-icon {
+  color: var(--wf-text-muted);
+}
+.context-chip.off small {
+  color: var(--wf-text-muted);
+}
+.context-provider,
+.context-lock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.context-provider svg,
+.context-lock svg {
+  flex-shrink: 0;
+  color: var(--wf-green-700);
+}
+.context-lock {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--wf-surface-3);
+}
+.context-more summary {
+  cursor: pointer;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  color: var(--wf-green-700);
+}
+.context-more p {
+  margin-top: 8px;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+}
+.context-sheet > .btn-secondary {
+  align-self: flex-start;
+}
+/* No desktop, o botão "+" flutuante fica no canto inferior direito. */
+@media (min-width: 801px) {
+  .agent-screen .chat-dock {
+    padding-right: 76px;
+  }
+}
+@media (max-width: 800px) {
+  .agent-screen .chat-dock {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+  .chat-end {
+    scroll-margin-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+}
+@media (max-width: 380px) {
+  .context-pill summary {
+    gap: 10px;
+    padding-left: 12px;
+  }
+  .context-ring {
+    font-size: var(--wf-fs-md);
+  }
+  .context-unit {
+    font-size: var(--wf-fs-xs);
+  }
+}
+/* 320 px: os três valores só cabem com 14 px, menos respiro e sem a seta (a pílula inteira continua abrindo). */
+@media (max-width: 359px) {
+  .context-pill summary {
+    gap: 8px;
+    padding: 6px 10px;
+  }
+  .context-ring {
+    gap: 4px;
+    font-size: var(--wf-fs-base);
+  }
+  .context-pill .chevron {
+    display: none;
+  }
+}
+@media (max-width: 420px) {
+  .context-grid {
+    grid-template-columns: 1fr;
+  }
+}

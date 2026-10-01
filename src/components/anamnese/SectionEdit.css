@@ -1,0 +1,49 @@
+/* Editor de uma seção (ANAMNESE-X1): prévia neutra da meta acima de "Cancelar" e "Salvar alterações". */
+.anamnese-form-footer.is-section-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.anamnese-goal-preview {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--wf-radius-sm);
+  border: 1px solid var(--wf-tone-neutral-border);
+  background: var(--wf-tone-neutral-bg);
+  color: var(--wf-text);
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+/* Vazia continua na página (região viva), sem ocupar espaço. */
+.anamnese-goal-preview:empty {
+  padding: 0;
+  border: 0;
+}
+.anamnese-form-footer.is-section-edit .form-actions {
+  justify-content: flex-end;
+}
+.anamnese-form-footer.is-section-edit .form-actions > button {
+  min-height: 52px;
+}
+@media (max-width: 800px) {
+  /* No celular o fluxo linear esconde o "Voltar" do rodapé; aqui "Cancelar" fica ao lado de salvar. */
+  .anamnese-form-footer.is-section-edit .form-actions {
+    gap: 10px;
+  }
+  .anamnese-form-footer.is-section-edit .form-actions > button {
+    display: inline-flex;
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    padding-inline: 12px;
+  }
+  .anamnese-form-footer.is-section-edit .form-actions > .btn {
+    flex-grow: 2;
+  }
+  /* Com a prévia visível o rodapé fixo cresce: o fim do formulário continua alcançável. */
+  .anamnese.onboarding:has(.anamnese-goal-preview:not(:empty)) {
+    padding-bottom: calc(176px + env(safe-area-inset-bottom, 0px));
+  }
+}

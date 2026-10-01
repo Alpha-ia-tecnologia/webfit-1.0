@@ -1,0 +1,472 @@
+/* Central de lembretes (NOTIF-01): Agora em cartões, Hoje e Próximos em linhas de horário.
+   Só tokens --wf-*, textos ≥ 12 px, alvos de 44 px e nada de vermelho: lembrete não é cobrança. */
+
+/* Este arquivo entra antes do index.css no bundle (App é importado primeiro): ajustes sobre
+   .text-btn / .icon-btn / .card usam as duas classes. */
+
+/* Tom por tipo: ícone e contorno no tom do domínio; o texto dos atalhos usa o 700 (AA). */
+:is(.reminder-card, .reminder-row, .reminder-preview-chip)[data-type="agua"] {
+  --rm-fg: var(--wf-tone-water-fg);
+  --rm-bg: var(--wf-tone-water-bg);
+  --rm-border: var(--wf-tone-water-border);
+  --rm-ink: var(--wf-sky-700);
+}
+:is(.reminder-card, .reminder-row, .reminder-preview-chip)[data-type="refeicao"] {
+  --rm-fg: var(--wf-tone-food-fg);
+  --rm-bg: var(--wf-tone-food-bg);
+  --rm-border: var(--wf-tone-food-border);
+  --rm-ink: var(--wf-green-700);
+}
+:is(.reminder-card, .reminder-row, .reminder-preview-chip)[data-type="habito"] {
+  --rm-fg: var(--wf-tone-habit-fg);
+  --rm-bg: var(--wf-tone-habit-bg);
+  --rm-border: var(--wf-tone-habit-border);
+  --rm-ink: var(--wf-teal-700);
+}
+:is(.reminder-card, .reminder-row, .reminder-preview-chip)[data-type="medicao"] {
+  --rm-fg: var(--wf-tone-body-fg);
+  --rm-bg: var(--wf-tone-body-bg);
+  --rm-border: var(--wf-tone-body-border);
+  --rm-ink: var(--wf-indigo-700);
+}
+:is(.reminder-card, .reminder-row, .reminder-preview-chip)[data-type="injecao"] {
+  --rm-fg: var(--wf-tone-medication-fg);
+  --rm-bg: var(--wf-tone-medication-bg);
+  --rm-border: var(--wf-tone-medication-border);
+  --rm-ink: var(--wf-tone-medication-fg);
+}
+
+/* ---------- Topo: aviso da plataforma, "Marcar todos" e silêncio ---------- */
+.text-btn.reminders-mark-all {
+  min-height: 44px;
+}
+.reminders-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 10px;
+  color: var(--wf-text-muted);
+  font-size: var(--wf-fs-sm);
+  line-height: 1.5;
+}
+.reminders-notice > svg {
+  flex: none;
+  color: var(--wf-text-muted);
+}
+.reminders-notice > span {
+  flex: 1 1 24ch;
+  min-width: 0;
+}
+.reminders-notice > .text-btn {
+  min-height: 44px;
+  margin-left: auto;
+}
+.reminders-quiet {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-tone-mind-border);
+  background: var(--wf-tone-mind-bg);
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  line-height: 1.5;
+}
+.reminders-quiet > svg {
+  flex: none;
+  color: var(--wf-tone-mind-fg);
+}
+
+/* ---------- Seções ---------- */
+.reminder-section {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.reminder-section + .reminder-section {
+  margin-top: 8px;
+}
+.reminder-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.reminder-section-head h2 {
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  border-radius: var(--wf-radius-xs);
+}
+/* O título recebe o foco depois de cada ação (o botão tocado some com o cartão). */
+.reminder-section-head h2:focus {
+  outline: none;
+}
+.reminder-section-head h2:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--wf-emerald) 45%, transparent);
+  outline-offset: 4px;
+}
+.reminder-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--wf-mint-100);
+  color: var(--wf-green-800);
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.reminder-list {
+  --rl-gap: 10px;
+  display: grid;
+  gap: var(--rl-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.reminder-item {
+  min-width: 0;
+}
+
+/* ---------- Cartão (devido ou lido) ---------- */
+.card.reminder-card {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: 16px;
+}
+.reminder-card.is-due {
+  border-color: var(--rm-border);
+  background: linear-gradient(160deg, var(--rm-bg) 0%, var(--wf-surface) 55%);
+  animation: reminder-in 0.32s var(--wf-ease) both;
+}
+/* Sobre o canto tingido, o bloco do ícone vira uma peça clara com contorno do tom. */
+.reminder-card.is-due > .icon-tile {
+  background: var(--wf-surface);
+  box-shadow: 0 0 0 1px var(--rm-border);
+}
+.reminder-card.is-read {
+  background: var(--wf-surface-3);
+  box-shadow: none;
+}
+.reminder-card.is-read h3 {
+  color: var(--wf-text-2);
+}
+.reminder-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.reminder-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  min-height: 24px;
+}
+.reminder-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wf-emerald);
+}
+.reminder-head h3 {
+  flex: 1 1 12ch;
+  min-width: 0;
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.reminder-when {
+  margin-left: auto;
+  color: var(--wf-text-muted);
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.reminder-text {
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-sm);
+  line-height: 1.55;
+}
+.reminder-meta {
+  color: var(--wf-text);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.reminder-bar {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  height: 6px;
+  margin-top: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--wf-tone-water-border);
+}
+.reminder-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--wf-tone-water-fg);
+}
+.reminder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 6px;
+}
+.reminder-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--rm-fg) 35%, var(--wf-surface));
+  background: color-mix(in srgb, var(--rm-fg) 12%, var(--wf-surface));
+  color: var(--rm-ink);
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition:
+    transform 0.15s var(--wf-ease),
+    border-color 0.15s,
+    background 0.15s;
+}
+.reminder-chip:hover {
+  border-color: var(--rm-fg);
+  background: color-mix(in srgb, var(--rm-fg) 18%, var(--wf-surface));
+}
+.reminder-chip:active {
+  transform: scale(0.96);
+}
+.text-btn.reminder-open {
+  min-height: 44px;
+  padding: 0 2px;
+}
+.icon-btn.reminder-read {
+  width: 44px;
+  height: 44px;
+  margin-left: auto;
+}
+.icon-btn.reminder-read:hover:not(:disabled) {
+  border-color: var(--wf-mint-200);
+  background: var(--wf-mint-50);
+  color: var(--wf-green-700);
+}
+
+/* ---------- Linhas planejadas: seguidas, viram um só painel com divisórias ---------- */
+.reminder-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid var(--wf-border-soft);
+  border-radius: var(--wf-radius-md);
+  background: var(--wf-surface);
+}
+.reminder-row + .reminder-row {
+  margin-top: calc(-1 * var(--rl-gap) - 1px);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.reminder-row:has(+ .reminder-row) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.reminder-row-title {
+  min-width: 0;
+  color: var(--wf-text);
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.reminder-row-when {
+  color: var(--wf-text-muted);
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Tudo em dia ---------- */
+.reminders-all-clear {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 24px 16px;
+  border: 1px solid var(--wf-border-soft);
+  border-radius: var(--wf-radius-lg);
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+  text-align: center;
+}
+.reminders-all-clear .empty-art {
+  width: 72px;
+  height: 72px;
+}
+.reminders-all-clear h3 {
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+}
+.reminders-all-clear p {
+  max-width: 38ch;
+  color: var(--wf-text-muted);
+  font-size: var(--wf-fs-sm);
+  line-height: 1.5;
+}
+
+/* ---------- Desligados: convite e prévia do dia ---------- */
+.card.reminders-off {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 28px 20px 16px;
+  text-align: center;
+}
+.card.reminders-off > h2,
+.card.reminders-off > p {
+  margin: 0;
+}
+.reminders-off .empty-art {
+  width: 96px;
+  height: 96px;
+}
+.reminders-off h2 {
+  font-size: var(--wf-fs-xl);
+  font-weight: 800;
+}
+.reminders-off-text {
+  max-width: 34ch;
+  color: var(--wf-text-muted);
+  font-size: var(--wf-fs-base);
+  line-height: 1.5;
+}
+.reminders-off > .btn {
+  min-height: 44px;
+  margin-top: 4px;
+}
+.reminders-off-preview {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--wf-border-soft);
+}
+.reminders-off-preview h3 {
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+}
+.reminder-preview {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 34rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.reminder-preview-chip,
+.reminder-quiet-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-sm);
+  line-height: 1.3;
+}
+.reminder-preview-chip {
+  background: var(--wf-surface-2);
+}
+.reminder-preview-chip > svg {
+  flex: none;
+  color: var(--rm-fg);
+}
+.reminder-preview-chip strong {
+  color: var(--wf-text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.reminder-quiet-chip {
+  border: 1px solid var(--wf-tone-mind-border);
+  background: var(--wf-tone-mind-bg);
+}
+.reminder-quiet-chip > svg {
+  flex: none;
+  color: var(--wf-tone-mind-fg);
+}
+.text-btn.reminders-adjust {
+  min-height: 44px;
+}
+
+@keyframes reminder-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* Telas estreitas: o horário da linha desce para baixo do título. */
+@media (max-width: 480px) {
+  .reminder-row {
+    grid-template-columns: 36px minmax(0, 1fr);
+    row-gap: 0;
+  }
+  .reminder-row > .icon-tile {
+    grid-row: span 2;
+  }
+  .reminder-row-when {
+    grid-column: 2;
+  }
+  /* Ícone de 36 px e respiros menores: atalho, "Abrir registro" e ✓ cabem numa linha a 360 px. */
+  .card.reminder-card {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 10px;
+    padding: 14px;
+  }
+  .reminder-card > .icon-tile {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--wf-radius-sm);
+  }
+  .reminder-actions {
+    gap: 8px 10px;
+  }
+  .reminder-chip {
+    padding: 0 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reminder-card.is-due {
+    animation: none;
+  }
+  .reminder-chip {
+    transition: none;
+  }
+  .reminder-chip:active {
+    transform: none;
+  }
+}

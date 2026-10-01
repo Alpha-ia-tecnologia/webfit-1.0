@@ -1,0 +1,117 @@
+/* "Aparência" (HOJE-X2): três opções de 56 px ou mais, com amostra do tema e marca de rádio. */
+.theme-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 12px;
+  border-radius: var(--wf-radius-md);
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface-3);
+  color: var(--wf-text-2);
+  text-align: left;
+  transition:
+    border-color 0.16s,
+    background 0.16s,
+    transform 0.12s;
+}
+.theme-option:hover {
+  border-color: var(--wf-slate-300);
+}
+.theme-option:active {
+  transform: scale(0.99);
+}
+.theme-option:focus-visible {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 2px;
+}
+.theme-option.on {
+  border-color: var(--wf-tone-food-fg);
+  background: var(--wf-tone-food-bg);
+  box-shadow: inset 0 0 0 1px var(--wf-tone-food-fg);
+  color: var(--wf-text);
+}
+/* Marca de rádio à direita: aro vazio; marcado, aro e miolo na cor da escolha. */
+.theme-option::after {
+  content: "";
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-left: auto;
+  border-radius: 50%;
+  border: 2px solid var(--wf-slate-300);
+  background: var(--wf-surface);
+}
+.theme-option.on::after {
+  border-color: var(--wf-tone-food-fg);
+  background: radial-gradient(
+    circle,
+    var(--wf-tone-food-fg) 0 4px,
+    var(--wf-surface) 5px
+  );
+}
+.theme-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.theme-option strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  line-height: 1.25;
+}
+.theme-option small {
+  font-size: var(--wf-fs-xs);
+  line-height: 1.35;
+  color: var(--wf-text-muted);
+}
+/* Amostras com cores fixas: mostram o tema, não mudam com ele. */
+.theme-swatch {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: var(--wf-radius-sm);
+  border: 1px solid var(--wf-art-line);
+}
+.theme-swatch::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  bottom: 8px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--wf-emerald);
+}
+.theme-swatch.is-claro {
+  background: var(--wf-art-paper);
+}
+.theme-swatch.is-escuro {
+  border-color: var(--wf-navy-soft);
+  background: var(--wf-navy);
+}
+.theme-swatch.is-sistema {
+  background: linear-gradient(
+    135deg,
+    var(--wf-art-paper) 50%,
+    var(--wf-navy) 50%
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-option {
+    transition: none;
+  }
+  .theme-option:active {
+    transform: none;
+  }
+}

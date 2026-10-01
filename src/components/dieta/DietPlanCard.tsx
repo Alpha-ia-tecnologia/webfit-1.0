@@ -1,0 +1,72 @@
+import { Utensils } from "lucide-react";
+import { useApp } from "../../lib/context";
+import { isSensitive } from "../../lib/day";
+import { isDietPlanStale } from "../../lib/diet";
+import { SLOT_LABEL } from "../../lib/diet-plan";
+import { fmtUntil } from "../../lib/format";
+import { ShortcutTile } from "../ShortcutTile";
+import { useNextPlannedMeal, usePlannedMealRegister, useTodayPlan } from "../usePlannedMeal";
+
+/** Texto da linha sem plano atual: preparando, anamnese mudou, plano salvo ou ainda sem plano. */
+function entryText(isBusy: boolean, isStale: boolean, hasPlan: boolean): string {
+  if (isBusy) return "O agente está preparando suas refeições.";
+  if (isStale) return "Sua anamnese mudou. Atualize o plano com suas novas respostas.";
+  return hasPlan
+    ? "Seu plano de refeições está salvo para consultar quando quiser."
+    : "Transforme sua anamnese em um plano de refeições para o dia.";
+}
+
+/**
+ * Acesso permanente ao plano no Hoje, numa linha compacta de 72 px. Com dieta estruturada atual e
+ * uma próxima refeição, vira "Do seu plano" com "Registrar" (conferir e registrar); nos demais
+ * casos, "Sua dieta personalizada" leva à dieta ("Ver minha dieta" / "Criar minha dieta").
+ */
+export function DietPlanCard() {
+  const { state, navigate, dietBusy } = useApp();
+  // Plano de hoje com a rotação das trocas revisadas (IA-X5); no dia de criação, o plano original.
+  const view = useTodayPlan();
+  const next = useNextPlannedMeal(view);
+  const register = usePlannedMealRegister();
+  const isStale = Boolean(state.dietPlan && state.profile && isDietPlanStale(state.dietPlan, state.profile));
+  const openDiet = () => navigate("dieta");
+  if (!dietBusy && !isStale && next && state.profile) {
+    const label = SLOT_LABEL[next.meal.slot];
+    const when = [label, next.meal.horario, isSensitive(state.profile) ? null : fmtUntil(next.minutesUntil)]
+      .filter(Boolean)
+      .join(" · ");
+    return (
+      <ShortcutTile
+        layout="row"
+        headingLevel={2}
+        icon={Utensils}
+        tone="food"
+        title="Do seu plano"
+        text={`Próxima refeição · ${when}`}
+        lines={2}
+        onClick={openDiet}
+        ariaLabel="Ver minha dieta"
+        secondary={{
+          label: "Registrar",
+          ariaLabel: `Conferir e registrar: ${label}`,
+          onClick: () => register(next.category, next.meal.itens),
+        }}
+        testId="plan-next-meal"
+        className="hoje-plan-row"
+      />
+    );
+  }
+  return (
+    <ShortcutTile
+      layout="row"
+      headingLevel={2}
+      icon={Utensils}
+      tone="food"
+      title="Sua dieta personalizada"
+      text={entryText(dietBusy, isStale, Boolean(state.dietPlan))}
+      lines={2}
+      onClick={openDiet}
+      ariaLabel={state.dietPlan ? "Ver minha dieta" : "Criar minha dieta"}
+      className="hoje-plan-row"
+    />
+  );
+}

@@ -1,0 +1,566 @@
+/* Seringa, Onda 3 · Lote 3: mapa de rodízio (frente/costas, lado, selos), lado do corpo, folha
+   "Aplicação registrada" e histórico compacto. Arquivo à parte: Injecao.css passou do limite. Só tokens. */
+
+/* ---------- Local: mapa ao lado dos botões (≥ 290 px), empilhado abaixo disso ---------- */
+.inj-site-card {
+  container: inj-site / inline-size;
+}
+.rot-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rot-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.rot-controls .inj-sites {
+  flex-direction: row;
+}
+.rot-controls .inj-sites button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+@container inj-site (min-width: 290px) {
+  .rot-layout {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+  .rot-controls .inj-sites {
+    flex-direction: column;
+  }
+  .rot-controls .inj-sites button {
+    flex: none;
+  }
+}
+
+/* ---------- Mapa de rodízio ---------- */
+.rot-map {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px 8px;
+  border-radius: 16px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface-3);
+}
+/* "Local: Abdômen à esquerda" pode quebrar em duas linhas na coluna estreita. */
+.rot-map .inj-site-indicator {
+  max-width: 100%;
+  border-radius: 12px;
+  line-height: 1.35;
+  text-align: center;
+}
+.rot-figures {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.rot-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+}
+.rot-canvas {
+  position: relative;
+  width: 68px;
+  aspect-ratio: 100 / 224;
+}
+.rot-canvas svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.rot-figure figcaption {
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  color: var(--wf-text-muted);
+}
+.rot-outline {
+  fill: var(--wf-slate-100);
+  stroke: var(--wf-slate-300);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.rot-detail {
+  fill: none;
+  stroke: var(--wf-slate-300);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+.rot-detail-dot {
+  fill: var(--wf-slate-400);
+}
+/* Pontos livres em cinza legível (slate-500), o escolhido em verde; nada apagado por opacidade. */
+.rot-point {
+  fill: var(--wf-slate-500);
+  stroke: var(--wf-surface);
+  stroke-width: 1.5;
+  transition: fill 0.16s;
+}
+.rot-spot.on .rot-point {
+  fill: var(--wf-green-700);
+}
+.rot-halo {
+  transition: opacity 0.25s;
+}
+.rot-suggest {
+  stroke: var(--wf-sky-500);
+  stroke-width: 1.4;
+  stroke-dasharray: 2 2;
+}
+/* Selos das últimas aplicações: acima e à direita do ponto, para a escolha continuar visível. */
+.rot-badge {
+  position: absolute;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--wf-white);
+  background: var(--wf-inverse);
+  box-shadow:
+    0 0 0 1.5px var(--wf-surface),
+    inset 0 0 0 1px var(--wf-inverse-border);
+  transform: translate(2px, calc(-100% - 2px));
+  pointer-events: none;
+}
+.rot-side {
+  position: absolute;
+  top: 8%;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--wf-text-muted);
+}
+.rot-side.is-left {
+  left: 0;
+}
+.rot-side.is-right {
+  right: 0;
+}
+
+/* ---------- Lado do corpo ---------- */
+.inj-side-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.inj-side-label {
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  color: var(--wf-text-2);
+}
+.inj-sides {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.inj-sides button {
+  display: flex;
+  flex: 1 1 64px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 4px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--wf-border);
+  background: var(--wf-surface-3);
+  color: var(--wf-text-2);
+  transition: border-color 0.16s, background 0.16s;
+}
+.inj-sides button.on {
+  border-color: var(--wf-green-500);
+  background: var(--wf-mint-50);
+  box-shadow: inset 0 0 0 1px var(--wf-green-500);
+  color: var(--wf-green-800);
+}
+.inj-sides strong {
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+}
+.inj-sides .inj-tag {
+  padding: 0 5px;
+  letter-spacing: 0;
+}
+.inj-side-field.is-pills .inj-sides button {
+  flex: 1 1 120px;
+  flex-direction: row;
+  gap: 6px;
+  border-radius: 999px;
+}
+
+/* ---------- Folha "Aplicação registrada" ---------- */
+.modal.saved-sheet {
+  gap: 16px;
+}
+.saved-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.saved-check {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+}
+.saved-check circle {
+  fill: var(--wf-mint-50);
+}
+/* Confirmação, não comemoração: o traço se desenha uma vez, sem confete. */
+.saved-check path {
+  fill: none;
+  stroke: var(--wf-green-700);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 0;
+  animation: saved-draw 420ms var(--wf-ease) both;
+}
+@keyframes saved-draw {
+  from {
+    stroke-dashoffset: 40;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.saved-lead {
+  margin: 0;
+  font-size: var(--wf-fs-md);
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--wf-text);
+}
+.saved-head .muted {
+  margin: 2px 0 0;
+}
+.saved-rows {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.saved-rows li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-2);
+  background: var(--wf-surface-3);
+}
+.saved-rows li > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.saved-rows small {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.saved-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  color: var(--wf-tone-medication-fg);
+}
+.saved-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.saved-actions > .btn {
+  flex: 1 1 100%;
+  min-height: 48px;
+}
+.saved-actions > .btn-secondary {
+  flex: 1 1 160px;
+  min-height: 48px;
+}
+.saved-undo {
+  flex: 1 1 100%;
+  min-height: 44px;
+  font-size: var(--wf-fs-sm);
+}
+
+/* ---------- Pictograma do ponto ---------- */
+.site-picto {
+  flex-shrink: 0;
+  width: 28px;
+  height: 40px;
+}
+.site-picto-outline {
+  fill: var(--wf-slate-100);
+  stroke: var(--wf-slate-300);
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+.site-picto-dot {
+  fill: var(--wf-violet-600);
+}
+.site-picto-dot.is-open {
+  fill: var(--wf-violet-100);
+  stroke: var(--wf-violet-600);
+  stroke-width: 4;
+}
+
+/* Últimas aplicações: faixa em Recipe.css (conceito 10). */
+
+/* ---------- Cartão "Rodízio de locais" (receita, conceito 10) ----------
+   Figura em 1:1 px (100 × 224), sugestão à esquerda, legendas à direita, ligadas por linhas finas.
+   Última e recente em âmbar (nunca vermelho), livre tracejado verde, sugestão verde com ✦. */
+.inj-card.rot-card {
+  gap: 8px;
+  padding: 16px 14px 14px;
+}
+.rot-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.rot-card-tile {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--wf-mint-100);
+  color: var(--wf-green-700);
+}
+.rot-card-titles {
+  flex: 1 1 110px;
+  min-width: 0;
+}
+.inj-card.rot-card .rot-card-titles h2 {
+  font-size: var(--wf-fs-lg);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.rot-card-titles p {
+  margin: 1px 0 0;
+  font-size: var(--wf-fs-sm);
+  color: var(--wf-text-muted);
+}
+.rot-card .segmented.is-sm {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.rot-card .segmented.is-sm button {
+  padding-inline: 8px;
+  font-size: var(--wf-fs-xs);
+}
+.rot-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 116fr) 90px var(--leader-gap, 8px) minmax(0, 114fr);
+  height: 244px;
+  margin-top: 2px;
+}
+.rot-stage-left,
+.rot-stage-right {
+  position: relative;
+  height: 224px;
+}
+/* As legendas podem ocupar parte do respiro do cartão, como no conceito. */
+.rot-stage-right {
+  grid-column: 4;
+  margin-right: -8px;
+}
+.rot-stage-figure {
+  position: relative;
+  width: 90px;
+  height: 244px;
+}
+.rot-stage-figure svg {
+  display: block;
+  width: 90px;
+  height: 224px;
+  overflow: visible;
+}
+.rot-foot {
+  position: absolute;
+  bottom: 0;
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  line-height: 16px;
+  color: var(--wf-text-muted);
+  transform: translateX(-50%);
+}
+.rot-foot.is-left {
+  left: 39%;
+}
+.rot-foot.is-right {
+  left: 61%;
+}
+.rot-suggest-box {
+  position: absolute;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  padding: 7px 9px 8px;
+  border-radius: 16px;
+  border: 1.5px solid var(--wf-mint-300);
+  background: var(--wf-mint-50);
+  box-shadow: 0 6px 16px -10px color-mix(in srgb, var(--wf-green-600) 55%, transparent);
+  transform: translateY(-50%);
+}
+.rot-suggest-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  color: var(--wf-green-700);
+}
+.rot-suggest-box strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-base);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--wf-text);
+}
+.rot-callout {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  transform: translateY(-50%);
+}
+.rot-callout strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-sm);
+  font-weight: 800;
+  color: var(--wf-text);
+}
+.rot-callout small {
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  color: var(--wf-amber-700);
+}
+.rot-callout.is-livre small {
+  color: var(--wf-green-700);
+}
+.rot-leader line,
+line.rot-leader {
+  stroke: var(--wf-slate-400);
+  stroke-width: 1;
+}
+.rot-leader circle {
+  fill: var(--wf-slate-500);
+}
+.rot-mark.is-livre .rot-mark-shape {
+  fill: color-mix(in srgb, var(--wf-mint-50) 70%, transparent);
+  stroke: var(--wf-green-600);
+  stroke-width: 1.4;
+  stroke-dasharray: 3 2.4;
+}
+.rot-mark.is-recente .rot-mark-shape {
+  fill: var(--wf-amber-200);
+  stroke: color-mix(in srgb, var(--wf-amber-500) 75%, var(--wf-amber-200));
+  stroke-width: 1.6;
+}
+.rot-mark.is-ultima .rot-mark-halo {
+  fill: color-mix(in srgb, var(--wf-amber-500) 20%, transparent);
+}
+.rot-mark.is-ultima .rot-mark-shape {
+  fill: var(--wf-amber-200);
+  stroke: var(--wf-amber-500);
+  stroke-width: 3;
+}
+.rot-mark-core {
+  fill: none;
+  stroke: var(--wf-white);
+  stroke-width: 1.2;
+  stroke-dasharray: 1.6 1.4;
+}
+.rot-mark.is-sugestao .rot-mark-halo {
+  fill: color-mix(in srgb, var(--wf-green-500) 16%, transparent);
+  stroke: var(--wf-mint-200);
+  stroke-width: 1;
+}
+.rot-mark.is-sugestao .rot-mark-shape {
+  fill: var(--wf-green-600);
+  stroke: var(--wf-surface);
+  stroke-width: 1.5;
+}
+.rot-mark-icon {
+  color: var(--wf-white);
+}
+.rot-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin: 0;
+  padding: 12px 2px 0;
+  border-top: 1px solid var(--wf-border-soft);
+  list-style: none;
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.rot-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rot-legend-dot {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+.rot-legend-dot.is-ultima {
+  background: var(--wf-amber-500);
+}
+.rot-legend-dot.is-recente {
+  border: 1.5px solid color-mix(in srgb, var(--wf-amber-500) 60%, var(--wf-amber-200));
+  background: var(--wf-amber-200);
+}
+.rot-legend-dot.is-livre {
+  border: 1.5px dashed var(--wf-green-600);
+}
+.rot-legend-dot.is-sugestao {
+  background: var(--wf-green-600);
+  box-shadow: 0 0 0 3px var(--wf-mint-100);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saved-check path {
+    animation: none;
+  }
+  .rot-halo,
+  .rot-point,
+  .inj-sides button {
+    transition: none;
+  }
+}
