@@ -190,16 +190,24 @@ function penLowIntakeState(): AppState {
   return state;
 }
 
-test("caneta: dias seguidos com pouca comida viram orientação calma no Resumo, sem números nem dose", async ({ page }) => {
+test("caneta: dias seguidos com pouca comida viram o título do Resumo, com a orientação calma na folha, sem números nem dose", async ({ page }) => {
   await page.clock.setFixedTime(`${today}T07:20:00`);
   await seed(page, penLowIntakeState());
-  const card = page.locator(".next-step");
-  await expect(card.getByRole("heading", { name: "Você comeu pouco nos últimos dias" })).toBeVisible();
-  const detail = card.locator(".next-step-detail");
-  await expect(detail).toContainText("refeições menores e mais frequentes");
-  await expect(detail).not.toContainText(/\d/);
-  await expect(card).not.toContainText(/mg\b|dose/i);
+  const card = page.getByTestId("next-step");
+  await expect(card).toHaveAttribute("data-source", "alert");
+  const title = card.getByRole("button", { name: "Você comeu pouco nos últimos dias" });
+  await expect(title).toBeVisible();
+  // Sem parágrafo no cartão: a orientação fica na folha, a um toque no título.
+  await expect(card).not.toContainText(/refeições menores|mg\b|dose/i);
   await expect(card.getByRole("button", { name: "Pedir ideias ao agente" })).toBeVisible();
+  await title.click();
+  const sheet = page.getByRole("dialog", { name: "Você comeu pouco nos últimos dias" });
+  await expect(sheet.getByTestId("insight-sheet")).toContainText("refeições menores e mais frequentes");
+  await expect(sheet.getByTestId("insight-sheet")).not.toContainText(/\d/);
+  await expect(sheet).not.toContainText(/mg\b|dose|Dispensar/i);
+  await expect(sheet.getByRole("button", { name: "Pedir ideias ao agente" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(sheet).toHaveCount(0);
 });
 
 test("caneta com calorias ocultas: o alerta fala só da proteína", async ({ page }) => {
@@ -207,11 +215,14 @@ test("caneta com calorias ocultas: o alerta fala só da proteína", async ({ pag
   const state = penLowIntakeState();
   state.profile = { ...state.profile!, hideCalories: true };
   await seed(page, state);
-  const card = page.locator(".next-step");
-  await expect(card.getByRole("heading", { name: "Proteína abaixo do combinado" })).toBeVisible();
-  const detail = card.locator(".next-step-detail");
-  await expect(detail).toContainText("fonte de proteína em cada refeição");
-  await expect(detail).not.toContainText(/\d/);
+  const card = page.getByTestId("next-step");
+  await expect(card).toHaveAttribute("data-source", "alert");
+  await card.getByRole("button", { name: "Proteína abaixo do combinado" }).click();
+  const sheet = page.getByRole("dialog", { name: "Proteína abaixo do combinado" });
+  await expect(sheet.getByTestId("insight-sheet")).toContainText("fonte de proteína em cada refeição");
+  await expect(sheet.getByTestId("insight-sheet")).not.toContainText(/\d/);
+  await expect(sheet).not.toContainText(/kcal|caloria/i);
+  await page.keyboard.press("Escape");
   await expect(card).not.toContainText(/kcal|caloria/i);
 });
 
@@ -227,25 +238,42 @@ function careNotesState(hideCalories: boolean): AppState {
   };
   return { ...state, profile, goalHistory: [{ date: shiftDate(today, -10), profile }] };
 }
-async function expectCareNotes(notes: Locator) {
-  await expect(notes).toContainText("Cuidados do seu perfil");
-  await expect(notes.getByRole("listitem")).toHaveText([
-    /^Pressão alta: prefira comida caseira/,
-    /^Glicose: distribua os carboidratos/,
-    /^Caneta: o apetite tende a cair/,
+/**
+ * Chips "Pressão alta", "Glicose" e "Caneta" + o botão "Cuidados"; qualquer um abre a folha "Cuidados do seu
+ * perfil" com uma frase curta por cuidado e o fechamento como rodapé, só texto (sem números nem dose).
+ */
+async function expectCareChips(page: Page, chips: Locator) {
+  await expect(chips.getByRole("button")).toHaveText(["Pressão alta", "Glicose", "Caneta", "Cuidados"]);
+  await expect(chips).not.toContainText(/\d/);
+  await chips.getByRole("button", { name: "Glicose", exact: true }).click();
+  const sheet = page.getByRole("dialog", { name: "Cuidados do seu perfil" });
+  await expect(sheet.getByRole("listitem")).toHaveText([
+    /^Pressão alta Prefira comida caseira/,
+    /^Glicose Distribua os carboidratos/,
+    /^Caneta O apetite tende a cair/,
   ]);
-  await expect(notes).toContainText("Confirme estas metas com quem acompanha você.");
-  await expect(notes).not.toContainText(/\d|kcal|mg\b|dose/i);
+  await expect(sheet).toContainText("Confirme estas metas com quem acompanha você.");
+  await expect(sheet).not.toContainText(/\d|kcal|mg\b|dose/i);
+  await sheet.getByRole("button", { name: "Fechar" }).click();
+  await expect(sheet).toHaveCount(0);
+  // O botão-texto também abre a folha.
+  await chips.getByRole("button", { name: "Cuidados", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Cuidados do seu perfil" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Cuidados do seu perfil" })).toHaveCount(0);
 }
 
-test("cuidados do perfil em 'Como calculamos': condições marcadas e caneta, só texto", async ({ page }) => {
+test("cuidados do perfil em 'Como calculamos': chips das condições e da caneta, folha só texto", async ({ page }) => {
   await seed(page, careNotesState(false));
   await page.getByRole("button", { name: "Como calculamos" }).first().click();
-  await expectCareNotes(page.getByRole("dialog").getByTestId("care-notes"));
+  const explain = page.getByRole("dialog", { name: "Como calculamos" });
+  await expectCareChips(page, explain.getByTestId("care-chips"));
+  // A folha dos cuidados fecha sozinha; "Como calculamos" continua aberto.
+  await expect(explain).toBeVisible();
 });
 
 test("cuidados do perfil com calorias ocultas continuam no cartão de metas de Meu espaço", async ({ page }) => {
   await seed(page, careNotesState(true));
   await page.getByRole("button", { name: "Meu espaço", exact: true }).click();
-  await expectCareNotes(page.locator(".goals-card").getByTestId("care-notes"));
+  await expectCareChips(page, page.locator(".goals-card").getByTestId("care-chips"));
 });

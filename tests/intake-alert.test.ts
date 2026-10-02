@@ -55,6 +55,8 @@ function days(count: number, calories: number, protein: number): DiaryEntry[] {
 
 const NUMBERS = /\d/;
 const DOSE = /dose|aplica|mg\b/i;
+/** A orientação vai na folha do Resumo: até duas frases e 140 caracteres. */
+const SHEET_MAX = 140;
 
 test("sem caneta não há alerta, mesmo comendo pouco", () => {
   const state = stateWith(penProfile({ weightLossPen: "nao" }), days(5, 600, 10));
@@ -65,8 +67,10 @@ test("caneta: três dias com pouca comida pedem refeições menores, sem número
   const alert = intakeAlert(stateWith(penProfile(), days(3, 800, 80)), TODAY);
   assert.equal(alert?.kind, "low_intake");
   assert.ok(alert!.title.split(/\s+/).length <= 7);
+  assert.ok(alert!.body.length <= SHEET_MAX, `${alert!.body.length} caracteres`);
   assert.doesNotMatch(`${alert!.title} ${alert!.body}`, NUMBERS);
   assert.doesNotMatch(`${alert!.title} ${alert!.body}`, DOSE);
+  assert.match(alert!.body, /refeições menores e mais frequentes/);
   assert.match(alert!.body, /fale com quem prescreveu/);
 });
 
@@ -90,6 +94,8 @@ test("caneta: proteína abaixo de 70% da meta em três dias", () => {
   const low = intakeAlert(stateWith(profile, days(3, 1800, goal * 0.6)), TODAY);
   assert.equal(low?.kind, "protein");
   assert.equal(low?.title, "Proteína abaixo do combinado");
+  assert.ok(low!.body.length <= SHEET_MAX, `${low!.body.length} caracteres`);
+  assert.match(low!.body, /fonte de proteína em cada refeição/);
   assert.doesNotMatch(low!.body, NUMBERS);
   assert.doesNotMatch(low!.body, DOSE);
   assert.equal(intakeAlert(stateWith(profile, days(3, 1800, goal * 0.8)), TODAY), null);
@@ -152,6 +158,7 @@ test("restrição de líquidos (ou sem resposta): o alerta não fala em beber á
     const alert = intakeAlert(stateWith(penProfile({ fluidRestriction }), days(3, 800, 80)), TODAY);
     assert.equal(alert?.kind, "low_intake", fluidRestriction);
     assert.doesNotMatch(alert!.body, /água/);
+    assert.ok(alert!.body.length <= SHEET_MAX, `${alert!.body.length} caracteres`);
   }
   const free = intakeAlert(stateWith(penProfile({ fluidRestriction: "nao" }), days(3, 800, 80)), TODAY);
   assert.match(free!.body, /beba água/);

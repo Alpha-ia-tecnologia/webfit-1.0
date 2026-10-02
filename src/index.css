@@ -1337,6 +1337,58 @@ td {
   font-size: var(--wf-fs-2xs);
   color: var(--wf-text-muted);
 }
+/* Ajuste do dia em "Como calculamos": Meta-base → hoje, o delta e o motivo numa linha; sem parágrafo. */
+.balance-adjust {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--wf-surface-2);
+}
+.balance-adjust-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  color: var(--wf-text-2);
+}
+.balance-adjust-row > svg {
+  flex-shrink: 0;
+  color: var(--wf-text-muted);
+}
+.balance-adjust-label {
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  color: var(--wf-text-muted);
+}
+.balance-adjust-row strong {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text);
+}
+.balance-adjust-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--wf-surface);
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text);
+}
+.balance-adjust-why {
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  line-height: 1.5;
+  color: var(--wf-text-muted);
+}
 /* ---------- Refeições ---------- */
 .meal-icon {
   display: grid;

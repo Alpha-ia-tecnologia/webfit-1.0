@@ -1,10 +1,14 @@
 /**
- * Leitura do dia para a tela Hoje (web + app nativo): anel de energia e o cartão "Próximo passo".
- * Tudo é determinístico e local; nenhum texto menciona calorias e perfis sensíveis
- * (transtorno alimentar, gestação ou amamentação) não recebem cobrança de proteína.
+ * Leitura do dia para a tela Hoje (web + app nativo): anel de energia e o cartão "Resumo", a única
+ * voz proativa do Hoje. O cartão junta o recado do dia do agente, o alerta de ingestão (caneta), os
+ * sinais do app e o ajuste da meta num título de até duas linhas, até três chips e uma ação; o
+ * detalhe de cada item fica na folha (InsightSheet), a um toque. Tudo é determinístico e local;
+ * nenhum texto menciona calorias ocultas e perfis sensíveis (transtorno alimentar, gestação ou
+ * amamentação) não recebem cobrança de proteína nem nudges.
  */
 import type { HabitItem, PantryItem, Profile } from "../types";
 import { fmtMl, fmtNumber, fmtRelDate } from "./format";
+import type { AdjustmentView } from "./balance-explain";
 import type { IntakeAlert } from "./intake-alert";
 import { visiblePlainText } from "./text";
 
@@ -26,36 +30,101 @@ export function energyRing(consumed: number, goal: number | null): EnergyRing | 
   };
 }
 
+/** Chave em signalDismissals do recado do dia (daily-comment.ts a reexporta; a data é a do recado dispensado). */
+export const DAILY_COMMENT_KEY = "comentario-do-dia";
+
 export type InsightAction =
   | { kind: "water"; ml: number; label: string }
   | { kind: "meal"; label: string }
   | { kind: "habit"; habitId: string; label: string }
-  | { kind: "agent"; label: string };
-/** Contexto do cartão Resumo, com ícone pelo tipo (gota, combinado, despensa). */
+  | { kind: "agent"; label: string }
+  /** Abre a conversa com o agente, sem pergunta pronta (o recado do dia). */
+  | { kind: "chat"; label: string };
+
+/** Ação da folha (InsightSheet): pergunta pronta ao agente, abrir a conversa ou "Como calculamos". */
+export type InsightSheetAction =
+  | { kind: "agent"; label: string; prompt: string }
+  | { kind: "chat"; label: string }
+  | { kind: "explain"; label: string };
+
+/** Tom do chip e da folha: cuidado (azul), reforço (verde-água), agente (menta), ajuste da meta, contexto. */
+export type InsightTone = "info" | "positive" | "agent" | "adjust" | "neutral";
+
+/** A folha de um chip ou do título: o detalhe que saiu da tela, uma ação e, quando cabe, dispensar. */
+export interface InsightSheetModel {
+  /** Identidade estável: id do sinal, "comment", "alert", "adjust" ou "protein". */
+  id: string;
+  tone: InsightTone;
+  title: string;
+  /** Uma ou duas frases, até 140 caracteres. */
+  body: string;
+  /**
+   * Ajuste da meta em linhas (`Meta-base 1.806 → hoje 1.953`, delta, proteína), como em "Como calculamos":
+   * quando vem, a folha mostra as linhas no lugar da frase (que fica como nome acessível).
+   */
+  rows?: AdjustmentView;
+  action?: InsightSheetAction;
+  /** "Dispensar por 3 dias" (sinais) ou "Dispensar o recado de hoje": a chave de signalDismissals e o rótulo. */
+  dismiss?: { key: string; label: string };
+}
+
+/** Chip do cartão Resumo (e da linha de chips do Hoje em branco), com ícone pelo tipo. */
 export interface InsightChip {
-  kind: "water" | "habit" | "pantry";
-  /** Texto curto do chip: "faltam 750 ml", "chá às 21:30". */
+  kind: "water" | "habit" | "pantry" | "adjust" | "protein" | "alert" | "signal" | "comment";
+  /** Texto curto do chip: "faltam 750 ml", "chá às 21:30", "↑ +147 kcal hoje", "Água abaixo". */
   text: string;
   /** Texto completo (title e nome acessível): "Chá calmante e higiene do sono às 21:30". */
   full: string;
+  /** Chips com folha abrem o detalhe ao toque; os de contexto (água, combinado, despensa) só informam. */
+  sheet?: InsightSheetModel;
 }
 export interface DayInsight {
   domain: "water" | "food" | "habit" | "neutral";
-  /** Até 7 palavras. */
+  /** De onde vem o título: recado do dia, alerta da caneta, sinal do app ou o próximo passo. */
+  source: "comment" | "alert" | "signal" | "insight";
+  /** Até duas linhas (≤ 90 caracteres). */
   headline: string;
   /** Consequência curta depois do título ("O jantar resolve."); só no caso da proteína. */
   followUp?: string;
-  /** Orientação curta sob o título (alerta de ingestão da caneta); sem números. */
-  detail?: string;
-  /** "Resumo · fim de tarde": o período do dia em que o cartão foi montado. */
+  /** "Resumo · fim de tarde" ou, com o recado do dia no título, "Seu agente · 07:10". */
   kicker: string;
-  /** Até 2 contextos curtos, com ícone. */
+  /** Até 3 chips em ordem fixa: ajuste da meta, proteína, alerta e sinais fora do título, contextos. */
   chipItems: InsightChip[];
   /** Os textos curtos de chipItems (quem só precisa do texto). */
   chips: string[];
   action: InsightAction | null;
   /** Pergunta pronta para "Perguntar ao agente". */
   prompt: string;
+  /** Folha do título (recado, alerta ou sinal): detalhe, ação e dispensar. O próximo passo comum não tem. */
+  sheet?: InsightSheetModel;
+  /** O título em forma de chip (recado, alerta ou sinal): o Hoje em branco mostra só a linha de chips. */
+  titleChip?: InsightChip;
+}
+/** Sinal do app (signals.ts) como o Resumo o lê; a forma estrutural evita o ciclo de módulos. */
+export interface InsightSignal {
+  id: string;
+  tone: "info" | "positive";
+  title: string;
+  body: string;
+  action?: { label: string; prompt: string };
+}
+/** O recado do dia (daily-comment.ts): a frase e o horário da resposta. */
+export interface InsightComment {
+  /** Uma frase, até 90 caracteres. */
+  headline: string;
+  /** "HH:MM" da resposta, para o kicker "Seu agente · 07:10". */
+  time: string;
+}
+/** Ajuste dinâmico (dailyTargets): kcal sobre a meta-base (negativo = meta menor) e proteína somada. */
+export interface AdjustmentDelta {
+  adjustment: number;
+  proteinBoost: number;
+}
+export interface InsightAdjustment extends AdjustmentDelta {
+  /** adjustmentNote de hoje, já sem kcal com "Ocultar calorias"; null sem ajuste. */
+  note: string | null;
+  /** As linhas do ajuste (adjustmentView do DailyTarget), para a folha dos chips; sem elas, a frase. */
+  view?: AdjustmentView | null;
 }
 export interface DayInsightInput {
   profile: Pick<
@@ -79,6 +148,12 @@ export interface DayInsightInput {
   time: string;
   /** Alerta dos últimos dias para quem usa caneta (intakeAlert); ausente ou null não muda nada. */
   intakeAlert?: IntakeAlert | null;
+  /** Recado do dia do agente (latestDailyComment); ausente ou null, nada muda. */
+  comment?: InsightComment | null;
+  /** Sinais ativos do Hoje em ordem de prioridade (activeSignals): o 1º pode virar o título, os outros chips. */
+  signals?: InsightSignal[];
+  /** Ajuste da meta de hoje; sem ajuste (0 kcal e 0 g) não gera chip. */
+  adjustment?: InsightAdjustment | null;
 }
 
 const WATER_STEP = 250;
@@ -86,8 +161,25 @@ const HABIT_WINDOW_MIN = 180;
 const PROTEIN_EVENING = "17:00";
 const PROTEIN_SHARE = 0.8;
 const EXPIRY_DAYS = 2;
-/** O cartão Resumo mostra no máximo dois contextos. */
-const MAX_CHIPS = 2;
+/** O cartão Resumo mostra no máximo três chips. */
+const MAX_CHIPS = 3;
+/** Chip curto do alerta de ingestão (Hoje e sinal da Seringa): sem números, sem dose. */
+export const INTAKE_CHIPS: Record<IntakeAlert["kind"], string> = {
+  low_intake: "Comendo pouco",
+  protein: "Proteína baixa",
+};
+const ALERT_ACTION = "Pedir ideias ao agente";
+const COMMENT_ACTION = "Abrir a conversa";
+const COMMENT_CHIP = "Recado do agente";
+const COMMENT_SHEET_TITLE = "Recado do seu agente";
+const DISMISS_SIGNAL = "Dispensar por 3 dias";
+const DISMISS_COMMENT = "Dispensar o recado de hoje";
+const EXPLAIN = "Como calculamos";
+/** Sinal de menos tipográfico dos chips ("↓ −99 kcal"). */
+const MINUS = "−";
+/** Corpo das folhas do ajuste quando a frase do dia não veio (defensivo; nunca cita kcal). */
+const ADJUST_FALLBACK = "A meta de hoje mudou um pouco pelo dia de ontem, dentro de limites fixos.";
+const PROTEIN_FALLBACK = "Hoje a proteína está um pouco maior para recuperar a de ontem.";
 /** Títulos de combinado até este tamanho entram inteiros no chip; os maiores, só a 1ª palavra. */
 const HABIT_CHIP_MAX = 14;
 const DINNER = /jantar|ceia/i;
@@ -182,6 +274,19 @@ export function insightTitle(insight: Pick<DayInsight, "headline" | "followUp">)
   return insight.followUp ? `${insight.headline}. ${insight.followUp}` : insight.headline;
 }
 
+/** Até estes tamanhos o título do Resumo fica no degrau cheio ("base") e no degrau "long"; acima, "xlong". */
+export const TITLE_TIERS = { long: 36, xlong: 60 } as const;
+export type TitleTier = "base" | "long" | "xlong";
+/**
+ * Degrau tipográfico do título do Resumo pelo tamanho do texto: o recado e o alerta podem ter até 90
+ * caracteres e o cartão mostra no máximo duas linhas (web: data-length; app: tamanho da fonte), então
+ * títulos maiores descem um ou dois degraus; o que ainda passar fica inteiro na folha.
+ */
+export function titleTier(title: string): TitleTier {
+  if (title.length > TITLE_TIERS.xlong) return "xlong";
+  return title.length > TITLE_TIERS.long ? "long" : "base";
+}
+
 /** Chip de combinado: título curto inteiro, ou só a 1ª palavra ("chá às 21:30"); o completo fica em `full`. */
 function habitChip(habit: Pick<HabitItem, "title" | "timeOfDay">): InsightChip {
   const title = habit.title.trim();
@@ -194,6 +299,127 @@ function habitChip(habit: Pick<HabitItem, "title" | "timeOfDay">): InsightChip {
 }
 
 const plainChip = (kind: InsightChip["kind"], text: string): InsightChip => ({ kind, text, full: text });
+
+const signedKcal = (kcal: number) => `${kcal > 0 ? "+" : MINUS}${fmtNumber(Math.abs(kcal))} kcal`;
+
+export interface AdjustmentChipOptions {
+  hideCalories: boolean;
+  /** Diário em outra data: "Neste dia +147 kcal" (padrão: hoje). */
+  isToday?: boolean;
+  /** Resumo do Hoje: sem o motivo ("↑ +147 kcal hoje"); o Diário acrescenta o motivo. */
+  compact?: boolean;
+}
+/**
+ * Chip do ajuste de kcal (Hoje e Diário): "↑ +147 kcal hoje", "↓ −99 kcal · para equilibrar ontem",
+ * "Neste dia +147 kcal"; com "Ocultar calorias", só a direção em palavras ("Meta um pouco maior").
+ * null sem ajuste de kcal.
+ */
+export function adjustmentChipText(
+  delta: Pick<AdjustmentDelta, "adjustment">,
+  { hideCalories, isToday = true, compact = false }: AdjustmentChipOptions,
+): string | null {
+  const kcal = delta.adjustment;
+  if (!kcal) return null;
+  const isUp = kcal > 0;
+  if (hideCalories) return `Meta um pouco ${isUp ? "maior" : "menor"}`;
+  if (!isToday) return `Neste dia ${signedKcal(kcal)}`;
+  const arrow = isUp ? "↑" : "↓";
+  if (compact) return `${arrow} ${signedKcal(kcal)} hoje`;
+  return `${arrow} ${signedKcal(kcal)} · ${isUp ? "ontem você comeu menos" : "para equilibrar ontem"}`;
+}
+/** Chip da proteína somada hoje: "prot. +9 g" no Resumo, "Proteína +9 g" no Diário; null sem reforço. */
+export function proteinChipText(proteinBoost: number, compact = false): string | null {
+  if (proteinBoost <= 0) return null;
+  return `${compact ? "prot." : "Proteína"} +${fmtNumber(proteinBoost)} g`;
+}
+
+/** Chips do ajuste de hoje: kcal e proteína, cada um com a folha (a frase do dia e "Como calculamos"). */
+function adjustmentChips(adjustment: InsightAdjustment | null | undefined, hideCalories: boolean): InsightChip[] {
+  if (!adjustment) return [];
+  // "Como calculamos" só existe com as calorias à vista.
+  const action: InsightSheetAction | undefined = hideCalories ? undefined : { kind: "explain", label: EXPLAIN };
+  const chips: InsightChip[] = [];
+  // Linhas estruturadas na folha (sem parágrafo); a frase continua em body para leitores de tela.
+  const rows = adjustment.view ? { rows: adjustment.view } : {};
+  const kcal = adjustmentChipText(adjustment, { hideCalories, compact: true });
+  // `full` = o próprio texto: a frase do ajuste fica na folha (e no title do Diário), não no nome do chip.
+  if (kcal)
+    chips.push({
+      kind: "adjust",
+      text: kcal,
+      full: kcal,
+      sheet: {
+        id: "adjust",
+        tone: "adjust",
+        title: `Meta um pouco ${adjustment.adjustment > 0 ? "maior" : "menor"} hoje`,
+        body: adjustment.note ?? ADJUST_FALLBACK,
+        ...rows,
+        action,
+      },
+    });
+  const protein = proteinChipText(adjustment.proteinBoost, true);
+  if (protein)
+    chips.push({
+      kind: "protein",
+      text: protein,
+      full: protein,
+      sheet: {
+        id: "protein",
+        tone: "adjust",
+        title: "Proteína um pouco maior hoje",
+        body: adjustment.note ?? PROTEIN_FALLBACK,
+        ...rows,
+        action,
+      },
+    });
+  return chips;
+}
+
+function signalSheet(signal: InsightSignal): InsightSheetModel {
+  return {
+    id: signal.id,
+    tone: signal.tone,
+    title: signal.title,
+    body: signal.body,
+    action: signal.action ? { kind: "agent", label: signal.action.label, prompt: signal.action.prompt } : undefined,
+    dismiss: { key: signal.id, label: DISMISS_SIGNAL },
+  };
+}
+/** Sinal do app em forma de chip: o título curto no chip; corpo, ação e "Dispensar por 3 dias" na folha. */
+export function signalChip(signal: InsightSignal): InsightChip {
+  return { kind: "signal", text: signal.title, full: signal.title, sheet: signalSheet(signal) };
+}
+/** Alerta da caneta em forma de chip ("Comendo pouco"); a orientação e a pergunta pronta ficam na folha. */
+function alertChip(alert: IntakeAlert): InsightChip {
+  return {
+    kind: "alert",
+    text: INTAKE_CHIPS[alert.kind],
+    full: alert.title,
+    sheet: {
+      id: "alert",
+      tone: "info",
+      title: alert.title,
+      body: alert.body,
+      action: { kind: "agent", label: ALERT_ACTION, prompt: INTAKE_PROMPTS[alert.kind] },
+    },
+  };
+}
+/** O recado do dia em forma de chip; a folha repete a frase, abre a conversa e dispensa o recado de hoje. */
+function commentChip(comment: InsightComment): InsightChip {
+  return {
+    kind: "comment",
+    text: COMMENT_CHIP,
+    full: comment.headline,
+    sheet: {
+      id: "comment",
+      tone: "agent",
+      title: COMMENT_SHEET_TITLE,
+      body: comment.headline,
+      action: { kind: "chat", label: COMMENT_ACTION },
+      dismiss: { key: DAILY_COMMENT_KEY, label: DISMISS_COMMENT },
+    },
+  };
+}
 
 function chipsFor(input: DayInsightInput, skip: DayInsight["domain"]): InsightChip[] {
   const chips: InsightChip[] = [];
@@ -217,80 +443,57 @@ function chipsFor(input: DayInsightInput, skip: DayInsight["domain"]): InsightCh
   return chips;
 }
 
-type InsightBody = Omit<DayInsight, "kicker" | "chips" | "chipItems">;
-
-/** Completa o cartão: kicker do período e no máximo dois chips (os textos curtos também em `chips`). */
-function finish(input: DayInsightInput, body: InsightBody, chips: InsightChip[]): DayInsight {
-  const chipItems = chips.slice(0, MAX_CHIPS);
-  return {
-    ...body,
-    kicker: `Resumo · ${periodLabel(input.time)}`,
-    chipItems,
-    chips: chipItems.map((chip) => chip.text),
-  };
+type InsightBody = Pick<DayInsight, "domain" | "headline" | "followUp" | "action" | "prompt">;
+interface NextStep {
+  body: InsightBody;
+  chips: InsightChip[];
+  /** Refeição, água ou combinado na hora: a ação do cartão fica com eles mesmo com outro título. */
+  isDue: boolean;
 }
 
-/** Um único próximo passo para o dia, escolhido por prioridade: refeição, água, combinado, proteína. */
-export function dayInsight(input: DayInsightInput): DayInsight {
+/** O próximo passo do dia, por prioridade: refeição, água, combinado (na hora), proteína da noite, nada. */
+function nextStep(input: DayInsightInput): NextStep {
   const meal = missingMeal(input);
-  if (meal) {
-    return finish(
-      input,
-      {
+  if (meal)
+    return {
+      isDue: true,
+      body: {
         domain: "food",
         headline: `Como foi o seu ${meal.name}?`,
         action: { kind: "meal", label: `Registrar ${meal.name}` },
         prompt: `Me ajude a montar um ${meal.name} prático dentro da minha dieta.`,
       },
-      chipsFor(input, "food"),
-    );
-  }
+      chips: chipsFor(input, "food"),
+    };
   const water = waterBehind(input);
-  if (water !== null) {
-    return finish(
-      input,
-      {
+  if (water !== null)
+    return {
+      isDue: true,
+      body: {
         domain: "water",
         headline: "Hora de um copo d'água",
         // Nome diferente do "+" de água do topo: a tela tem um só botão com cada nome.
         action: { kind: "water", ml: WATER_STEP, label: "Registrar um copo" },
         prompt: "Como posso lembrar de beber água ao longo do dia?",
       },
-      [plainChip("water", `faltam ${fmtMl(water)}`), ...chipsFor(input, "water")],
-    );
-  }
+      chips: [plainChip("water", `faltam ${fmtMl(water)}`), ...chipsFor(input, "water")],
+    };
   const now = minutes(input.time);
   const due = input.habits
     .filter((h) => !h.completedDates.includes(input.date))
     .filter((h) => now >= minutes(h.timeOfDay) && now - minutes(h.timeOfDay) <= HABIT_WINDOW_MIN)
     .sort((a, b) => a.timeOfDay.localeCompare(b.timeOfDay))[0];
-  if (due) {
-    return finish(
-      input,
-      {
+  if (due)
+    return {
+      isDue: true,
+      body: {
         domain: "habit",
         headline: "Hora do seu combinado",
         action: { kind: "habit", habitId: due.id, label: "Marcar como feito" },
         prompt: `Tenho o combinado "${due.title}". Como encaixo isso na minha rotina?`,
       },
-      [habitChip(due), ...chipsFor(input, "habit")],
-    );
-  }
-  // intakeAlert já exclui perfis calmos; a checagem repetida protege quem montar a entrada à mão.
-  const alert = isCalmOn(input.profile, input.date) ? null : input.intakeAlert;
-  if (alert) {
-    return finish(
-      input,
-      {
-        domain: "food",
-        headline: alert.title,
-        detail: alert.body,
-        action: { kind: "agent", label: "Pedir ideias ao agente" },
-        prompt: INTAKE_PROMPTS[alert.kind],
-      },
-      chipsFor(input, "food"),
-    );
-  }
+      chips: [habitChip(due), ...chipsFor(input, "habit")],
+    };
   const proteinGoal = input.goals.protein;
   if (
     proteinGoal &&
@@ -302,26 +505,113 @@ export function dayInsight(input: DayInsightInput): DayInsight {
     const hasDinner = input.meals.some((m) => DINNER.test(`${m.categoryTag ?? ""} ${m.title}`));
     // A consequência só enquanto o jantar está por vir, e nunca para menores (perfil calmo).
     const followUp = hasDinner || isMinorOn(input.profile.birthDate, input.date) ? undefined : "O jantar resolve.";
-    return finish(
-      input,
-      {
+    return {
+      isDue: false,
+      body: {
         domain: "food",
         headline: `Faltam ${fmtNumber(missing)} g de proteína`,
         followUp,
         action: { kind: "agent", label: "Sugerir um jantar" },
         prompt: `Sugira um jantar prático com cerca de ${fmtNumber(missing)} g de proteína, dentro da minha dieta.`,
       },
-      chipsFor(input, "food"),
-    );
+      chips: chipsFor(input, "food"),
+    };
   }
-  return finish(
-    input,
-    {
+  return {
+    isDue: false,
+    body: {
       domain: "neutral",
       headline: "Tudo em dia por aqui",
       action: { kind: "agent", label: "Conversar com o agente" },
       prompt: "Como posso fechar bem o meu dia?",
     },
-    chipsFor(input, "neutral"),
-  );
+    chips: chipsFor(input, "neutral"),
+  };
+}
+
+type Head = Pick<DayInsight, "source" | "headline" | "followUp" | "action" | "prompt" | "sheet" | "titleChip">;
+interface Voices {
+  comment: InsightComment | null;
+  alert: IntakeAlert | null;
+  signals: InsightSignal[];
+}
+
+/**
+ * O título do cartão, por prioridade: recado do dia > alerta da caneta > 1º sinal do Hoje > próximo
+ * passo. Um passo na hora (refeição, água, combinado) segura a ação e a pergunta pronta seja qual
+ * for o título; sem passo na hora, a ação é a do título (abrir a conversa, pedir ideias, a do sinal).
+ */
+function headOf(step: NextStep, { comment, alert, signals }: Voices): Head {
+  const due = step.isDue ? step.body : null;
+  if (comment) {
+    const chip = commentChip(comment);
+    return {
+      source: "comment",
+      headline: comment.headline,
+      action: due?.action ?? { kind: "chat", label: COMMENT_ACTION },
+      prompt: step.body.prompt,
+      sheet: chip.sheet,
+      titleChip: chip,
+    };
+  }
+  if (alert) {
+    const chip = alertChip(alert);
+    return {
+      source: "alert",
+      headline: alert.title,
+      action: due?.action ?? { kind: "agent", label: ALERT_ACTION },
+      prompt: due ? step.body.prompt : INTAKE_PROMPTS[alert.kind],
+      sheet: chip.sheet,
+      titleChip: chip,
+    };
+  }
+  const signal = signals[0];
+  if (signal) {
+    const chip = signalChip(signal);
+    return {
+      source: "signal",
+      headline: signal.title,
+      action: due?.action ?? (signal.action ? { kind: "agent", label: signal.action.label } : step.body.action),
+      prompt: due ? step.body.prompt : (signal.action?.prompt ?? step.body.prompt),
+      sheet: chip.sheet,
+      titleChip: chip,
+    };
+  }
+  return {
+    source: "insight",
+    headline: step.body.headline,
+    followUp: step.body.followUp,
+    action: step.body.action,
+    prompt: step.body.prompt,
+  };
+}
+
+/**
+ * O cartão Resumo: título pela prioridade de headOf, kicker do período (ou do agente), até três chips
+ * em ordem fixa (ajuste da meta, proteína, alerta e sinais que não viraram título, contextos do passo)
+ * e uma ação. Perfis calmos não recebem recado, alerta nem sinais (as fontes já filtram; aqui é a rede).
+ */
+export function dayInsight(input: DayInsightInput): DayInsight {
+  const step = nextStep(input);
+  const calm = isCalmOn(input.profile, input.date);
+  const voices: Voices = {
+    comment: calm ? null : (input.comment ?? null),
+    alert: calm ? null : (input.intakeAlert ?? null),
+    signals: calm ? [] : (input.signals ?? []),
+  };
+  const head = headOf(step, voices);
+  const restSignals = head.source === "signal" ? voices.signals.slice(1) : voices.signals;
+  const extras = [
+    ...adjustmentChips(input.adjustment, input.profile.hideCalories),
+    ...(voices.alert && head.source !== "alert" ? [alertChip(voices.alert)] : []),
+    ...restSignals.map(signalChip),
+  ];
+  const chipItems = [...extras, ...step.chips].slice(0, MAX_CHIPS);
+  return {
+    domain: step.body.domain,
+    ...head,
+    kicker: voices.comment ? `Seu agente · ${voices.comment.time}` : `Resumo · ${periodLabel(input.time)}`,
+    chipItems,
+    chips: chipItems.map((chip) => chip.text),
+  };
 }

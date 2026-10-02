@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { Info } from "lucide-react";
+import { adjustmentChipText, proteinChipText } from "../../lib/day";
 import { balanceEquation } from "../../lib/diary-day";
 import type { DailyTarget } from "../../lib/domain";
 import { fmtNumber } from "../../lib/format";
@@ -37,7 +38,9 @@ function useStickyBand(card: RefObject<HTMLElement | null>) {
 
 /**
  * Balanço do dia no Diário (DIARIO-09): [Meta] − [Consumido] = [Restam], o (i) com o gasto estimado,
- * os macros do mesmo bloco do Hoje e uma faixa de 56 px que fica visível ao rolar.
+ * os macros do mesmo bloco do Hoje e uma faixa de 56 px que fica visível ao rolar. O ajuste dinâmico
+ * do dia é um chip de delta no cabeçalho ("↑ +147 kcal · ontem você comeu menos"; "Neste dia +147 kcal"
+ * em outra data; "Meta um pouco maior" com calorias ocultas), que abre "Como calculamos".
  * Com as calorias ocultas não há equação, número de kcal nem explicação.
  */
 export function BalanceCard({
@@ -60,6 +63,10 @@ export function BalanceCard({
   const equation = hideCalories ? null : balanceEquation(totals.calories, goals.calories);
   const percent = percentOf(totals.calories, goals.calories) ?? 0;
   const title = isToday ? "Balanço de hoje" : "Balanço do dia";
+  const canExplain = !hideCalories && goals.calories !== null;
+  // Delta do ajuste (kcal ou, sem ajuste de kcal, a proteína somada); a frase inteira fica no title.
+  const delta = adjustmentChipText(goals, { hideCalories, isToday }) ?? proteinChipText(goals.proteinBoost);
+  const deltaNote = goals.adjustmentNote ?? undefined;
   const spoken = equation
     ? `Meta de ${fmtNumber(equation.goal)} kcal menos ${fmtNumber(equation.consumed)} kcal consumidas: ${
         equation.over
@@ -71,8 +78,27 @@ export function BalanceCard({
     <>
       <section ref={card} className="card diary-balance stagger-1" aria-labelledby="diary-balance-title">
         <div className="diary-balance-head">
-          <h2 id="diary-balance-title">{hideCalories ? title : `${title} · kcal`}</h2>
-          {!hideCalories && goals.calories !== null && (
+          <div className="diary-balance-lead">
+            <h2 id="diary-balance-title">{hideCalories ? title : `${title} · kcal`}</h2>
+            {delta &&
+              (canExplain ? (
+                <button
+                  type="button"
+                  className="balance-delta"
+                  data-testid="balance-delta"
+                  aria-haspopup="dialog"
+                  title={deltaNote}
+                  onClick={onExplain}
+                >
+                  {delta}
+                </button>
+              ) : (
+                <span className="balance-delta" data-testid="balance-delta" title={deltaNote}>
+                  {delta}
+                </span>
+              ))}
+          </div>
+          {canExplain && (
             <button type="button" className="diary-balance-info" aria-label="Como calculamos" onClick={onExplain}>
               <Info size={20} aria-hidden="true" />
             </button>
@@ -109,8 +135,6 @@ export function BalanceCard({
           ))}
         {hideCalories && <MacroDonut macros={totals} />}
         <MacroSummary macros={macros} showBars />
-        {/* Ajuste dinâmico do dia (a frase já respeita "Ocultar calorias"): informativo, sem cor de alerta. */}
-        {goals.adjustmentNote && <p className="hint">{goals.adjustmentNote}</p>}
       </section>
       {/* Âncora de altura zero: gruda sob o cabeçalho e desenha a faixa só depois que o cartão sai. */}
       <div className="diary-band-anchor" style={{ top: band.top }}>

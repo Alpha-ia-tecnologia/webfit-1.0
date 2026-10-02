@@ -227,6 +227,41 @@ test("com calorias ocultas, o Diário não mostra kcal nem a equação do balan�
   await expect(page.getByRole("button", { name: "Como calculamos" })).toHaveCount(0);
 });
 
+test("ajuste da meta: chip de delta no Resumo do Hoje e no cabeçalho do balanço, que abre \"Como calculamos\"", async ({ page }) => {
+  const state = seedState();
+  // Metas automáticas (o ajuste não vale para metas manuais), vigentes desde antes de ontem.
+  const profile = { ...state.profile!, manualCalories: null, manualProtein: null, manualCarbs: null, manualFat: null };
+  state.profile = profile;
+  state.goalHistory = [{ date: shiftDate(today, -10), profile }];
+  // Ontem bem acima da meta-base (duas refeições grandes): hoje a meta fica um pouco menor.
+  const yesterday = shiftDate(today, -1);
+  state.diary = [
+    ...state.diary,
+    meal("ontem-1", yesterday, "12:00", "Almoço", 1200),
+    meal("ontem-2", yesterday, "19:00", "Jantar", 1200),
+  ].map((entry) => ({ ...entry, userId: state.userId }));
+  await seed(page, state);
+
+  // Hoje: o chip do ajuste é o 1º do Resumo; a folha traz a frase e leva a "Como calculamos".
+  const hojeChip = page.getByTestId("next-step").locator('[data-chip="adjust"]');
+  await expect(hojeChip).toHaveText(/^↓ −[\d.]+ kcal hoje$/);
+  await expect(page.locator("main")).not.toContainText(/Hoje a meta está/);
+  await hojeChip.click();
+  const sheet = page.getByRole("dialog", { name: "Meta um pouco menor hoje" });
+  await expect(sheet).toContainText("para equilibrar ontem");
+  await sheet.getByRole("button", { name: "Como calculamos", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Como calculamos" })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  // Diário: o delta no cabeçalho do balanço, sem parágrafo; o toque abre "Como calculamos".
+  await openDiary(page);
+  const delta = page.getByTestId("balance-delta");
+  await expect(delta).toHaveText(/^↓ −[\d.]+ kcal · para equilibrar ontem$/);
+  await expect(page.locator(".diary-balance")).not.toContainText(/Hoje a meta está/);
+  await delta.click();
+  await expect(page.getByRole("dialog", { name: "Como calculamos" })).toBeVisible();
+});
+
 test("no celular os 7 dias do Diário cabem na tela e o calendário fica no cabeçalho, sem rolar de lado", async ({
   page,
 }) => {

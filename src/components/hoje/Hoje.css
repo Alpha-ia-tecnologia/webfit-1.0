@@ -346,6 +346,10 @@ button.day-tile:active,
   color: var(--wf-on-fill-mint);
 }
 .next-step h2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
   margin-top: -4px;
   font-family: var(--wf-font-heading);
   font-size: var(--wf-fs-2xl);
@@ -354,13 +358,48 @@ button.day-tile:active,
   line-height: 1.2;
   color: var(--wf-white);
 }
-/* Orientação curta sob o título (alerta da caneta): texto calmo, sem números. */
-.next-step-detail {
-  margin-top: -2px;
-  font-size: var(--wf-fs-base);
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--wf-on-fill-slate);
+/* Títulos longos (recado de até 90 caracteres, alerta) descem um ou dois degraus, acompanhando a largura
+   da tela, para caber em duas linhas; o que ainda passar fica inteiro na folha (o título é o botão). */
+.next-step h2[data-length="long"] {
+  font-size: clamp(var(--wf-fs-md), 4.9vw, var(--wf-fs-xl));
+  line-height: 1.25;
+}
+.next-step h2[data-length="xlong"] {
+  font-size: clamp(var(--wf-fs-base), 4.4vw, var(--wf-fs-lg));
+  line-height: 1.3;
+}
+/* Título com folha (recado, alerta ou sinal): o próprio título é o botão; a seta só sinaliza o toque.
+   O botão é uma caixa atômica dentro do h2 (o clamp do h2 não alcança as linhas dele), então o limite
+   de duas linhas vai no próprio botão; a seta continua em linha depois da última palavra. */
+.next-step-title-btn {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.next-step-title-btn svg {
+  display: inline-block;
+  vertical-align: -3px;
+  margin-left: 2px;
+  color: var(--wf-on-fill-mint);
+  transition: transform 0.15s var(--wf-ease);
+}
+.next-step-title-btn:hover svg {
+  transform: translateX(2px);
+}
+.next-step-title-btn:focus-visible {
+  outline: 2px solid var(--wf-on-fill-mint);
+  outline-offset: 4px;
+  border-radius: 6px;
 }
 .next-step-chips {
   display: flex;
@@ -371,6 +410,12 @@ button.day-tile:active,
   list-style: none;
 }
 .next-step-chips li {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+}
+/* Chip translúcido sobre o navy; os com folha são botões (o toque abre o detalhe). */
+.next-step-chip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -381,27 +426,76 @@ button.day-tile:active,
   border-radius: 999px;
   border: 1px solid rgb(255 255 255 / 0.16);
   background: rgb(255 255 255 / 0.08);
+  font-family: inherit;
   font-size: var(--wf-fs-sm);
   font-weight: 700;
+  text-align: left;
   color: var(--wf-on-fill-slate);
 }
-.next-step-chips li > span:not(.sr-only) {
+button.next-step-chip {
+  cursor: pointer;
+  transition:
+    transform 0.15s var(--wf-ease),
+    background 0.2s var(--wf-ease);
+}
+button.next-step-chip:hover {
+  background: rgb(255 255 255 / 0.14);
+}
+button.next-step-chip:active {
+  transform: scale(0.97);
+}
+button.next-step-chip:focus-visible {
+  outline: 2px solid var(--wf-on-fill-mint);
+  outline-offset: 2px;
+}
+.next-step-chip > span:not(.sr-only) {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.next-step-chips li svg {
+.next-step-chip svg {
   flex-shrink: 0;
 }
 .next-step-chips .is-water svg {
   color: var(--wf-sky-400);
 }
-.next-step-chips .is-habit svg {
+.next-step-chips .is-habit svg,
+.next-step-chips .tone-info svg {
   color: var(--wf-on-fill-sky);
 }
 .next-step-chips .is-pantry svg {
   color: var(--wf-on-fill-amber);
+}
+.next-step-chips .is-adjust svg,
+.next-step-chips .is-protein svg,
+.next-step-chips .is-comment svg,
+.next-step-chips .tone-positive svg {
+  color: var(--wf-on-fill-mint);
+}
+/* Entrada do conteúdo: fade + 8 px (240 ms), chips em cascata de 40 ms; sem laço, sem pulsar. */
+.next-step-body.is-entering > * {
+  animation: next-step-in 0.24s var(--wf-ease) both;
+}
+.next-step-body.is-entering > .next-step-chips {
+  animation: none;
+}
+.next-step-body.is-entering > .next-step-chips > li {
+  animation: next-step-in 0.24s var(--wf-ease) both;
+  animation-delay: calc(60ms + var(--i, 0) * 40ms);
+}
+.next-step-body.is-entering > .next-step-actions {
+  animation-delay: 100ms;
+}
+@keyframes next-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 .next-step-actions {
   display: flex;
@@ -1366,7 +1460,11 @@ button.day-tile:active,
   .water-card.is-celebrating .water-glass,
   .timeline-item.is-entering,
   .combinados .combinado.done .combinado-check,
-  .combinados .combinado.done .combinado-check svg path {
+  .combinados .combinado.done .combinado-check svg path,
+  .next-step-body.is-entering > *,
+  .next-step-body.is-entering > .next-step-chips > li,
+  .next-step-title-btn svg,
+  button.next-step-chip {
     animation: none;
     transition: none;
   }

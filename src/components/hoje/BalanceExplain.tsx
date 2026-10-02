@@ -1,9 +1,11 @@
 import { Flame, Utensils } from "lucide-react";
-import { adjustmentExplain, type DailyTarget } from "../../lib/domain";
+import { adjustmentView } from "../../lib/balance-explain";
+import type { DailyTarget } from "../../lib/domain";
 import { fmtNumber } from "../../lib/format";
 import { balanceStatus, percentOf } from "../../lib/today";
-import { CareNotes } from "../CareNotes";
+import { CareChips } from "../CareChips";
 import { Modal } from "../UI";
+import { AdjustmentRows } from "./AdjustmentRows";
 import { Gauge } from "./Gauge";
 
 /**
@@ -22,6 +24,7 @@ export function BalanceExplain({
   const percent = percentOf(consumed, goals.calories);
   const remaining = goals.calories === null ? null : goals.calories - consumed;
   const status = balanceStatus(consumed, goals.calories);
+  const adjust = adjustmentView(goals);
   const label =
     goals.calories === null
       ? `${fmtNumber(consumed)} kcal consumidas, sem meta definida`
@@ -71,8 +74,8 @@ export function BalanceExplain({
         {goals.expenditure !== null ? " · gasto diário estimado pela fórmula de Mifflin-St Jeor." : "."}
       </p>
       {goals.note && <p className="hint">{goals.note}</p>}
-      {goals.adjustmentNote && <p className="hint">{adjustmentExplain(goals)}</p>}
-      <CareNotes notes={goals.careNotes} />
+      {adjust && <AdjustmentRows view={adjust} />}
+      <CareChips notes={goals.careNotes} />
     </Modal>
   );
 }

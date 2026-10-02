@@ -704,3 +704,40 @@ test("início do primeiro acesso: marca de 32 px, copos de água com Desfazer e 
   await expect(cups).toHaveCount(0);
   expect(aiRequests).toEqual([]);
 });
+
+test("metas: cuidados do perfil em chips neutros e a folha 'Cuidados do seu perfil'; nada em avaliação individual", async ({
+  page,
+}) => {
+  await seed(
+    page,
+    withProfile({
+      manualCalories: null,
+      goal: "perder",
+      conditionTags: ["hipertensao", "gordura_figado"],
+    }),
+  );
+  const card = page.locator(".goals-card");
+  const chips = card.getByRole("group", { name: "Cuidados do seu perfil" });
+  await expect(chips.getByRole("button")).toHaveText(["Pressão alta", "Fígado", "Cuidados"]);
+  await expect(chips).not.toContainText(/\d/);
+  // Chips de 32 px, sem caixa de lista.
+  const chip = chips.getByRole("button", { name: "Fígado", exact: true });
+  expect(Math.round((await chip.boundingBox())?.height ?? 0)).toBe(32);
+  await chip.click();
+  const sheet = page.getByRole("dialog", { name: "Cuidados do seu perfil" });
+  await expect(sheet.getByRole("listitem")).toHaveText([
+    /^Pressão alta Prefira comida caseira/,
+    /^Fígado Menos açúcar e bebida alcoólica/,
+  ]);
+  await expect(sheet).toContainText("Confirme estas metas com quem acompanha você.");
+  await expect(sheet).not.toContainText(/\d|kcal|\bkg\b|\bmg\b|dose/i);
+  await page.keyboard.press("Escape");
+  await expect(sheet).toHaveCount(0);
+
+  // Condição que pede avaliação individual: aviso calmo, sem metas automáticas e sem cuidados.
+  await putState(page, withProfile({ manualCalories: null, conditionTags: ["doenca_renal"] }));
+  await page.reload();
+  await openEspaco(page);
+  await expect(card.locator(".goals-calm")).toContainText("avaliação individual");
+  await expect(card.getByTestId("care-chips")).toHaveCount(0);
+});

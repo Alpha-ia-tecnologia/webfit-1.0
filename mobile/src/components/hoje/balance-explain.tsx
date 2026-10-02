@@ -1,12 +1,13 @@
-import { Flame, Utensils, type LucideIcon } from "lucide-react-native";
+import { ArrowRight, Flame, Utensils, type LucideIcon } from "lucide-react-native";
 import { useWindowDimensions, View } from "react-native";
+import { adjustmentView, type AdjustmentView } from "@shared/lib/balance-explain";
 import { adjustmentExplain, type DailyTarget } from "@shared/lib/domain";
 import { fmtNumber } from "@shared/lib/format";
 import { balanceStatus, percentOf } from "@shared/lib/today";
-import { CareNotes } from "@/components/espaco/care-notes";
+import { CareChips } from "@/components/espaco/care-chips";
 import { AppText, Sheet, StatusPill } from "@/components/ui";
 import { makeStyles, useThemeColors } from "@/theme/theme";
-import { fontSize } from "@/theme/tokens";
+import { fontSize, radius } from "@/theme/tokens";
 import { Gauge } from "./gauge";
 
 /** Largura até a qual "Consumidas" e "Gasto estimado" ficam empilhados (o mesmo corte do web). */
@@ -34,6 +35,7 @@ export function BalanceExplain({
   const percent = percentOf(consumed, goals.calories);
   const remaining = goals.calories === null ? null : goals.calories - consumed;
   const status = balanceStatus(consumed, goals.calories);
+  const adjust = adjustmentView(goals);
   const label =
     goals.calories === null
       ? `${fmtNumber(consumed)} kcal consumidas, sem meta definida`
@@ -79,13 +81,68 @@ export function BalanceExplain({
           {goals.note}
         </AppText>
       ) : null}
-      {goals.adjustmentNote ? (
-        <AppText size={fontSize.xs} color={colors.muted} lineHeight={19}>
-          {adjustmentExplain(goals)}
-        </AppText>
-      ) : null}
-      <CareNotes notes={goals.careNotes} />
+      {adjust ? <AdjustmentRows view={adjust} label={adjustmentExplain(goals) ?? undefined} /> : null}
+      <CareChips notes={goals.careNotes} />
     </Sheet>
+  );
+}
+
+/**
+ * Ajuste dinâmico do dia (AdjustmentRows do web): `Meta-base 1.806 → hoje 1.953`, o delta em pílula com o
+ * motivo numa linha e, se houver, `Proteína +9 g`. Usado em "Como calculamos" e na folha do chip de ajuste do
+ * Hoje; o leitor de tela recebe a frase inteira (`label`: adjustmentExplain ou a frase do ajuste).
+ */
+export function AdjustmentRows({ view, label: a11yLabel }: { view: AdjustmentView; label?: string }) {
+  const styles = useStyles();
+  const colors = useThemeColors();
+  const label = (text: string) => (
+    <AppText size={fontSize.xs} weight={600} color={colors.muted}>
+      {text}
+    </AppText>
+  );
+  const number = (text: string) => (
+    <AppText heading size={fontSize.md} weight={800} tracking={-0.02} style={styles.tabular}>
+      {text}
+    </AppText>
+  );
+  return (
+    <View
+      style={styles.adjust}
+      testID="balance-adjust"
+      accessible
+      accessibilityLabel={a11yLabel}
+    >
+      {view.calories ? (
+        <>
+          <View style={styles.adjustRow}>
+            {label("Meta-base")}
+            {number(view.calories.base)}
+            <ArrowRight size={14} color={colors.muted} />
+            {label(view.dayLabel)}
+            {number(view.calories.target)}
+          </View>
+          <View style={styles.adjustRow}>
+            <View style={styles.delta}>
+              <AppText size={fontSize.xs} weight={700} style={styles.tabular}>
+                {`${view.calories.direction === "up" ? "↑" : "↓"} ${view.calories.delta}`}
+              </AppText>
+            </View>
+            <AppText size={fontSize.xs} color={colors.muted} lineHeight={18} style={styles.shrink}>
+              {view.calories.why}
+            </AppText>
+          </View>
+        </>
+      ) : null}
+      {view.protein ? (
+        <View style={styles.adjustRow}>
+          {label("Proteína")}
+          {number(view.protein.delta)}
+          <AppText size={fontSize.xs} color={colors.muted} lineHeight={18} style={styles.shrink}>
+            {view.protein.why}
+          </AppText>
+        </View>
+      ) : null}
+    </View>
   );
 }
 
@@ -159,4 +216,16 @@ const useStyles = makeStyles((colors) => ({
   },
   statIcon: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   statCopy: { flexShrink: 1 },
+  // .balance-adjust: Meta-base → hoje, delta em pílula clara e o motivo embaixo.
+  adjust: { gap: 4, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 14, backgroundColor: colors.surface2 },
+  adjustRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 6, rowGap: 4 },
+  delta: {
+    height: 24,
+    paddingHorizontal: 8,
+    borderRadius: radius.pill,
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+  },
+  tabular: { fontVariant: ["tabular-nums"] },
+  shrink: { flexShrink: 1, minWidth: 0 },
 }));

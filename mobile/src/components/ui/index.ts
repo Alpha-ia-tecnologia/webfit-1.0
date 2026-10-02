@@ -6,6 +6,7 @@ export { ChipRow, QuickChip, SegmentedTabs } from "./chips";
 export { DateField, DatePickerSheet, TimeField, TimePickerSheet } from "./date-time";
 export { Disclosure } from "./disclosure";
 export { Empty, Notice } from "./feedback";
+export { EnterView } from "./enter-view";
 export { EmptyArt, type EmptyArtKind } from "./empty-art";
 export { Field, TextField, type TextFieldProps } from "./field";
 export { FoodGlyph, GlyphStack, type GlyphSize, type GlyphTone } from "./food-glyph";

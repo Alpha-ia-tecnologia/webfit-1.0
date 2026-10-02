@@ -1,0 +1,101 @@
+/* Cuidados do perfil junto das metas (GoalsCard, "Como calculamos", PlanReveal): chips neutros + "Cuidados". */
+.care-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 6px;
+  margin-top: var(--wf-space-3);
+  text-align: left;
+}
+.care-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wf-surface-2);
+  color: var(--wf-text-2);
+  font-size: var(--wf-fs-xs);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background 0.15s var(--wf-ease),
+    color 0.15s var(--wf-ease),
+    transform 0.12s var(--wf-ease);
+}
+.care-chip svg {
+  flex-shrink: 0;
+  color: var(--wf-text-muted);
+}
+.care-chip:hover {
+  background: var(--wf-surface-3);
+  color: var(--wf-text);
+}
+.care-chip:active {
+  transform: scale(0.97);
+}
+/* "Cuidados": botão-texto da marca, na mesma linha dos chips. */
+.care-chips-btn {
+  height: 32px;
+  padding: 0 6px;
+}
+.care-chip:focus-visible,
+.care-chips-btn:focus-visible {
+  outline: 3px solid var(--wf-mint-300);
+  outline-offset: 2px;
+}
+/* Folha "Cuidados do seu perfil": ícone de 32 px, rótulo e frase; o fechamento como nota de rodapé. */
+.care-sheet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.care-sheet-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.care-sheet-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--wf-surface-2);
+  color: var(--wf-text-2);
+}
+.care-sheet-list p {
+  margin: 0;
+  min-width: 0;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.5;
+  color: var(--wf-text-2);
+}
+.care-sheet-list strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: var(--wf-fs-base);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--wf-text);
+}
+.care-sheet-closing {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--wf-border-soft);
+  font-size: var(--wf-fs-xs);
+  line-height: 1.5;
+  color: var(--wf-text-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .care-chip {
+    transition: none;
+  }
+}

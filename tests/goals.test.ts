@@ -281,7 +281,7 @@ test("condições da lista: as com ajustes mantêm metas e cuidados; as que pede
   // Condição com ajustes + caneta: cuidados das duas, fechamento uma vez só.
   const both = goalsFor(withPen({ conditionTags: ["obesidade"] }), DATE);
   assert.deepEqual(both.careNotes, [
-    "A meta considera o seu IMC; a perda gradual é a mais sustentável.",
+    "IMC: a meta já considera a sua faixa; a perda gradual é a mais sustentável.",
     PEN_CARE_NOTE,
     CARE_NOTES_CLOSING,
   ]);

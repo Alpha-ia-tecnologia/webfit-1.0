@@ -1,7 +1,9 @@
 /**
  * Sinais do app (IA proativa, parte determinística): leituras curtas dos últimos dias nos
- * indicadores, grátis e instantâneas, num cartão pequeno no Hoje, Diário, Evolução e Seringa
- * (web + app nativo). Lógica pura, sem IA: o agente só recebe os títulos como contexto.
+ * indicadores, grátis e instantâneas. Fora do Hoje viram uma linha de chips (título ≤ 4 palavras)
+ * com a folha de detalhe (corpo ≤ 110 caracteres, uma frase; ação ≤ 3 palavras) no Diário,
+ * Evolução e Seringa; no Hoje entram no cartão Resumo (título ou chip). Web + app nativo. Lógica
+ * pura, sem IA: o agente só recebe o `brief` (ou o título) como contexto.
  *
  * Regras de cuidado: nada para perfis calmos ou sensíveis (isCalmOn: transtorno alimentar,
  * gestação/amamentação, menor de 18); com "Ocultar calorias" nenhum sinal de energia (nem
@@ -10,7 +12,8 @@
  * meta já ajustada pelo dia anterior. Com IMC abaixo de 18,5, peso descendo nunca é elogiado e não
  * há convite a comer menos; com restrição de líquidos (ou sem resposta), nenhum texto fala em água.
  *
- * Prioridade (no máximo um cartão por tela; o primeiro que vale e não foi dispensado aparece):
+ * Prioridade (o primeiro que vale e não foi dispensado é o principal da tela; os outros ativos
+ * da mesma tela viram chips, activeSignals):
  * - hoje: registro-pausa > agua-baixa > sequencia-boa
  * - diario: energia-acima > energia-abaixo > proteina-baixa > proteina-em-dia
  * - evolucao: sono-estresse > peso-tendencia
@@ -19,7 +22,7 @@
  */
 import type { AppState, DiaryEntry, SymptomKey } from "../types";
 import { bmiOf } from "./conditions";
-import { INTAKE_PROMPTS, isCalmOn } from "./day";
+import { INTAKE_CHIPS, INTAKE_PROMPTS, isCalmOn } from "./day";
 import { goalsForDate, shiftDate, totalsFor, UNDERWEIGHT_BMI } from "./domain";
 import {
   canSuggestWater,
@@ -27,6 +30,7 @@ import {
   LOOKBACK_DAYS,
   MIN_DAYS,
   qualifyingDays,
+  type IntakeAlert,
 } from "./intake-alert";
 
 export type SignalScreen = "hoje" | "diario" | "evolucao" | "seringa";
@@ -52,11 +56,14 @@ export interface Signal {
   screen: SignalScreen;
   /** "positive" é reforço (sequência, proteína em dia); "info" é um cuidado. Nunca alarme. */
   tone: "info" | "positive";
-  /** Até 7 palavras. */
+  /** Título do chip: até 4 palavras ("Água abaixo", "3 dias acima da meta"). */
   title: string;
-  /** Uma ou duas frases; sem números quando o indicador ligado a elas está oculto. */
+  /** Uma frase, até 110 caracteres (a folha); sem números quando o indicador ligado a elas está oculto. */
   body: string;
+  /** Rótulo ≤ 3 palavras e a pergunta pronta. */
   action?: SignalAction;
+  /** O padrão em palavras para o contexto do agente, quando o título do chip é curto demais. */
+  brief?: string;
 }
 
 /** Dias de pausa depois de dispensar um sinal (o dia da dispensa conta como o 1º). */
@@ -94,11 +101,8 @@ const dayNumber = (date: string) => {
 const daysBetween = (from: string, to: string) => Math.round(dayNumber(to) - dayNumber(from));
 const lastDays = (today: string, n: number, includeToday = false) =>
   Array.from({ length: n }, (_, i) => shiftDate(today, includeToday ? -i : -(i + 1)));
-/** "Nos últimos 3 dias registrados" quando todos contam; senão "Em 2 dos últimos 3 dias registrados". */
-const countWord = (n: number, total: number) =>
-  n === total
-    ? `Nos últimos ${total} dias registrados`
-    : `Em ${n} dos últimos ${total} dias registrados`;
+/** "3 dos últimos 5 dias" (só dentro da folha; o chip não traz contagem). */
+const ofLast = (n: number, total: number) => `${n} dos últimos ${total} dias`;
 /** IMC abaixo de 18,5 com o peso dado (ou o do perfil): nada de comer menos nem elogio a peso descendo. */
 function isUnderweight(state: AppState, weight = state.profile?.weight ?? 0): boolean {
   const bmi = bmiOf(weight, state.profile?.height ?? 0);
@@ -117,10 +121,11 @@ function loggingGap(state: AppState, today: string): Signal | null {
     id: "registro-pausa",
     screen: "hoje",
     tone: "info",
-    title: "Que bom ver você por aqui",
-    body: "Faz alguns dias sem registros, e tudo bem. Uma refeição ou um copo d'água registrados hoje já ajudam a retomar o ritmo.",
+    title: "Que bom ver você",
+    brief: "Alguns dias sem registros",
+    body: "Faz alguns dias sem registros, e tudo bem: um registro hoje já retoma o ritmo.",
     action: {
-      label: "Pedir um recomeço leve",
+      label: "Recomeço leve",
       prompt: "Fiquei alguns dias sem registrar. Pode me ajudar a retomar com um passo simples para hoje?",
     },
   };
@@ -139,9 +144,10 @@ function lowWater(state: AppState, today: string): Signal | null {
     id: "agua-baixa",
     screen: "hoje",
     tone: "info",
-    title: "A água ficou mais baixa",
-    body: `Em ${low.length} dos últimos ${LOOKBACK_DAYS} dias a água ficou abaixo do combinado. Deixar uma garrafa à vista costuma ajudar.`,
-    action: { label: "Ideias para beber água", prompt: "Como posso lembrar de beber água ao longo do dia?" },
+    title: "Água abaixo",
+    brief: "Água abaixo do combinado em vários dias",
+    body: `Em ${ofLast(low.length, LOOKBACK_DAYS)} a água ficou abaixo do combinado; uma garrafa à vista ajuda.`,
+    action: { label: "Lembrar da água", prompt: "Como posso lembrar de beber água ao longo do dia?" },
   };
 }
 
@@ -153,8 +159,9 @@ function loggingStreak(state: AppState, today: string): Signal | null {
     id: "sequencia-boa",
     screen: "hoje",
     tone: "positive",
-    title: `${STREAK_DAYS} dias seguidos de registros`,
-    body: "Constância é o que mais ajuda o seu acompanhamento. Siga no seu ritmo.",
+    title: `${STREAK_DAYS} dias de registros`,
+    brief: `${STREAK_DAYS} dias seguidos de registros`,
+    body: `Refeição registrada em cada um dos últimos ${STREAK_DAYS} dias: constância é o que mais ajuda.`,
   };
 }
 
@@ -188,16 +195,16 @@ function energyPattern(state: AppState, today: string, days: DayReading[]): Sign
   const withGoal = days.filter((d) => d.kcalGoal !== null && d.kcalGoal > 0);
   const above = withGoal.filter((d) => d.calories > d.kcalGoal! * (1 + KCAL_TOLERANCE)).length;
   const below = withGoal.filter((d) => d.calories < d.kcalGoal! * (1 - KCAL_TOLERANCE)).length;
-  const adaptive = state.adaptiveTargets ? " O ajuste dinâmico já leva o dia de ontem em conta." : "";
   if (above >= MIN_DAYS && !isUnderweight(state))
     return {
       id: "energia-acima",
       screen: "diario",
       tone: "info",
-      title: "Alguns dias acima da meta",
-      body: `${countWord(above, withGoal.length)}, o consumo passou da meta.${adaptive} Refeições com fibras e proteína costumam saciar mais.`,
+      title: `${above} dias acima da meta`,
+      brief: "Alguns dias acima da meta",
+      body: `${ofLast(above, withGoal.length)} ficaram acima da meta; refeições com fibras e proteína saciam mais.`,
       action: {
-        label: "Ideias que saciam mais",
+        label: "Ideias que saciam",
         prompt:
           "Nos últimos dias passei da meta algumas vezes. Pode me sugerir refeições que saciam mais, dentro das minhas preferências e sem pular refeições?",
       },
@@ -208,10 +215,11 @@ function energyPattern(state: AppState, today: string, days: DayReading[]): Sign
       id: "energia-abaixo",
       screen: "diario",
       tone: "info",
-      title: "Alguns dias abaixo da meta",
-      body: `${countWord(below, withGoal.length)}, você comeu menos que a meta.${adaptive} Lanches práticos ajudam a manter a energia.`,
+      title: `${below} dias abaixo da meta`,
+      brief: "Alguns dias abaixo da meta",
+      body: `${ofLast(below, withGoal.length)} ficaram abaixo da meta; lanches práticos ajudam a manter a energia.`,
       action: {
-        label: "Ideias de lanches práticos",
+        label: "Lanches práticos",
         prompt:
           "Nos últimos dias comi menos que a meta. Pode me sugerir lanches práticos e refeições fáceis, dentro das minhas preferências?",
       },
@@ -230,10 +238,11 @@ function proteinPattern(state: AppState, today: string, days: DayReading[]): Sig
           id: "proteina-baixa",
           screen: "diario",
           tone: "info",
-          title: "Proteína abaixo do combinado",
-          body: `${countWord(low, withGoal.length)}, a proteína ficou abaixo do combinado. Uma fonte de proteína em cada refeição já ajuda.`,
+          title: "Proteína baixa",
+          brief: "Proteína abaixo do combinado",
+          body: `Proteína abaixo do combinado em ${ofLast(low, withGoal.length)}; uma fonte em cada refeição já ajuda.`,
           action: {
-            label: "Fontes de proteína práticas",
+            label: "Fontes de proteína",
             prompt: "Pode me sugerir fontes de proteína práticas para cada refeição, dentro das minhas preferências?",
           },
         };
@@ -243,8 +252,9 @@ function proteinPattern(state: AppState, today: string, days: DayReading[]): Sig
     id: "proteina-em-dia",
     screen: "diario",
     tone: "positive",
-    title: "Proteína em dia nos últimos dias",
-    body: `${countWord(good, withGoal.length)}, a proteína chegou perto do combinado. Bom trabalho.`,
+    title: "Proteína em dia",
+    brief: "Proteína em dia nos últimos dias",
+    body: `Proteína perto do combinado em ${ofLast(good, withGoal.length)}: bom trabalho.`,
   };
 }
 
@@ -268,10 +278,11 @@ function restPattern(state: AppState, today: string): Signal | null {
     id: "sono-estresse",
     screen: "evolucao",
     tone: "info",
-    title: "Cuidar do descanso esta semana",
-    body: "Você marcou cansaço, estresse ou pouco sono em vários dias. Refeições em horários regulares e uma rotina para dormir costumam ajudar.",
+    title: "Cuidar do descanso",
+    brief: "Cansaço, estresse ou pouco sono em vários dias",
+    body: "Cansaço, estresse ou pouco sono em vários dias; horários regulares e uma rotina de sono ajudam.",
     action: {
-      label: "Ideias para descansar melhor",
+      label: "Descansar melhor",
       prompt: "Tenho sentido cansaço ou estresse nos últimos dias. O que posso ajustar na rotina e nas refeições para descansar melhor?",
     },
   };
@@ -279,12 +290,17 @@ function restPattern(state: AppState, today: string): Signal | null {
 
 type Direction = "down" | "up" | "stable";
 const WEIGHT_TITLES: Record<Direction, string> = {
-  down: "Seu peso vem descendo aos poucos",
-  up: "Seu peso subiu um pouco",
-  stable: "Seu peso ficou estável",
+  down: "Peso descendo",
+  up: "Peso subiu um pouco",
+  stable: "Peso estável",
+};
+const WEIGHT_BRIEFS: Record<Direction, string> = {
+  down: "Peso descendo aos poucos",
+  up: "Peso subiu um pouco",
+  stable: "Peso estável",
 };
 const UNDERWEIGHT_DOWN_BODY =
-  "Seu peso vem descendo e já está abaixo do recomendado para a sua altura. Vale conversar com quem acompanha você antes de seguir emagrecendo.";
+  "O peso vem descendo e já está abaixo do recomendado para a altura; vale conversar com quem acompanha você.";
 /** Tendência do peso só em palavras; nada com "Ocultar números do corpo". IMC baixo e peso descendo: informativo, nunca elogio. */
 function weightTrend(state: AppState, today: string): Signal | null {
   const profile = state.profile;
@@ -309,13 +325,14 @@ function weightTrend(state: AppState, today: string): Signal | null {
     screen: "evolucao",
     tone: aligned ? "positive" : "info",
     title: WEIGHT_TITLES[direction],
+    brief: WEIGHT_BRIEFS[direction],
     body: underweightDown
       ? UNDERWEIGHT_DOWN_BODY
       : aligned
-        ? "Nas últimas semanas o peso seguiu no sentido do seu objetivo. Constância vale mais que pressa."
-        : "Oscilações nas últimas semanas são normais. O agente pode olhar a sua rotina com calma, sem cobrança.",
+        ? "Nas últimas semanas o peso seguiu no sentido do seu objetivo; constância vale mais que pressa."
+        : "Oscilações nas últimas semanas são normais; o agente pode olhar sua rotina com calma, sem cobrança.",
     action: {
-      label: "Conversar sobre a evolução",
+      label: "Falar da evolução",
       prompt: "Pode olhar a minha evolução das últimas semanas e me dar uma sugestão prática para a rotina, sem citar números do corpo?",
     },
   };
@@ -333,11 +350,24 @@ const hasDiscomfort = (state: AppState, today: string) =>
         (e.symptoms ?? []).some((s) => DISCOMFORT_SYMPTOMS.includes(s.key))),
   );
 
+/** Corpo da folha da Seringa (uma frase, ≤ 110): a orientação do alerta, encurtada; com ou sem água. */
+const PEN_BODIES: Record<IntakeAlert["kind"], { water: string; dry: string }> = {
+  low_intake: {
+    water: "Comendo pouco há dias: refeições menores, proteína e água ajudam; se continuar, fale com quem prescreveu.",
+    dry: "Comendo pouco há dias: refeições menores com proteína ajudam; se continuar, fale com quem prescreveu.",
+  },
+  protein: {
+    water: "Proteína abaixo do combinado há dias: uma fonte em cada refeição, como ovos, iogurte ou feijão, ajuda.",
+    dry: "Proteína abaixo do combinado há dias: uma fonte em cada refeição, como ovos, iogurte ou feijão, ajuda.",
+  },
+};
+
 /** Caneta: reaproveita intakeAlert (sem repetir a regra); com enjoo registrado, o texto fala dele. */
 function penIntake(state: AppState, today: string): Signal | null {
   const alert = intakeAlert(state, today);
   if (!alert) return null;
-  const action = { label: "Pedir ideias ao agente", prompt: INTAKE_PROMPTS[alert.kind] };
+  const action = { label: "Pedir ideias", prompt: INTAKE_PROMPTS[alert.kind] };
+  const bodies = PEN_BODIES[alert.kind];
   if (alert.kind === "low_intake" && hasDiscomfort(state, today))
     return {
       id: "caneta-ingestao",
@@ -345,11 +375,19 @@ function penIntake(state: AppState, today: string): Signal | null {
       tone: "info",
       title: "Enjoo e pouco apetite",
       body: canSuggestWater(state.profile!)
-        ? "Você registrou enjoo ou desconforto e comeu pouco nos últimos dias. Refeições pequenas e frequentes, com proteína e água, costumam ajudar. Se continuar, fale com quem prescreveu."
-        : "Você registrou enjoo ou desconforto e comeu pouco nos últimos dias. Refeições pequenas e frequentes, com proteína, costumam ajudar. Se continuar, fale com quem prescreveu.",
+        ? "Enjoo e pouca comida: refeições pequenas, proteína e água ajudam; se continuar, fale com quem prescreveu."
+        : "Enjoo e pouca comida: refeições pequenas com proteína ajudam; se continuar, fale com quem prescreveu.",
       action,
     };
-  return { id: "caneta-ingestao", screen: "seringa", tone: "info", title: alert.title, body: alert.body, action };
+  return {
+    id: "caneta-ingestao",
+    screen: "seringa",
+    tone: "info",
+    title: INTAKE_CHIPS[alert.kind],
+    brief: alert.title,
+    body: canSuggestWater(state.profile!) ? bodies.water : bodies.dry,
+    action,
+  };
 }
 
 // ---------- Seleção ----------
@@ -392,17 +430,25 @@ export function signals(state: AppState, today: string, screen?: SignalScreen): 
   return screens.flatMap((name) => active.find((s) => s.screen === name) ?? []);
 }
 
-/** O cartão da tela: o sinal ativo de maior prioridade, ou null. */
+/** O principal da tela: o sinal ativo de maior prioridade, ou null. */
 export function signalFor(state: AppState, today: string, screen: SignalScreen): Signal | null {
   return signals(state, today, screen)[0] ?? null;
 }
 
+/** Todos os sinais ativos da tela, na ordem de prioridade: a linha de chips (e os chips do Resumo). */
+export function activeSignals(state: AppState, today: string, screen: SignalScreen): Signal[] {
+  const dismissals = state.signalDismissals ?? {};
+  return candidates(state, today).filter(
+    (s) => s.screen === screen && !isCoolingDown(dismissals, s.id, today),
+  );
+}
+
 /**
- * Títulos dos padrões observados (sem números, inclusive os dispensados: são fatos) para o
- * contexto da IA e o comentário automático do dia. Vazio para perfis calmos.
+ * Os padrões observados em palavras (`brief`, ou o título; sem números de corpo ou kcal, inclusive
+ * os dispensados: são fatos) para o contexto da IA e o recado do dia. Vazio para perfis calmos.
  */
 export function signalBriefs(state: AppState, today: string): string[] {
-  return candidates(state, today).map((s) => s.title);
+  return candidates(state, today).map((s) => s.brief ?? s.title);
 }
 
 /**

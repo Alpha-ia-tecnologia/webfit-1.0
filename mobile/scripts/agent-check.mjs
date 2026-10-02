@@ -10,7 +10,8 @@ import { initialState, updateProfile } from "../../src/lib/domain.ts";
 import { AGENT_STAGES, AGENT_UNAVAILABLE, NDJSON_TYPE } from "../../src/lib/agent-stream.ts";
 import { profileFixture } from "../../tests/fixtures.ts";
 import { SETTINGS_TAB } from "../../src/lib/copy.ts";
-import { PROFILE_ANALYSIS_REQUEST } from "../../src/lib/agent-presentation.ts";
+import { PROFILE_ANALYSIS_REQUEST, PROFILE_REPORT_LABELS, PROFILE_REPORT_TITLES } from "../../src/lib/agent-presentation.ts";
+import { renderChatText } from "../../src/lib/agent-blocks.ts";
 const target = path.resolve(process.argv[2] ?? "mobile/dist");
 const output = path.join(target, "agent-check");
 mkdirSync(output, { recursive: true });
@@ -59,6 +60,22 @@ const reply = {
     urgency: "nenhuma", notes: [], llmCalls: 2,
   },
 };
+// Resposta ao "Analisar meu perfil" na estrutura pedida: síntese, as 4 listas e as próximas perguntas.
+const REPORT_SUMMARY = "Boa constância nos registros; vale um ajuste no lanche da tarde.";
+const reportList = (titulo, itens) => ({ tipo: "lista", titulo, ordenada: false, itens });
+const REPORT_BLOCKS = [
+  { tipo: "texto", texto: REPORT_SUMMARY },
+  reportList(PROFILE_REPORT_TITLES.well, ["Registros em 6 de 7 dias", "Água perto da meta"]),
+  reportList(PROFILE_REPORT_TITLES.attention, ["Proteína baixa no café da manhã", "Sono curto em 3 noites"]),
+  reportList(PROFILE_REPORT_TITLES.suggestions, ["Ovos ou iogurte no café", "Feijão e frango no almoço"]),
+  reportList(PROFILE_REPORT_TITLES.talk, ["Cansaço à tarde nos últimos dias"]),
+  { tipo: "sugestoes", itens: ["Quero ideias de café da manhã", "Como dormir melhor?"] },
+];
+const REPORT_REPLY = {
+  text: renderChatText(REPORT_BLOCKS),
+  meta: reply.meta,
+  structured: { kind: "chat", sections: [{ papel: null, blocos: REPORT_BLOCKS }] },
+};
 const scanReply = {
   text: "Itens reconhecidos na foto de teste.",
   meta: { ...reply.meta, specialists: [] },
@@ -87,7 +104,8 @@ async function setup({ consent = true, status = "offline", route = "/agente" } =
   db.exec("DROP TABLE IF EXISTS storage; CREATE TABLE storage (key TEXT PRIMARY KEY NOT NULL, value TEXT); PRAGMA user_version=1;");
   db.prepare("INSERT INTO storage VALUES (?, ?)").run("webfit-personal-v1", JSON.stringify(fixture));
   db.close();
-  const control = { status, statusRequests: 0, requests: [], accepts: [], streamError: null };
+  // `reply` troca a resposta padrão do chat (ex.: o relatório da análise do perfil).
+  const control = { status, statusRequests: 0, requests: [], accepts: [], streamError: null, reply: null };
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   await page.route("**/api/**", async (route) => {
@@ -113,12 +131,13 @@ async function setup({ consent = true, status = "offline", route = "/agente" } =
       // Como o servidor: fotos de despensa e compras sempre em JSON; os demais modos em NDJSON quando pedido.
       if (body.mode === "pantry_photo" || body.mode === "shopping_photo")
         return route.fulfill({ json: scanReply, headers: cors });
-      if (!accept.includes(NDJSON_TYPE)) return route.fulfill({ json: reply, headers: cors });
+      const chatReply = control.reply ?? reply;
+      if (!accept.includes(NDJSON_TYPE)) return route.fulfill({ json: chatReply, headers: cors });
       const events = [
         ...AGENT_STAGES.map((stage) => ({ type: "stage", stage, attempt: 1 })),
         control.streamError
           ? { type: "error", status: 502, error: control.streamError }
-          : { type: "result", reply },
+          : { type: "result", reply: chatReply },
       ];
       return route.fulfill({
         status: 200,
@@ -314,26 +333,48 @@ try {
   }
   {
     // "Analisar meu perfil" (folha do "+"): desativado sem consentimento; com o agente pronto envia o
-    // pedido pronto pelo chat normal e a conversa mostra o chip no lugar do texto longo.
+    // pedido pronto pelo chat normal, a conversa mostra o chip no lugar do texto longo e a resposta na
+    // estrutura pedida (síntese + 4 listas + sugestões) vira o cartão-relatório.
     const blocked = await setup({ consent: false, status: "ready" });
     await buttonFor(blocked.page, "Mais opções do chat").click();
     await expect(buttonFor(blocked.page, "Analisar meu perfil")).toBeDisabled();
     await blocked.context.close();
     const { page, context, control } = await setup({ status: "ready" });
+    control.reply = REPORT_REPLY;
     const typed = "rascunho que fica";
     await inputFor(page).fill(typed);
     await buttonFor(page, "Mais opções do chat").click();
     await buttonFor(page, "Analisar meu perfil").click();
-    await expect(page.getByText(reply.text, { exact: true })).toBeVisible();
+    const card = page.getByTestId("report-card");
+    await expect(card).toBeVisible();
+    await expect(card.getByText(REPORT_SUMMARY, { exact: true })).toBeVisible();
+    await expect(card.getByText("Análise do perfil", { exact: true })).toBeVisible();
+    await expect(card.getByText("Registros em 6 de 7 dias", { exact: true })).toBeVisible();
+    for (const label of Object.values(PROFILE_REPORT_LABELS)) await expect(card.getByText(label, { exact: true })).toBeVisible();
+    // As seções 2–4 começam recolhidas; tocar abre (itens com ponto; "Sugestões" como chips).
+    await expect(card.getByText("Proteína baixa no café da manhã", { exact: true })).toHaveCount(0);
+    await card.getByRole("button", { name: /^Atenção, 2 itens$/ }).click();
+    await expect(card.getByText("Proteína baixa no café da manhã", { exact: true })).toBeVisible();
+    await card.getByRole("button", { name: /^Sugestões, 2 itens$/ }).click();
+    await expect(card.getByText("Ovos ou iogurte no café", { exact: true })).toBeVisible();
+    await expect(card.getByText("Revisada automaticamente · apoio educativo", { exact: true })).toBeVisible();
+    await expect(page.getByText(`**${PROFILE_REPORT_TITLES.well}**`, { exact: false })).toHaveCount(0);
     await expect(page.getByText(/^Você pediu uma análise do seu perfil/)).toBeVisible();
     await expect(page.getByText(PROFILE_ANALYSIS_REQUEST, { exact: true })).toHaveCount(0);
     await expect(inputFor(page)).toHaveValue(typed);
     expect(control.requests.map((r) => [r.mode, r.text])).toEqual([["chat", PROFILE_ANALYSIS_REQUEST]]);
     // A folha do "+" fecha antes do envio.
     await expect(page.getByText("Mais opções", { exact: true })).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: path.join(output, "profile-analysis-mobile.png") });
+    // Tocar numa próxima pergunta envia; a resposta em texto (fora da estrutura) segue como texto.
+    control.reply = null;
+    await page.getByRole("group", { name: "Sugestões do agente", exact: true }).getByRole("button", { name: "Como dormir melhor?", exact: true }).click();
+    await expect(page.getByText(reply.text, { exact: true })).toBeVisible();
+    expect(control.requests.at(-1).text).toBe("Como dormir melhor?");
+    await expect(page.getByTestId("report-card")).toHaveCount(1);
     await context.close();
-    console.log("PASS: Analisar meu perfil fica desativado sem consentimento; envia o pedido pronto pelo chat e mostra o chip");
+    console.log("PASS: Analisar meu perfil fica desativado sem consentimento; envia o pedido pronto pelo chat, mostra o chip e o cartão-relatório");
   }
   {
     const { page, context, control } = await setup({ status: "ready", route: "/despensa" });

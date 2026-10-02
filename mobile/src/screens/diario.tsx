@@ -25,7 +25,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { QuickEntryForm } from "@/components/quick/quick-entry-form";
 import { srOnly } from "@/components/refeicao/web-a11y";
 import { AppText, Button, Card, Empty, IconButton, MealCard, Sheet, type MealCardTone } from "@/components/ui";
-import { ScreenSignal } from "@/components/signals/screen-signal";
+import { ScreenInsightChips } from "@/components/signals/insight-chips";
 import { useApp } from "@/state/app-context";
 import { useDiaryActions } from "@/state/use-diary-actions";
 import { makeStyles, useThemeColors } from "@/theme/theme";
@@ -153,6 +153,8 @@ export function DiarioScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View ref={content} style={styles.stack}>
+            {/* Sinais do app sobre os últimos dias (chips + folha), logo abaixo do cabeçalho: só no dia de hoje. */}
+            {date === today && <ScreenInsightChips screen="diario" />}
             <BalanceCard
               totals={totals}
               goals={goals}
@@ -163,8 +165,6 @@ export function DiarioScreen() {
                 balanceBottom.current = CONTENT_PADDING + e.nativeEvent.layout.y + e.nativeEvent.layout.height;
               }}
             />
-            {/* Sinal do app sobre os últimos dias: só olhando o dia de hoje. */}
-            {date === today && <ScreenSignal screen="diario" />}
 
             {day.isEmpty && (
               <Card>

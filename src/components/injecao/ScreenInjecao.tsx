@@ -50,7 +50,7 @@ import { SyringeCard } from "./SyringeCard";
 import { seedDose, useDoseState } from "./useDoseState";
 import { useInjectionSave } from "./useInjectionSave";
 import { WhenRow } from "./WhenRow";
-import { ScreenSignal } from "../signals/ScreenSignal";
+import { ScreenInsightChips } from "../signals/InsightChips";
 import "../anamnese/AnamneseInputs.css";
 import "./Injecao.css";
 
@@ -244,6 +244,8 @@ export function ScreenInjecao() {
   return (
     <Page title={editing ? "Editar aplicação" : "Seringa e dose"} header={{ actions: guideButton }}>
       <div ref={screenRef} className={`inj-screen ${view === "form" ? "inj-form" : ""}`}>
+        {/* Sinal da caneta (comer pouco, enjoo) como chip + folha, logo abaixo do cabeçalho; fora da edição. */}
+        {!editing && <ScreenInsightChips screen="seringa" />}
         {view === "recipe" && start.fresh ? (
           <>
             {/* O aviso de aplicação recente fica na folha de confirmação (recalculado pela data). */}
@@ -296,8 +298,6 @@ export function ScreenInjecao() {
             )}
           </>
         )}
-        {/* Sinal do app para quem usa caneta (comer pouco, enjoo); fora da edição de um registro. */}
-        {!editing && <ScreenSignal screen="seringa" />}
         {stock && <StockRow model={stock} onEdit={() => setStockOpen(true)} />}
         <RecentStrip
           injections={state.injections}

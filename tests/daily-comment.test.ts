@@ -1,10 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  commentParts,
   DAILY_COMMENT_KEY,
   DAILY_COMMENT_PREFIX,
   DAILY_COMMENT_REQUEST,
   dailyCommentRequest,
+  firstSentence,
+  HEADLINE_MAX,
   isQuotaExhausted,
   isSyncSettled,
   latestDailyComment,
@@ -13,6 +16,7 @@ import {
   shouldRunDailyComment,
   type DailyCommentRun,
 } from "../src/lib/daily-comment";
+import { DAILY_COMMENT_KEY as DAY_COMMENT_KEY } from "../src/lib/day";
 import { messageViews } from "../src/lib/agent-presentation";
 import type { SyncStatus } from "../src/lib/server-sync";
 import { goalsForDate, initialState, shiftDate } from "../src/lib/domain";
@@ -52,14 +56,52 @@ const streak = [1, 2, 3, 4, 5].flatMap((n) => [meal(day(n), "08:00", KCAL / 2, P
 const REPLY: AgentReply = { text: "**Boa semana!** Hoje, inclua ovos no café.\n- Beba água ao acordar.", meta: REPLY_META };
 const GATE = { today: TODAY, aiReady: true, aiBusy: false, quota: null };
 
-test("pedido do dia: curto, proativo, uma sugestão, metas como estão e sem dose", () => {
+test("pedido do dia: um recado de uma frase (um bloco de texto, ≤ 90), sem saudação, metas como estão e sem dose", () => {
   assert.ok(DAILY_COMMENT_REQUEST.startsWith(DAILY_COMMENT_PREFIX));
-  assert.match(DAILY_COMMENT_REQUEST, /no máximo 4 frases/);
-  assert.match(DAILY_COMMENT_REQUEST, /1 sugestão concreta para hoje/);
+  assert.match(DAILY_COMMENT_REQUEST, /exatamente um bloco de texto/);
+  assert.match(DAILY_COMMENT_REQUEST, /uma frase só/);
+  assert.match(DAILY_COMMENT_REQUEST, new RegExp(`no máximo ${HEADLINE_MAX} caracteres`));
+  assert.match(DAILY_COMMENT_REQUEST, /sem saudação/);
+  assert.match(DAILY_COMMENT_REQUEST, /uma sugestão para hoje ou um incentivo breve/);
   assert.match(DAILY_COMMENT_REQUEST, /preferências/);
   assert.match(DAILY_COMMENT_REQUEST, /sem recalcular/);
   assert.match(DAILY_COMMENT_REQUEST, /não comente nem sugira doses/);
   assert.match(DAILY_COMMENT_REQUEST, /não incentive pular refeições/);
+  // A chave de dispensa é a mesma que o Resumo (day.ts) usa.
+  assert.equal(DAILY_COMMENT_KEY, DAY_COMMENT_KEY);
+});
+
+test("recado: o 1º bloco de texto é o título (≤ 90), o 2º (se vier) a observação; sem blocos, a 1ª frase do texto", () => {
+  const note = "Inclua uma fruta e proteína no lanche da tarde.";
+  const one = commentParts({ text: note, blocks: [{ papel: null, blocos: [{ tipo: "texto", texto: note }] }] });
+  assert.deepEqual(one, { headline: note, detail: null });
+  const two = commentParts({
+    text: `${note}\n\nOntem a água ficou um pouco abaixo.`,
+    blocks: [
+      { papel: null, blocos: [{ tipo: "texto", texto: `**${note}**` }, { tipo: "texto", texto: "Ontem a água ficou um pouco abaixo." }] },
+    ],
+  });
+  assert.deepEqual(two, { headline: note, detail: "Ontem a água ficou um pouco abaixo." });
+  // Resposta longa demais: corta na palavra, com reticências, dentro do limite.
+  const long = "Que tal começar o dia com um café da manhã reforçado, com ovos, fruta e um pão integral, para chegar bem ao almoço?";
+  const clipped = commentParts({ text: long, blocks: [{ papel: null, blocos: [{ tipo: "texto", texto: long }] }] });
+  assert.ok(clipped.headline.length <= HEADLINE_MAX, clipped.headline);
+  assert.match(clipped.headline, /…$/);
+  assert.doesNotMatch(clipped.headline, /\s…$/);
+  // Sem blocos (resposta antiga ou só texto): a 1ª frase e o resto.
+  assert.deepEqual(commentParts({ text: REPLY.text }), {
+    headline: "Boa semana!",
+    detail: "Hoje, inclua ovos no café. Beba água ao acordar.",
+  });
+  assert.equal(firstSentence("Beba água ao acordar"), "Beba água ao acordar");
+  assert.equal(firstSentence("Um passo de cada vez. O resto vem."), "Um passo de cada vez.");
+  // Calorias e números do corpo ocultos também nos blocos.
+  const hidden = commentParts(
+    { text: "Ontem foram 2100 kcal.", blocks: [{ papel: null, blocos: [{ tipo: "texto", texto: "Ontem foram 2100 kcal e você pesa 72 kg." }] }] },
+    true,
+    true,
+  );
+  assert.doesNotMatch(hidden.headline, /2100|72 kg/);
 });
 
 test("pedido do dia leva os sinais e o ajuste de hoje; kcal só sem calorias ocultas", () => {
@@ -183,11 +225,14 @@ function withComment(state: AppState, date = TODAY, text = REPLY.text): AppState
   };
 }
 
-test("cartão do Hoje: a resposta de hoje em texto corrido, até ser dispensada", () => {
+test("Resumo do Hoje: o recado de hoje (título, observação e horário), até ser dispensado", () => {
   const state = withComment(stateWith(adult()));
   const comment = latestDailyComment(state, TODAY);
   assert.equal(comment?.messageId, "a");
   assert.equal(comment?.text, "Boa semana! Hoje, inclua ovos no café.\nBeba água ao acordar.");
+  assert.equal(comment?.headline, "Boa semana!");
+  assert.equal(comment?.detail, "Hoje, inclua ovos no café. Beba água ao acordar.");
+  assert.equal(comment?.time, "12:00");
   assert.equal(latestDailyComment(withComment(stateWith(adult()), day(1)), TODAY), null);
   assert.equal(latestDailyComment({ ...state, signalDismissals: { [DAILY_COMMENT_KEY]: TODAY } }, TODAY), null);
   // Dispensado ontem não esconde o de hoje.
@@ -201,6 +246,7 @@ test("cartão do Hoje: calorias e números do corpo ocultos também na resposta"
   const profile = adult({ hideCalories: true, hideBodyNumbers: true });
   const comment = latestDailyComment(withComment(stateWith(profile), TODAY, "Ontem foram 2100 kcal e você pesa 72 kg."), TODAY);
   assert.doesNotMatch(comment!.text, /2100|72 kg/);
+  assert.doesNotMatch(comment!.headline, /2100|72 kg/);
   assert.equal(plainComment("## Título\n\n\n\n**ok**"), "Título\n\nok");
 });
 

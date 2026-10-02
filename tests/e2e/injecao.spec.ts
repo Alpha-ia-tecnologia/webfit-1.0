@@ -1,7 +1,7 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
 import { stateFixture } from "../fixtures";
 import { localDate, shiftDate } from "../../src/lib/domain";
-import type { AppState } from "../../src/types";
+import { diarySchema, type AppState, type FoodItem } from "../../src/types";
 
 /**
  * Onda 2 · Lote 5 (seringa e GLP-1): dose de sempre, calculadora compacta, caneta, régua da bula,
@@ -755,4 +755,60 @@ test("últimas aplicações em faixa: 3 passadas + a próxima estimada, miniatur
   await page.setViewportSize({ width: 320, height: 844 });
   expect(await hasSideScroll(page)).toBe(false);
   expect(await smallestText(page, ".inj-screen")).toBeGreaterThanOrEqual(12);
+});
+
+/* ---------- Sinal da caneta (chip de insight + folha) ---------- */
+
+const SMALL_FOOD: FoodItem = {
+  id: "test-arroz",
+  name: "Arroz do teste",
+  category: "Cereais",
+  caloriesPer100g: 128,
+  proteinPer100g: 2.5,
+  carbsPer100g: 28.1,
+  fatPer100g: 0.2,
+  source: "Tabela de teste",
+};
+/** Três dias anteriores com duas refeições pequenas cada: o alerta de ingestão de quem usa caneta. */
+function lowIntakeDiary(userId: string) {
+  return [1, 2, 3].flatMap((n) => {
+    const date = shiftDate(today, -n);
+    return ["12:00", "19:00"].map((time) =>
+      diarySchema.parse({
+        id: `pouco-${date}-${time}`,
+        userId,
+        date,
+        time,
+        createdAt: `${date}T${time}:00Z`,
+        updatedAt: `${date}T${time}:00Z`,
+        type: "refeicao",
+        title: "Refeição",
+        description: "Arroz do teste (250 g)",
+        items: [{ food: SMALL_FOOD, grams: 250 }],
+        calories: 320,
+        macros: { protein: 6, carbs: 70, fat: 1 },
+      }),
+    );
+  });
+}
+
+test("caneta: comendo pouco vira chip na Seringa, com a folha calma e a pergunta pronta, sem números nem dose", async ({ page }) => {
+  const state = penState({}, usualDose());
+  const seeded = {
+    ...state,
+    diary: lowIntakeDiary(state.userId),
+    goalHistory: [{ date: shiftDate(today, -10), profile: state.profile! }],
+  } as AppState;
+  await seed(page, seeded);
+  await openInjecao(page);
+  const chip = page.getByTestId("insight-chips").locator('[data-signal="caneta-ingestao"]');
+  await expect(chip).toHaveText("Comendo pouco");
+  await expect(page.locator("main")).not.toContainText(/fale com quem prescreveu/);
+  await chip.click();
+  const sheet = page.getByRole("dialog", { name: "Comendo pouco" });
+  const body = sheet.getByTestId("insight-sheet");
+  await expect(body).toContainText("fale com quem prescreveu");
+  await expect(body).not.toContainText(/\d|dose|mg\b/i);
+  await sheet.getByRole("button", { name: "Pedir ideias", exact: true }).click();
+  await expect(page.getByLabel("Mensagem para o agente")).toHaveValue(/refeições pequenas/);
 });

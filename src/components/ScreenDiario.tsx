@@ -24,7 +24,7 @@ import { InjectionRow, WATER_QUICK_ML, WaterLine, WellbeingRow } from "./diario/
 import { DiarySearch } from "./diario/DiarySearch";
 import { QualityCard } from "./diario/QualityCard";
 import { useDiaryActions } from "./useDiaryActions";
-import { ScreenSignal } from "./signals/ScreenSignal";
+import { ScreenInsightChips } from "./signals/InsightChips";
 import "./diario/Diario.css";
 
 /** Vaga de refeição sem registro: ícone e tom de cada uma (lanche azul: rosa é só para erro). */
@@ -82,6 +82,8 @@ export function ScreenDiario() {
   };
   return (
     <Page title="Meu diário" header={header}>
+      {/* Sinais do app sobre os últimos dias (chips + folha), logo abaixo do cabeçalho: só no dia de hoje. */}
+      {date === today && <ScreenInsightChips screen="diario" />}
       <BalanceCard
         totals={totals}
         goals={goals}
@@ -89,8 +91,6 @@ export function ScreenDiario() {
         isToday={date === today}
         onExplain={() => setExplainOpen(true)}
       />
-      {/* Sinal do app sobre os últimos dias: só olhando o dia de hoje. */}
-      {date === today && <ScreenSignal screen="diario" />}
 
       {day.isEmpty && (
         <Card className="diary-empty">

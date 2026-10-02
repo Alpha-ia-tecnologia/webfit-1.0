@@ -1,27 +1,36 @@
 /**
- * Comentário automático do dia ("Seu agente comentou"): uma vez por dia local, ao abrir o Hoje,
- * o app pede ao agente (modo chat, o mesmo envio da conversa) um comentário curto e proativo com
- * uma sugestão para hoje, a partir dos sinais do app (signals.ts) e do ajuste da meta de hoje.
- * Sem números escondidos pela pessoa, sem dose, nunca para perfis calmos. A data fica no estado
- * (aiDailyCommentDate) antes do pedido: falhou, não tenta de novo no mesmo dia (nem em outro aparelho).
+ * Recado do dia ("Seu agente · 07:10" no Resumo do Hoje): uma vez por dia local, ao abrir o Hoje,
+ * o app pede ao agente (modo chat, o mesmo envio da conversa) um recado curto, uma frase só com
+ * uma sugestão para hoje ou um incentivo, a partir dos sinais do app (signals.ts) e do ajuste da
+ * meta de hoje. Sem números escondidos pela pessoa, sem dose, nunca para perfis calmos. A data fica
+ * no estado (aiDailyCommentDate) antes do pedido: falhou, não tenta de novo no mesmo dia (nem em
+ * outro aparelho). A resposta vira o título do Resumo (`headline`); o chat a mostra como cartão.
  */
 import type { AgentReply, AppState, ChatMessage } from "../types";
 import type { AiQuota } from "./account";
 import type { SyncStatus } from "./server-sync";
-import { isCalmOn } from "./day";
+import { DAILY_COMMENT_KEY, isCalmOn } from "./day";
+import { localTime } from "./dates";
 import { dailyTargets, localDate, uid } from "./domain";
 import { signalBriefs } from "./signals";
 import { visiblePlainText } from "./text";
 
+/** Chave em signalDismissals do recado no Hoje (definida em day.ts, que monta o Resumo). */
+export { DAILY_COMMENT_KEY };
 /** Início fixo do pedido: a conversa reconhece a mensagem e mostra só o aviso do comentário. */
 export const DAILY_COMMENT_PREFIX = "Comentário automático do dia.";
-/** Chave em signalDismissals do cartão do Hoje (a data é a do comentário dispensado). */
-export const DAILY_COMMENT_KEY = "comentario-do-dia";
-/** Aviso no lugar do pedido, na conversa. */
-export const DAILY_COMMENT_CHIP = "Comentário automático do dia";
+/** Aviso no lugar do pedido, na conversa (o horário vem ao lado; a nota logo abaixo traz só a frase). */
+export const DAILY_COMMENT_CHIP = "Recado do dia";
+/** O recado: uma frase até este tamanho (o título do Resumo cabe em duas linhas a 390 px). */
+export const HEADLINE_MAX = 90;
+/** Observação opcional (um segundo bloco "texto", se vier): uma frase até este tamanho. */
+export const DETAIL_MAX = 110;
 
-/** Pedido-base: curto, proativo, uma sugestão concreta, metas como estão, sem dose. */
-export const DAILY_COMMENT_REQUEST = `${DAILY_COMMENT_PREFIX} Com base nos meus registros recentes e na minha anamnese, faça um comentário curto e proativo (no máximo 4 frases) sobre como estou indo e dê 1 sugestão concreta para hoje, respeitando as minhas preferências (alimentos favoritos e evitados, rotina, tempo para cozinhar e orçamento). Use as metas do app como estão, sem recalcular; não incentive pular refeições nem comer menos para equilibrar outro dia; não comente nem sugira doses.`;
+/**
+ * Pedido-base: um único bloco "texto" com uma frase (≤ 90 caracteres), sem saudação, amigável e
+ * concreto (sugestão para hoje ou incentivo breve), metas como estão, sem dose.
+ */
+export const DAILY_COMMENT_REQUEST = `${DAILY_COMMENT_PREFIX} Com base nos meus registros recentes e na minha anamnese, deixe um recado curto para hoje. Responda com exatamente um bloco de texto, de uma frase só, com no máximo ${HEADLINE_MAX} caracteres, sem saudação, amigável e concreto: uma sugestão para hoje ou um incentivo breve, respeitando as minhas preferências (alimentos favoritos e evitados, rotina, tempo para cozinhar e orçamento). Use as metas do app como estão, sem recalcular; não incentive pular refeições nem comer menos para equilibrar outro dia; não comente nem sugira doses.`;
 
 /** O pedido do dia: o pedido-base, o que o app observou (títulos, sem números) e o ajuste de hoje. */
 export function dailyCommentRequest(state: AppState, today: string): string {
@@ -145,7 +154,7 @@ export async function runDailyComment(run: DailyCommentRun): Promise<boolean> {
   }
 }
 
-/** O cartão mostra texto corrido: sem negrito, títulos ou marcadores de lista do markdown. */
+/** Texto corrido: sem negrito, títulos ou marcadores de lista do markdown. */
 export function plainComment(text: string): string {
   return text
     .replace(/\*\*/g, "")
@@ -155,15 +164,65 @@ export function plainComment(text: string): string {
     .trim();
 }
 
-export interface DailyComment {
-  /** A resposta do agente (texto já sem calorias ou números do corpo ocultos). */
+/** Corta numa fronteira de palavra (com reticências) quando passa de `max`; sem quebras de linha. */
+function clipAt(text: string, max: number): string {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max - 1);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > max / 2 ? cut.slice(0, space) : cut).replace(/[,;:\s]+$/, "")}…`;
+}
+/** [primeira frase, o resto]; sem pontuação final, o texto inteiro é a frase. */
+function splitSentence(text: string): [string, string] {
+  const clean = text.replace(/\s+/g, " ").trim();
+  const match = /^.*?[.!?…](?=\s|$)/.exec(clean);
+  if (!match) return [clean, ""];
+  return [match[0], clean.slice(match[0].length).trim()];
+}
+/** A primeira frase do texto, cortada em `max` caracteres (o título do Resumo). */
+export function firstSentence(text: string, max = HEADLINE_MAX): string {
+  return clipAt(splitSentence(text)[0], max);
+}
+/** Os blocos "texto" da resposta, já legíveis (sem markdown nem números ocultos) e sem vazios. */
+function textBlocks(message: Pick<ChatMessage, "blocks">, hideCalories: boolean, hideBody: boolean): string[] {
+  return (message.blocks ?? [])
+    .flatMap((section) => section.blocos)
+    .flatMap((block) => (block.tipo === "texto" ? [plainComment(visiblePlainText(block.texto, hideCalories, hideBody))] : []))
+    .filter(Boolean);
+}
+export interface DailyCommentParts {
+  /** O recado: o 1º bloco "texto" (ou a 1ª frase do texto salvo), até 90 caracteres. */
+  headline: string;
+  /** A observação: o 2º bloco "texto" (ou o resto do texto), até 110 caracteres; null sem ela. */
+  detail: string | null;
+}
+/**
+ * Contrato do recado para o Hoje e para o cartão compacto do chat: `headline` sempre existe (com
+ * fallback a partir do texto); `detail` só quando a resposta trouxe mais que a frase.
+ */
+export function commentParts(
+  reply: Pick<ChatMessage, "text" | "blocks">,
+  hideCalories = false,
+  hideBody = false,
+): DailyCommentParts {
+  const text = plainComment(visiblePlainText(reply.text, hideCalories, hideBody));
+  const [first, second] = textBlocks(reply, hideCalories, hideBody);
+  const [sentence, rest] = splitSentence(first ?? text);
+  const extra = second ?? rest;
+  return { headline: clipAt(sentence, HEADLINE_MAX), detail: extra.trim() ? clipAt(extra, DETAIL_MAX) : null };
+}
+
+export interface DailyComment extends DailyCommentParts {
+  /** A resposta inteira do agente (texto já sem calorias ou números do corpo ocultos). */
   text: string;
+  /** "HH:MM" local da resposta, para o kicker "Seu agente · 07:10". */
+  time: string;
   date: string;
   messageId: string;
 }
 /**
- * O comentário de hoje para o cartão do Hoje: a resposta logo depois do pedido automático de hoje,
- * enquanto a preferência está ligada, há consentimento e o cartão não foi dispensado hoje.
+ * O recado de hoje para o Resumo do Hoje: a resposta logo depois do pedido automático de hoje,
+ * enquanto a preferência está ligada, há consentimento e o recado não foi dispensado hoje.
  */
 export function latestDailyComment(state: AppState, today: string): DailyComment | null {
   const profile = state.profile;
@@ -176,7 +235,9 @@ export function latestDailyComment(state: AppState, today: string): DailyComment
     const reply = state.messages[index + 1];
     if (reply.sender !== "ai" || reply.status === "error") return null;
     return {
+      ...commentParts(reply, profile.hideCalories, profile.hideBodyNumbers),
       text: plainComment(visiblePlainText(reply.text, profile.hideCalories, profile.hideBodyNumbers)),
+      time: localTime(new Date(reply.timestamp)),
       date: today,
       messageId: reply.id,
     };

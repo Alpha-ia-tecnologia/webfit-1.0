@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { goalsForDate, initialState, shiftDate } from "../src/lib/domain";
 import {
+  activeSignals,
   dismissSignal,
   isCoolingDown,
   signalBriefs,
@@ -85,8 +86,13 @@ const mealDays = (n: number, calories: number, protein: number) =>
   Array.from({ length: n }, (_, i) => twoMeals(day(i + 1), calories, protein)).flat();
 
 const NO_GUILT = /atrasad|excesso|compens|culpa|dose|aplica/i;
+/** Chip: título ≤ 4 palavras (a contagem de dias não conta); folha: uma frase ≤ 110; ação ≤ 3 palavras. */
 function assertCalm(signal: Signal) {
-  assert.ok(signal.title.split(/\s+/).length <= 7, signal.title);
+  const words = signal.title.split(/\s+/).filter((word) => !/^\d+$/.test(word));
+  assert.ok(words.length <= 4, signal.title);
+  assert.ok(signal.body.length <= 110, `${signal.id}: ${signal.body.length} caracteres`);
+  assert.doesNotMatch(signal.body, /[.!?]\s+\S/, `${signal.id}: uma frase só`);
+  if (signal.action) assert.ok(signal.action.label.split(/\s+/).length <= 3, signal.action.label);
   assert.doesNotMatch(`${signal.title} ${signal.body}`, NO_GUILT);
 }
 const ids = (list: Signal[]) => list.map((s) => s.id);
@@ -149,9 +155,12 @@ test("energia acima ou abaixo da meta-base em 3+ dias, só com 2+ refeições no
   const above = signalFor(stateWith(base, mealDays(3, KCAL * 1.3, PROTEIN)), TODAY, "diario");
   assert.equal(above?.id, "energia-acima");
   assertCalm(above!);
-  assert.match(above!.body, /^Nos últimos 3 dias registrados, o consumo passou da meta\./);
+  assert.equal(above!.title, "3 dias acima da meta");
+  assert.equal(above!.brief, "Alguns dias acima da meta");
+  assert.match(above!.body, /^3 dos últimos 3 dias ficaram acima da meta;/);
   const below = signalFor(stateWith(base, mealDays(3, KCAL * 0.6, PROTEIN)), TODAY, "diario");
   assert.equal(below?.id, "energia-abaixo");
+  assert.equal(below!.title, "3 dias abaixo da meta");
   assertCalm(below!);
   // Dentro da tolerância de 10% (e proteína nem baixa nem em dia): nada no Diário.
   assert.equal(signalFor(stateWith(base, mealDays(5, KCAL * 1.08, PROTEIN * 0.85)), TODAY, "diario"), null);
@@ -197,7 +206,9 @@ test("caneta: o alerta de ingestão vira o sinal da Seringa, sem repetir no Diá
   // Proteína baixa com comida suficiente: alerta "protein" da caneta, sem "proteina-baixa" no Diário.
   const protein = stateWith(pen, mealDays(3, KCAL, PROTEIN * 0.5));
   assert.equal(signalFor(protein, TODAY, "seringa")?.id, "caneta-ingestao");
-  assert.equal(signalFor(protein, TODAY, "seringa")?.title, "Proteína abaixo do combinado");
+  assert.equal(signalFor(protein, TODAY, "seringa")?.title, "Proteína baixa");
+  assert.equal(signalFor(protein, TODAY, "seringa")?.brief, "Proteína abaixo do combinado");
+  assertCalm(signalFor(protein, TODAY, "seringa")!);
   assert.notEqual(signalFor(protein, TODAY, "diario")?.id, "proteina-baixa");
   // Comeu pouco e marcou náusea: o texto fala do enjoo, sem números nem dose.
   const nausea = stateWith(pen, [...mealDays(3, 800, 60), wellbeing(day(2), { tags: ["Náusea"] })]);
@@ -206,6 +217,10 @@ test("caneta: o alerta de ingestão vira o sinal da Seringa, sem repetir no Diá
   assert.doesNotMatch(`${signal!.title} ${signal!.body}`, /\d/);
   assertCalm(signal!);
   assert.match(signal!.body, /fale com quem prescreveu/);
+  const plain = signalFor(stateWith(pen, mealDays(3, 800, 60)), TODAY, "seringa");
+  assert.equal(plain?.title, "Comendo pouco");
+  assert.match(plain!.body, /fale com quem prescreveu/);
+  assertCalm(plain!);
   // Comer pouco já aparece na Seringa: o Diário não repete "abaixo da meta".
   assert.notEqual(signalFor(nausea, TODAY, "diario")?.id, "energia-abaixo");
   // Sem caneta, nada na Seringa.
@@ -230,18 +245,20 @@ test("peso: tendência só em palavras e nada com números do corpo ocultos", ()
   const losing = adult({ goal: "perder" });
   const signal = signalFor(stateWith(losing, [], { measurements }), TODAY, "evolucao");
   assert.equal(signal?.id, "peso-tendencia");
-  assert.equal(signal?.title, "Seu peso vem descendo aos poucos");
+  assert.equal(signal?.title, "Peso descendo");
+  assert.equal(signal?.brief, "Peso descendo aos poucos");
   assert.equal(signal?.tone, "positive");
   assert.doesNotMatch(`${signal!.title} ${signal!.body} ${signal!.action?.prompt}`, /\d/);
   assertCalm(signal!);
   // Manter e subindo: informativo, sem cobrança.
   const up = [weighIn(day(20), 76), weighIn(day(10), 77), weighIn(day(1), 78)];
   const rising = signalFor(stateWith(base, [], { measurements: up }), TODAY, "evolucao");
-  assert.equal(rising?.title, "Seu peso subiu um pouco");
+  assert.equal(rising?.title, "Peso subiu um pouco");
   assert.equal(rising?.tone, "info");
+  assertCalm(rising!);
   assert.equal(
     signalFor(stateWith(base, [], { measurements: up.map((m) => ({ ...m, weight: 78.2 })) }), TODAY, "evolucao")?.title,
-    "Seu peso ficou estável",
+    "Peso estável",
   );
   assert.equal(signalFor(stateWith(adult({ goal: "perder", hideBodyNumbers: true }), [], { measurements }), TODAY, "evolucao"), null);
   // Poucos pontos ou menos de 14 dias: sem tendência.
@@ -259,12 +276,18 @@ test("no máximo um sinal por tela; sem tela, um por tela na ordem fixa", () => 
   assert.deepEqual(ids(signals(state, TODAY)), ["sequencia-boa", "energia-acima", "sono-estresse"]);
   assert.deepEqual(ids(signals(state, TODAY, "diario")), ["energia-acima"]);
   assert.deepEqual(signals(state, TODAY, "seringa"), []);
+  // O contexto do agente leva o padrão em palavras (brief), não o título curto do chip.
   assert.deepEqual(signalBriefs(state, TODAY), [
     "5 dias seguidos de registros",
     "Alguns dias acima da meta",
     "Proteína abaixo do combinado",
-    "Cuidar do descanso esta semana",
+    "Cansaço, estresse ou pouco sono em vários dias",
   ]);
+  // A linha de chips mostra todos os ativos da tela, na ordem de prioridade.
+  assert.deepEqual(ids(activeSignals(state, TODAY, "diario")), ["energia-acima", "proteina-baixa"]);
+  assert.deepEqual(ids(activeSignals(state, TODAY, "hoje")), ["sequencia-boa"]);
+  assert.deepEqual(activeSignals(state, TODAY, "seringa"), []);
+  for (const signal of signals(state, TODAY)) assertCalm(signal);
 });
 
 test("dispensar pausa o sinal por 3 dias e mostra o próximo da prioridade", () => {
@@ -274,6 +297,7 @@ test("dispensar pausa o sinal por 3 dias e mostra o próximo da prioridade", () 
   assert.equal(dismissed.signalDismissals["energia-acima"], TODAY);
   assert.equal(state.signalDismissals["energia-acima"], undefined, "não muda o estado original");
   assert.equal(signalFor(dismissed, TODAY, "diario")?.id, "proteina-baixa");
+  assert.deepEqual(ids(activeSignals(dismissed, TODAY, "diario")), ["proteina-baixa"]);
   for (let n = 1; n < SIGNAL_COOLDOWN_DAYS; n++)
     assert.ok(isCoolingDown(dismissed.signalDismissals, "energia-acima", shiftDate(TODAY, n)));
   assert.ok(!isCoolingDown(dismissed.signalDismissals, "energia-acima", shiftDate(TODAY, SIGNAL_COOLDOWN_DAYS)));

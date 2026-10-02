@@ -2,14 +2,17 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Info } from "lucide-react-native";
 import { useWindowDimensions, View, type LayoutChangeEvent } from "react-native";
 import Animated, { FadeInUp, FadeOut } from "react-native-reanimated";
+import { Pressable } from "react-native";
+import { adjustmentChipText, proteinChipText } from "@shared/lib/day";
 import { balanceEquation, type BalanceEquation } from "@shared/lib/diary-day";
 import type { DailyTarget } from "@shared/lib/domain";
 import { fmtNumber } from "@shared/lib/format";
 import { macroBars, percentOf, type Totals } from "@shared/lib/today";
 import { MacroSummary } from "@/components/hoje/macro-summary";
+import { webAttrs } from "@/components/refeicao/web-a11y";
 import { AppText, IconButton } from "@/components/ui";
 import { makeStyles, useTheme, useThemeColors } from "@/theme/theme";
-import { fontSize, gradients, horizontal, radius, shadows, themeMacroColor } from "@/theme/tokens";
+import { fontSize, gradients, horizontal, radius, shadows, themeDomainTone, themeMacroColor } from "@/theme/tokens";
 import { MacroDonut } from "./macro-donut";
 
 const BAND_MACROS: Record<string, string> = { protein: "Prot", carbs: "Carb", fat: "Gord" };
@@ -80,24 +83,60 @@ function spoken(equation: BalanceEquation): string {
 
 /**
  * Balanço do dia no Diário (DIARIO-09): [Meta] − [Consumido] = [Restam], o (i) com o gasto estimado,
- * os macros do mesmo bloco do Hoje e uma barra fina. Com as calorias ocultas não há equação, número
- * de kcal nem explicação: a rosca P/C/G mostra só a proporção entre os macros.
+ * os macros do mesmo bloco do Hoje e uma barra fina. O ajuste dinâmico do dia é um chip de delta no
+ * cabeçalho ("↑ +147 kcal · ontem você comeu menos"; "Neste dia +147 kcal" em outra data; "Meta um
+ * pouco maior" com calorias ocultas), que abre "Como calculamos". Com as calorias ocultas não há
+ * equação, número de kcal nem explicação: a rosca P/C/G mostra só a proporção entre os macros.
  */
 export function BalanceCard({ totals, goals, hideCalories, isToday = false, onExplain, onLayout }: Props) {
   const styles = useStyles();
-  const colors = useThemeColors();
+  const { scheme, colors } = useTheme();
   const macros = macroBars(totals, goals);
   const equation = hideCalories ? null : balanceEquation(totals.calories, goals.calories);
   const percent = percentOf(totals.calories, goals.calories) ?? 0;
   const title = isToday ? "Balanço de hoje" : "Balanço do dia";
+  const canExplain = !hideCalories && goals.calories !== null;
+  // Delta do ajuste (kcal ou, sem ajuste de kcal, a proteína somada), no tom da comida (informação, nunca alerta).
+  const delta = adjustmentChipText(goals, { hideCalories, isToday }) ?? proteinChipText(goals.proteinBoost);
+  const deltaTone = themeDomainTone(scheme).food;
+  const deltaText = (
+    <AppText size={fontSize.xs} weight={700} color={colors.green700} numberOfLines={1} style={[styles.tabular, styles.deltaText]}>
+      {delta}
+    </AppText>
+  );
   return (
     <View style={styles.card} onLayout={onLayout} testID="diary-balance">
       <View style={styles.head}>
-        <AppText size={fontSize.xs} weight={800} upper tracking={0.08} color={colors.muted} accessibilityRole="header">
-          {hideCalories ? title : `${title} · kcal`}
-        </AppText>
+        <View style={styles.lead}>
+          <AppText size={fontSize.xs} weight={800} upper tracking={0.08} color={colors.muted} accessibilityRole="header">
+            {hideCalories ? title : `${title} · kcal`}
+          </AppText>
+          {delta ? (
+            canExplain ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={goals.adjustmentNote ?? delta}
+                {...webAttrs({ "aria-haspopup": "dialog" })}
+                onPress={onExplain}
+                testID="balance-delta"
+                style={({ pressed }) => [styles.delta, { backgroundColor: deltaTone.bg, borderColor: deltaTone.border }, pressed && styles.pressed]}
+              >
+                {deltaText}
+              </Pressable>
+            ) : (
+              <View
+                accessible
+                accessibilityLabel={goals.adjustmentNote ?? delta}
+                testID="balance-delta"
+                style={[styles.delta, { backgroundColor: deltaTone.bg, borderColor: deltaTone.border }]}
+              >
+                {deltaText}
+              </View>
+            )
+          ) : null}
+        </View>
         {/* (i) sem fundo, só o traço cinza; o alvo continua com 44 px. */}
-        {!hideCalories && goals.calories !== null && (
+        {canExplain && (
           <IconButton icon={Info} iconSize={20} variant="ghost" accessibilityLabel="Como calculamos" onPress={onExplain} style={styles.info} />
         )}
       </View>
@@ -137,12 +176,6 @@ export function BalanceCard({ totals, goals, hideCalories, isToday = false, onEx
         ))}
       {hideCalories && <MacroDonut macros={totals} />}
       <MacroSummary macros={macros} showBars isCompact />
-      {/* Ajuste dinâmico do dia (a frase já respeita "Ocultar calorias"): informativo, sem cor de alerta. */}
-      {goals.adjustmentNote ? (
-        <AppText size={fontSize.xs} color={colors.muted} lineHeight={19}>
-          {goals.adjustmentNote}
-        </AppText>
-      ) : null}
     </View>
   );
 }
@@ -203,6 +236,21 @@ const useStyles = makeStyles((colors) => ({
     boxShadow: shadows.card,
   },
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, minHeight: 40 },
+  /** Título e o chip do ajuste lado a lado; a 320 px o chip desce para a linha de baixo. */
+  lead: { flex: 1, minWidth: 0, flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 },
+  /** Nunca passa da coluna do título (a 320 px encostava no (i)): o texto encolhe com reticências; a frase inteira fica no nome acessível e em "Como calculamos". */
+  delta: {
+    flexDirection: "row",
+    alignItems: "center",
+    maxWidth: "100%",
+    flexShrink: 1,
+    minHeight: 28,
+    paddingHorizontal: 10,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+  },
+  deltaText: { flexShrink: 1, minWidth: 0 },
+  pressed: { transform: [{ scale: 0.97 }] },
   /** A conta centralizada (conceito 03): 1.645 − 1.210 = [435 Restam]. */
   equation: { flexDirection: "row", alignItems: "center", gap: 6 },
   term: { flex: 1, minWidth: 0, gap: 2, alignItems: "center" },

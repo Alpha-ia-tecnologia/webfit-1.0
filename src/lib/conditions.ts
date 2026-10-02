@@ -57,10 +57,10 @@ export interface ConditionGroup {
 /** Grupos para a pergunta da anamnese (web e app nativo). */
 export const CONDITION_GROUPS: readonly ConditionGroup[] = [
   { key: "nenhuma", title: "Sem condições", tags: [NO_CONDITION_TAG] },
-  { key: "ajustes", title: "Metas com cuidados", tags: ALLOWED_CONDITION_TAGS },
+  { key: "ajustes", title: "Com ajustes nas metas", tags: ALLOWED_CONDITION_TAGS },
   {
     key: "avaliacao",
-    title: "Pedem avaliação individual",
+    title: "Com orientação individual",
     tags: BLOCKING_CONDITION_TAGS,
   },
 ];
@@ -118,32 +118,142 @@ export function bmiOf(weight: number, heightCm: number): number | null {
   return weight / (meters * meters);
 }
 
-// ---------- Cuidados que acompanham as metas (sem números) ----------
-export const GLUCOSE_CARE_NOTE =
-  "Glicose: distribua os carboidratos ao longo do dia, prefira integrais e fibras e combine com proteína.";
-const CONDITION_CARE_NOTES: Partial<Record<ConditionTag, string>> = {
-  hipertensao:
-    "Pressão alta: prefira comida caseira, com menos sal, embutidos e ultraprocessados.",
-  pre_diabetes: GLUCOSE_CARE_NOTE,
-  diabetes_tipo_2: GLUCOSE_CARE_NOTE,
-  colesterol_triglicerides:
-    "Colesterol e triglicerídeos: priorize fibras, peixes e gorduras boas; evite frituras e açúcar.",
-  gordura_figado:
-    "Fígado: menos açúcar e bebida alcoólica; a perda de peso gradual ajuda.",
-  hipotireoidismo_tratado:
-    "Tireoide: mantenha o tratamento em dia; a meta considera a tireoide controlada.",
-  obesidade:
-    "A meta considera o seu IMC; a perda gradual é a mais sustentável.",
-};
-export const PEN_CARE_NOTE =
-  "Caneta: o apetite tende a cair. Priorize a proteína em cada refeição, beba água e prefira refeições menores. Converse com quem prescreveu antes de qualquer mudança.";
-/** O mesmo cuidado sem "beba água": restrição de líquidos informada ou ainda sem resposta. */
-export const PEN_CARE_NOTE_NO_WATER =
-  "Caneta: o apetite tende a cair. Priorize a proteína em cada refeição e prefira refeições menores. Converse com quem prescreveu antes de qualquer mudança.";
-export const UNDERWEIGHT_CARE_NOTE =
-  "Seu IMC já está abaixo do recomendado para perder peso; procure acompanhamento antes de buscar emagrecer.";
+// ---------- Cuidados que acompanham as metas (sem números, dados do corpo nem dose) ----------
+/** Ícones dos cuidados: nomes do lucide (lucide-react no web, lucide-react-native no app). */
+export type CareIconKey =
+  | "heartPulse"
+  | "droplet"
+  | "testTube"
+  | "activity"
+  | "gauge"
+  | "scale"
+  | "syringe"
+  | "shieldCheck"
+  | "stethoscope";
+export type CareKey =
+  | "pressao"
+  | "glicose"
+  | "colesterol"
+  | "figado"
+  | "tireoide"
+  | "imc"
+  | "caneta"
+  | "imc_baixo"
+  | "outro";
+/**
+ * Um cuidado do perfil: o chip (rótulo de 1–2 palavras + ícone) e a frase da folha
+ * "Cuidados do seu perfil". `text` ("Rótulo: frase") é o que vai em Goals.careNotes e ao agente.
+ */
+export interface CareItem {
+  key: CareKey;
+  /** 1–2 palavras para o chip ("Pressão alta", "Glicose", "Caneta", "IMC baixo"). */
+  label: string;
+  icon: CareIconKey;
+  /** A frase da folha, com inicial maiúscula; sem números, dados do corpo ou dose. */
+  body: string;
+  /** A linha completa ("Rótulo: frase"), de até CARE_TEXT_MAX caracteres. */
+  text: string;
+}
+/** Cada linha de cuidado cabe em duas linhas a 390 px, com o ícone ao lado. */
+export const CARE_TEXT_MAX = 90;
+export const CARE_SHEET_TITLE = "Cuidados do seu perfil";
+export const CARE_BUTTON_LABEL = "Cuidados";
 export const CARE_NOTES_CLOSING =
   "Confirme estas metas com quem acompanha você.";
+
+const lowerFirst = (s: string) =>
+  s.charAt(0).toLocaleLowerCase("pt-BR") + s.slice(1);
+const careItem = (
+  key: CareKey,
+  label: string,
+  icon: CareIconKey,
+  body: string,
+): CareItem => ({ key, label, icon, body, text: `${label}: ${lowerFirst(body)}` });
+
+const PRESSURE_CARE = careItem(
+  "pressao",
+  "Pressão alta",
+  "heartPulse",
+  "Prefira comida caseira, com menos sal, embutidos e ultraprocessados.",
+);
+const GLUCOSE_CARE = careItem(
+  "glicose",
+  "Glicose",
+  "droplet",
+  "Distribua os carboidratos no dia, com integrais, fibras e proteína.",
+);
+const LIPIDS_CARE = careItem(
+  "colesterol",
+  "Colesterol",
+  "testTube",
+  "Priorize fibras, peixes e gorduras boas; evite frituras e açúcar.",
+);
+const LIVER_CARE = careItem(
+  "figado",
+  "Fígado",
+  "activity",
+  "Menos açúcar e bebida alcoólica; a perda de peso gradual ajuda.",
+);
+const THYROID_CARE = careItem(
+  "tireoide",
+  "Tireoide",
+  "gauge",
+  "Mantenha o tratamento em dia; a meta considera a tireoide controlada.",
+);
+/** Obesidade: a meta já segue a faixa de IMC; só a palavra, nunca o valor. */
+const BMI_CARE = careItem(
+  "imc",
+  "IMC",
+  "scale",
+  "A meta já considera a sua faixa; a perda gradual é a mais sustentável.",
+);
+const PEN_CARE = careItem(
+  "caneta",
+  "Caneta",
+  "syringe",
+  "O apetite tende a cair; proteína em cada refeição, água e porções menores.",
+);
+/** O mesmo cuidado sem água: restrição de líquidos informada ou sem resposta (como canSuggestWater). */
+const PEN_CARE_NO_WATER = careItem(
+  "caneta",
+  "Caneta",
+  "syringe",
+  "O apetite tende a cair; proteína em cada refeição e porções menores.",
+);
+const UNDERWEIGHT_CARE = careItem(
+  "imc_baixo",
+  "IMC baixo",
+  "shieldCheck",
+  "Sem déficit na meta; procure acompanhamento antes de buscar emagrecer.",
+);
+const CONDITION_CARE: Partial<Record<ConditionTag, CareItem>> = {
+  hipertensao: PRESSURE_CARE,
+  pre_diabetes: GLUCOSE_CARE,
+  diabetes_tipo_2: GLUCOSE_CARE,
+  colesterol_triglicerides: LIPIDS_CARE,
+  gordura_figado: LIVER_CARE,
+  hipotireoidismo_tratado: THYROID_CARE,
+  obesidade: BMI_CARE,
+};
+const CARE_BY_TEXT: ReadonlyMap<string, CareItem> = new Map(
+  [
+    PRESSURE_CARE,
+    GLUCOSE_CARE,
+    LIPIDS_CARE,
+    LIVER_CARE,
+    THYROID_CARE,
+    BMI_CARE,
+    PEN_CARE,
+    PEN_CARE_NO_WATER,
+    UNDERWEIGHT_CARE,
+  ].map((item) => [item.text, item]),
+);
+
+/** As linhas completas (as mesmas de Goals.careNotes), para o agente e os testes. */
+export const GLUCOSE_CARE_NOTE = GLUCOSE_CARE.text;
+export const PEN_CARE_NOTE = PEN_CARE.text;
+export const PEN_CARE_NOTE_NO_WATER = PEN_CARE_NO_WATER.text;
+export const UNDERWEIGHT_CARE_NOTE = UNDERWEIGHT_CARE.text;
 
 export interface CareNotesInput {
   conditionTags: readonly ConditionTag[];
@@ -153,18 +263,42 @@ export interface CareNotesInput {
   /** Objetivo "perder" com IMC abaixo de 18,5 (sem déficit). */
   underweightForLoss: boolean;
 }
-/** Uma linha por cuidado (glicose uma vez só) e o fechamento quando algum se aplica. */
-export function careNotesFor(input: CareNotesInput): string[] {
-  const conditionNotes = input.conditionTags.flatMap((tag) => {
-    const note = CONDITION_CARE_NOTES[tag];
-    return note ? [note] : [];
-  });
-  const notes = [
-    ...new Set(conditionNotes),
+/** Os cuidados, um por chave (glicose uma vez só), na ordem: condições, caneta, IMC baixo. */
+export function careItemsFor(input: CareNotesInput): CareItem[] {
+  const items = [
+    ...input.conditionTags.flatMap((tag) => {
+      const item = CONDITION_CARE[tag];
+      return item ? [item] : [];
+    }),
     ...(input.usesPen
-      ? [input.fluidRestriction === "nao" ? PEN_CARE_NOTE : PEN_CARE_NOTE_NO_WATER]
+      ? [input.fluidRestriction === "nao" ? PEN_CARE : PEN_CARE_NO_WATER]
       : []),
-    ...(input.underweightForLoss ? [UNDERWEIGHT_CARE_NOTE] : []),
+    ...(input.underweightForLoss ? [UNDERWEIGHT_CARE] : []),
   ];
+  return items.filter(
+    (item, index) => items.findIndex((other) => other.key === item.key) === index,
+  );
+}
+/** Uma linha por cuidado e o fechamento quando algum se aplica (Goals.careNotes, contexto do agente). */
+export function careNotesFor(input: CareNotesInput): string[] {
+  const notes = careItemsFor(input).map((item) => item.text);
   return notes.length ? [...notes, CARE_NOTES_CLOSING] : [];
+}
+/**
+ * Os cuidados por trás de Goals.careNotes (o fechamento sai): as telas só recebem as frases.
+ * Uma frase desconhecida vira um cuidado genérico, para nunca sumir.
+ */
+export function careItemsOf(notes: readonly string[]): CareItem[] {
+  return notes
+    .filter((note) => note !== CARE_NOTES_CLOSING)
+    .map(
+      (note) =>
+        CARE_BY_TEXT.get(note) ?? {
+          key: "outro",
+          label: "Cuidado",
+          icon: "stethoscope",
+          body: note,
+          text: note,
+        },
+    );
 }

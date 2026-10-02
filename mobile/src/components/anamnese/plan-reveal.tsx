@@ -16,7 +16,7 @@ import {
 } from "@shared/lib/plan-reveal";
 import type { Draft, Goals, Profile } from "@shared/types";
 import { webAttrs } from "@/components/refeicao/web-a11y";
-import { CareNotes } from "@/components/espaco/care-notes";
+import { CareChips } from "@/components/espaco/care-chips";
 import { AppText, Button, IconTile, Pill } from "@/components/ui";
 import { focusNode } from "@/lib/focus";
 import { makeStyles, useThemeColors } from "@/theme/theme";
@@ -139,7 +139,7 @@ export function PlanReveal({ profile, goals, variant, today, animate, pending, b
           ) : null}
           {variant !== "habitos" ? <HideCaloriesRow checked={variant === "prato"} onToggle={onToggleHideCalories} /> : null}
           <PlanBody profile={profile} goals={goals} variant={variant} />
-          <CareNotes notes={goals.careNotes} />
+          <CareChips notes={goals.careNotes} />
           <PlanDuo profile={profile} goals={goals} />
           {projection && profile.targetWeight !== null ? (
             <ProjectionCard

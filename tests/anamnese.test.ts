@@ -373,8 +373,8 @@ test("condições: pílulas da lista fechada, “Nenhuma” exclusiva e rascunho
   assert.equal(split.hidden.length, 0);
   const sections = choiceSections(config, split.visible);
   assert.deepEqual(sections.map((s) => [s.title, s.options.length]), [
-    ["Metas com cuidados", 7],
-    ["Pedem avaliação individual", 5],
+    ["Com ajustes nas metas", 7],
+    ["Com orientação individual", 5],
   ]);
   // Texto das pílulas ↔ códigos do rascunho, na ordem da lista.
   assert.equal(

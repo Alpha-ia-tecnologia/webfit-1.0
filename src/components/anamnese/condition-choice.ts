@@ -57,8 +57,8 @@ const labelOf = (tag: ConditionTag) => CONDITION_LABELS[tag];
 
 /**
  * Pílulas da pergunta: o valor de cada opção é o rótulo em português (texto visível e nome
- * acessível); "Nenhuma" é excludente; todas ficam à vista, nos grupos de lib/conditions; sem "Outros"
- * livre (a "Outra" da lista abre os detalhes).
+ * acessível); "Nenhuma" é excludente e, abaixo de "ou marque o que se aplica", todas ficam à vista, nos
+ * grupos de lib/conditions; sem "Outros" livre (a "Outra" da lista abre os detalhes).
  */
 export const CONDITION_CHOICES: ChoiceConfig = {
   mode: "multi",
@@ -68,6 +68,7 @@ export const CONDITION_CHOICES: ChoiceConfig = {
     ...(tag === NO_CONDITION_TAG ? { none: true } : {}),
   })),
   hideOther: true,
+  divider: "ou marque o que se aplica",
   sections: CONDITION_GROUPS.filter((group) => group.key !== "nenhuma").map(
     (group) => ({ title: group.title, values: group.tags.map(labelOf) }),
   ),

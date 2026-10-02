@@ -7,6 +7,7 @@ import {
   suggestionEmoji,
   weekCardLayout,
   type ChatBlock,
+  type MealOption,
   type WeekCardView,
 } from "@shared/lib/agent-blocks";
 import { isSensitive } from "@shared/lib/day";
@@ -145,21 +146,39 @@ export function ChatBlocks({
         );
       })}
       {footer}
-      {isLatest && plain.suggestions.length ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.repliesScroller}
-          contentContainerStyle={styles.replies}
-          role="group"
-          aria-label="Sugestões do agente"
-        >
-          {plain.suggestions.map((suggestion) => (
-            <ReplyPill key={suggestion} text={suggestion} emoji={suggestionEmoji(suggestion, options)} onPress={() => onSuggestion(suggestion)} />
-          ))}
-        </ScrollView>
-      ) : null}
+      {isLatest ? <QuickReplies suggestions={plain.suggestions} options={options} onSuggestion={onSuggestion} /> : null}
     </>
+  );
+}
+
+/**
+ * Respostas rápidas no fim da última resposta (blocos e cartão-relatório): uma fila que rola até a borda da tela, com
+ * o emoji da opção ou do alimento citado. Nada quando não há sugestões.
+ */
+export function QuickReplies({
+  suggestions,
+  options,
+  onSuggestion,
+}: {
+  suggestions: readonly string[];
+  options: readonly MealOption[];
+  onSuggestion: (text: string) => void;
+}) {
+  const styles = useStyles();
+  if (!suggestions.length) return null;
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.repliesScroller}
+      contentContainerStyle={styles.replies}
+      role="group"
+      aria-label="Sugestões do agente"
+    >
+      {suggestions.map((suggestion) => (
+        <ReplyPill key={suggestion} text={suggestion} emoji={suggestionEmoji(suggestion, options)} onPress={() => onSuggestion(suggestion)} />
+      ))}
+    </ScrollView>
   );
 }
 

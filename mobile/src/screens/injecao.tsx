@@ -64,7 +64,7 @@ import { WhenRow } from "@/components/injecao/when-row";
 import { Screen } from "@/components/layout/screen";
 import { QuickEntryForm } from "@/components/quick/quick-entry-form";
 import { AppText, Button, Card, IconButton, Notice, Sheet } from "@/components/ui";
-import { ScreenSignal } from "@/components/signals/screen-signal";
+import { ScreenInsightChips } from "@/components/signals/insight-chips";
 import { focusNode } from "@/lib/focus";
 import { selectionHaptic } from "@/lib/haptics";
 import { useTimeouts } from "@/lib/timeouts";
@@ -370,6 +370,8 @@ function InjecaoContent() {
   return (
     <Screen header={{ variant: "default", title: editing ? "Editar aplicação" : "Seringa e dose", actions: guideButton }} scroll={false}>
       <ScrollView ref={scroller} style={styles.fill} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        {/* Sinal da caneta (comer pouco, enjoo) como chip + folha, logo abaixo do cabeçalho; fora da edição. */}
+        {!editing && <ScreenInsightChips screen="seringa" />}
         {!isFormView && seed.recipe ? (
           <>
             {/* O aviso de aplicação recente fica na folha de confirmação (recalculado pela data), como no web. */}
@@ -452,8 +454,6 @@ function InjecaoContent() {
             {editing && <Button label="Cancelar edição" variant="text" onPress={leave} style={styles.center} />}
           </>
         )}
-        {/* Sinal do app para quem usa caneta (comer pouco, enjoo); fora da edição de um registro. */}
-        {!editing && <ScreenSignal screen="seringa" />}
         {stock && <StockRow model={stock} onEdit={() => setStockMode("edit")} />}
         {history}
       </ScrollView>

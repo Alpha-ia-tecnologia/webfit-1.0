@@ -5,19 +5,24 @@ import {
   describeAgentMetaFull,
   describeAgentMetaShort,
   messageViews,
+  replyViews,
+  visibleProfileReport,
 } from "../../lib/agent-presentation";
 import {
   AGENT_STAGES,
   stageLabel,
   type AgentProgress,
 } from "../../lib/agent-stream";
-import { DAILY_COMMENT_CHIP } from "../../lib/daily-comment";
+import { useApp } from "../../lib/context";
+import { DAILY_COMMENT_CHIP, commentParts } from "../../lib/daily-comment";
+import { isSensitive } from "../../lib/day";
 import { visiblePlainText } from "../../lib/text";
 import type { AgentMeta, ChatMessage } from "../../types";
 import { RichText } from "../RichText";
 import { useBodyNumbersHidden } from "../useBodyNumbersHidden";
 import { ChatBlocks } from "./ChatBlocks";
 import { DietSummaryCard } from "./DietSummaryCard";
+import { ReportCard } from "./ReportCard";
 
 const timeOf = (iso: string) =>
   new Date(iso).toLocaleTimeString("pt-BR", {
@@ -58,6 +63,34 @@ function ReviewLine({ meta, isVisible }: { meta: AgentMeta; isVisible: boolean }
       <span aria-hidden="true">{describeAgentMetaShort(meta)}</span>
       <span className="sr-only">{full}</span>
     </p>
+  );
+}
+
+/**
+ * Recado do dia: a resposta ao comentário automático numa bolha pequena (bolinha do agente e a
+ * frase em 15 px), sem seções; o aviso "Recado do dia · 07:10" logo acima já dá o nome e a hora.
+ * A frase é a mesma do título do Resumo (`commentParts`: 1º bloco "texto" ou 1ª frase, ≤ 90); uma
+ * observação extra, se vier, fica em 13 px. Calorias e números do corpo ocultos passam pela mesma
+ * máscara do texto.
+ */
+function DailyNote({
+  message,
+  hideCalories,
+  hideBody,
+}: {
+  message: ChatMessage;
+  hideCalories: boolean;
+  hideBody: boolean;
+}) {
+  const { headline, detail } = commentParts(message, hideCalories, hideBody);
+  return (
+    <div className="daily-note" data-testid="daily-note">
+      <AgentDot />
+      <div className="daily-note-body">
+        <p className="daily-note-text">{headline}</p>
+        {detail && <p className="daily-note-detail">{detail}</p>}
+      </div>
+    </div>
   );
 }
 
@@ -125,8 +158,17 @@ export function ChatThread({
   empty: ReactNode;
 }) {
   const views = messageViews(messages);
+  const replies = replyViews(messages);
   const days = messages.map((m) => chatDayLabel(m.timestamp, today));
   const hideBody = useBodyNumbersHidden();
+  const { state } = useApp();
+  // Limpeza do relatório para este perfil (como ChatBlocks): sensível, alergias e números ocultos.
+  const reportContext = {
+    sensitive: state.profile ? isSensitive(state.profile) : false,
+    allergyDetails: state.profile?.allergyDetails ?? "",
+    hideCalories,
+    hideBodyNumbers: hideBody,
+  };
   const lastAi = messages.reduce((last, m, i) => (m.sender === "ai" ? i : last), -1);
   return (
     <div
@@ -199,6 +241,33 @@ export function ChatThread({
             {visiblePlainText(note, hideCalories, hideBody)}
           </p>
         ));
+        const reply = replies.get(m.id);
+        // Relatório da análise do perfil: o cartão quando a estrutura sobrevive à limpeza do perfil.
+        const report =
+          reply === "report" ? visibleProfileReport(m.blocks ?? [], reportContext) : null;
+        if (report)
+          return [
+            separator,
+            <article key={m.id} className="chat-row ai is-event">
+              <ReportCard
+                report={report}
+                time={time}
+                meta={m.meta}
+                isLatest={index === messages.length - 1}
+                onSuggestion={onBlockSuggestion}
+              />
+              {notes}
+            </article>,
+          ];
+        if (reply === "daily")
+          return [
+            separator,
+            <article key={m.id} className="chat-row ai is-event">
+              <DailyNote message={m} hideCalories={hideCalories} hideBody={hideBody} />
+              {review}
+              {notes}
+            </article>,
+          ];
         if (view === "blocks")
           return [
             separator,

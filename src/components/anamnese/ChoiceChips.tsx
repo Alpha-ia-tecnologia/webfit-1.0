@@ -183,7 +183,7 @@ export function ChoiceChips({
       )}
       {exclusive.length > 0 && showCommon && (
         <p className="choice-divider" aria-hidden="true">
-          ou escolha
+          {config.divider ?? "ou escolha"}
         </p>
       )}
       {showCommon && config.sections ? (

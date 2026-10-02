@@ -26,7 +26,7 @@ import { SERIES, SeriesSheet } from "@/components/evolucao/series-sheet";
 import { WeightCard } from "@/components/evolucao/weight-card";
 import { Screen } from "@/components/layout/screen";
 import { AppText, Button, IconButton } from "@/components/ui";
-import { ScreenSignal } from "@/components/signals/screen-signal";
+import { ScreenInsightChips } from "@/components/signals/insight-chips";
 import { espacoHref } from "@/lib/espaco-link";
 import { useApp } from "@/state/app-context";
 import { makeStyles, useThemeColors } from "@/theme/theme";
@@ -67,6 +67,8 @@ export function EvolucaoScreen() {
   const minis: DailyKind[] = [p.hideCalories ? "meals" : "calories", "water"];
   return (
     <Screen header={{ variant: "large", title: EVOLUCAO_TITLE, subtitle: evolutionSubtitle(state, today) }} withTabBar>
+      {/* Sinais do app (descanso, tendência do peso em palavras) como chips, logo abaixo do cabeçalho. */}
+      <ScreenInsightChips screen="evolucao" />
       {hasJourney ? (
         <JourneyCard
           journey={journey}
@@ -80,7 +82,6 @@ export function EvolucaoScreen() {
         <StartLine journey={journey} items={startChecklist(state, today)} onRegister={() => setOpen(true)} hidden={hidden} />
       )}
       {hasJourney && <WeightCard target={journey.target} dose={calm || hidden ? null : timeline} isSensitive={calm} hidden={hidden} />}
-      <ScreenSignal screen="evolucao" />
       <View style={styles.days}>
         <View style={styles.daysHead}>
           <View style={styles.daysTitle}>

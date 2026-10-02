@@ -24,7 +24,7 @@ import { MeasurementModal } from "./evolucao/MeasurementModal";
 import { SERIES, SeriesSheet } from "./evolucao/SeriesSheet";
 import { WeightCard } from "./evolucao/WeightCard";
 import { focusWhenReady, HIDE_BODY_SWITCH_ID } from "./espaco/focusWhenReady";
-import { ScreenSignal } from "./signals/ScreenSignal";
+import { ScreenInsightChips } from "./signals/InsightChips";
 import "./evolucao/Evolucao.css";
 import "./evolucao/Hidden.css";
 
@@ -61,6 +61,8 @@ export function ScreenEvolucao() {
   const minis: DailyKind[] = [p.hideCalories ? "meals" : "calories", "water"];
   return (
     <Page title={EVOLUCAO_TITLE}>
+      {/* Sinais do app (descanso, tendência do peso em palavras) como chips, logo abaixo do cabeçalho. */}
+      <ScreenInsightChips screen="evolucao" />
       {hasJourney ? (
         <JourneyCard
           journey={journey}
@@ -89,7 +91,6 @@ export function ScreenEvolucao() {
           hidden={bodyHidden}
         />
       )}
-      <ScreenSignal screen="evolucao" />
       <section className="evol-days" aria-labelledby="evol-days-title">
         <div className="evol-days-head">
           <div className="evol-days-title">

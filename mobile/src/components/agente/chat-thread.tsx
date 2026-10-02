@@ -2,17 +2,27 @@ import { LinearGradient } from "expo-linear-gradient";
 import { RotateCcw, ShieldCheck, Sparkles } from "lucide-react-native";
 import { Fragment, type ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
-import { chatDayLabel, describeAgentMetaFull, describeAgentMetaShort, messageViews } from "@shared/lib/agent-presentation";
+import {
+  chatDayLabel,
+  describeAgentMetaFull,
+  describeAgentMetaShort,
+  messageViews,
+  replyViews,
+  visibleProfileReport,
+} from "@shared/lib/agent-presentation";
 import { AGENT_STAGES, stageLabel, type AgentProgress } from "@shared/lib/agent-stream";
+import { isSensitive } from "@shared/lib/day";
 import { visiblePlainText } from "@shared/lib/text";
-import { DAILY_COMMENT_CHIP } from "@shared/lib/daily-comment";
+import { DAILY_COMMENT_CHIP, commentParts } from "@shared/lib/daily-comment";
 import type { AgentMeta, ChatMessage } from "@shared/types";
 import { srOnly } from "@/components/refeicao/web-a11y";
 import { AppText, Button, LiveAnnouncement, Notice, RichText } from "@/components/ui";
+import { useApp } from "@/state/app-context";
 import { makeStyles, useThemeColors } from "@/theme/theme";
 import { diagonalDown, fontSize, gradients, radius, shadows } from "@/theme/tokens";
 import { ChatBlocks } from "./chat-blocks";
 import { DietSummaryCard } from "./diet-summary-card";
+import { ReportCard } from "./report-card";
 
 const timeOf = (iso: string) => new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
@@ -77,6 +87,33 @@ export function SystemChip({ children }: { children: ReactNode }) {
       <Sparkles size={13} color={colors.green700} />
       {/* Em telas estreitas o texto quebra ao lado do ícone (o ícone nunca fica sozinho na 1ª linha). */}
       <View style={styles.systemText}>{children}</View>
+    </View>
+  );
+}
+
+/**
+ * Recado do dia (DailyNote do web): a resposta ao comentário automático numa bolha pequena (bolinha do agente e a
+ * frase em 15 px), sem seções; o aviso "Recado do dia · 07:10" logo acima já dá o nome e a hora. A frase é a mesma do
+ * título do Resumo (`commentParts`: 1º bloco "texto" ou 1ª frase, ≤ 90); uma observação extra, se vier, fica em
+ * 13 px. Calorias e números do corpo ocultos passam pela mesma máscara do texto.
+ */
+function DailyNote({ message, hideCalories, hideBodyNumbers }: { message: ChatMessage; hideCalories: boolean; hideBodyNumbers: boolean }) {
+  const styles = useStyles();
+  const colors = useThemeColors();
+  const { headline, detail } = commentParts(message, hideCalories, hideBodyNumbers);
+  return (
+    <View style={styles.note} testID="daily-note">
+      <AgentDot />
+      <View style={styles.noteBody}>
+        <AppText size={fontSize.md} weight={600} lineHeight={22}>
+          {headline}
+        </AppText>
+        {detail ? (
+          <AppText size={fontSize.sm} lineHeight={19} color={colors.text2}>
+            {detail}
+          </AppText>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -160,7 +197,16 @@ export function ChatThread({
   const styles = useStyles();
   const colors = useThemeColors();
   const views = messageViews(messages);
+  const replies = replyViews(messages);
   const days = messages.map((m) => chatDayLabel(m.timestamp, today));
+  const { state } = useApp();
+  // Limpeza do relatório para este perfil (como ChatBlocks): sensível, alergias e números ocultos.
+  const reportContext = {
+    sensitive: state.profile ? isSensitive(state.profile) : false,
+    allergyDetails: state.profile?.allergyDetails ?? "",
+    hideCalories,
+    hideBodyNumbers,
+  };
   const lastAi = messages.reduce((last, m, i) => (m.sender === "ai" ? i : last), -1);
   return (
     <View style={styles.thread} accessibilityRole="list" accessibilityLabel="Conversa com o agente">
@@ -217,7 +263,21 @@ export function ChatThread({
           const review = m.meta ? <ReviewLine meta={m.meta} isVisible={index === lastAi} /> : null;
           const notes = m.meta?.notes.map((note) => <Notice key={note}>{visiblePlainText(note, hideCalories, hideBodyNumbers)}</Notice>);
           const text = <RichText text={m.text} hideCalories={hideCalories} hideBodyNumbers={hideBodyNumbers} size={fontSize.md} />;
-          body = (
+          const reply = replies.get(m.id);
+          // Relatório da análise do perfil: o cartão quando a estrutura sobrevive à limpeza do perfil.
+          const report = reply === "report" ? visibleProfileReport(m.blocks ?? [], reportContext) : null;
+          body = report ? (
+            <View style={styles.aiRow}>
+              <ReportCard report={report} time={time} meta={m.meta} isLatest={index === messages.length - 1} onSuggestion={onBlockSuggestion} />
+              {notes}
+            </View>
+          ) : reply === "daily" ? (
+            <View style={styles.aiRow}>
+              <DailyNote message={m} hideCalories={hideCalories} hideBodyNumbers={hideBodyNumbers} />
+              {review}
+              {notes}
+            </View>
+          ) : (
             <View style={styles.aiRow} testID={view === "blocks" ? "chat-blocks" : undefined}>
               <AiHead time={time} />
               {view === "blocks" ? (
@@ -300,6 +360,19 @@ const useStyles = makeStyles((colors) => ({
   tabular: { fontVariant: ["tabular-nums"] },
   review: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: -2 },
   reviewText: { flexShrink: 1 },
+  /** Recado do dia: bolha pequena com a bolinha do agente e a frase. */
+  note: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    minWidth: 0,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    boxShadow: shadows.card,
+  },
+  noteBody: { flex: 1, minWidth: 0, gap: 2 },
   /** A pessoa: bolha verde à direita, até 82% da largura, canto de baixo à direita de 6 px. */
   userRow: { alignSelf: "flex-end", alignItems: "flex-end", maxWidth: "82%", gap: 8 },
   bubble: {

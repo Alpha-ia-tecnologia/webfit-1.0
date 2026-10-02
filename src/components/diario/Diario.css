@@ -16,6 +16,48 @@
   text-transform: uppercase;
   color: var(--wf-text-muted);
 }
+/* Título e o chip do ajuste lado a lado; a 320 px o chip desce para a linha de baixo. */
+.diary-balance-lead {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+}
+/* Delta do ajuste dinâmico: chip no tom da comida (informação, nunca alerta); com "Como calculamos" é botão. */
+.balance-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--wf-tone-food-border);
+  border-radius: 999px;
+  background: var(--wf-tone-food-bg);
+  color: var(--wf-tone-food-fg);
+  font-family: inherit;
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+button.balance-delta {
+  cursor: pointer;
+  transition:
+    transform 0.15s var(--wf-ease),
+    border-color 0.2s var(--wf-ease);
+}
+button.balance-delta:hover {
+  border-color: var(--wf-tone-food-fg);
+}
+button.balance-delta:active {
+  transform: scale(0.97);
+}
+button.balance-delta:focus-visible {
+  outline: 2px solid var(--wf-green-700);
+  outline-offset: 2px;
+}
 /* (i) sem fundo, só o traço cinza; o alvo continua com 44 px. */
 .diary-balance-info {
   display: grid;

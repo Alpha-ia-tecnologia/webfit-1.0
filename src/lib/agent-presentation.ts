@@ -1,8 +1,11 @@
+import type { Domain } from "../design/tokens";
 import type { AgentMeta, AppState, ChatMessage } from "../types";
+import { layoutSections, type ChatBlock, type ChatSection } from "./agent-blocks";
 import { isDailyCommentRequest } from "./daily-comment";
 import { DIET_PLAN_REQUEST } from "./diet";
 import { agentContext, localDate } from "./domain";
 import { fmtShortDate, plural } from "./format";
+import { maskStructured } from "./structured";
 
 /** Descreve a automação sem sugerir atendimento ou revisão por um profissional. */
 export function describeAgentMeta(meta: AgentMeta): string {
@@ -29,18 +32,165 @@ export function describeAgentMetaFull(meta: AgentMeta): string {
   return `${describeAgentMeta(meta)}, ${AGENT_REVIEW_NOTE}`;
 }
 
+/** Início fixo do pedido de análise: conversas com o pedido antigo continuam reconhecidas por ele. */
+export const PROFILE_ANALYSIS_PREFIX = "Faça uma análise detalhada do meu perfil";
+export const isProfileAnalysisRequest = (text: string) => text.startsWith(PROFILE_ANALYSIS_PREFIX);
+
+/** Títulos literais das 4 listas do relatório, na ordem em que o cartão as desenha. */
+export const PROFILE_REPORT_TITLES = {
+  well: "Indo bem",
+  attention: "Atenção",
+  suggestions: "Sugestões para os próximos dias",
+  talk: "Para conversar com quem acompanha você",
+} as const;
+export type ReportSectionKey = keyof typeof PROFILE_REPORT_TITLES;
+/** Rótulos curtos do cartão (cabem numa linha a 320 px); os títulos longos ficam só no pedido. */
+export const PROFILE_REPORT_LABELS: Record<ReportSectionKey, string> = {
+  well: "Indo bem",
+  attention: "Atenção",
+  suggestions: "Sugestões",
+  talk: "Para conversar",
+};
+
 /**
  * Pedido pronto de "Analisar meu perfil" (modo chat): cruza anamnese, registros e preferências
- * usando as metas do app como estão. Nunca pede números novos de meta nem comentário de dose.
+ * usando as metas do app como estão e dita a estrutura em blocos que o cartão-relatório desenha
+ * (1 texto, as 4 listas de PROFILE_REPORT_TITLES, sugestões). Nunca pede números novos de meta
+ * nem comentário de dose. O esquema do servidor não muda: são blocos que ele já aceita.
  */
-export const PROFILE_ANALYSIS_REQUEST =
-  "Faça uma análise detalhada do meu perfil, cruzando a minha anamnese (objetivo, condições de saúde declaradas, uso de caneta, nível de atividade, sono e estresse), o meu diário recente, as medidas, as aplicações e os sintomas registrados, e as minhas preferências (alimentos favoritos e evitados, rotina, tempo para cozinhar e orçamento). Use as metas do app como estão, sem recalcular, e não comente nem sugira doses. Organize em: 1) o que está indo bem; 2) pontos de atenção; 3) sugestões práticas de refeições para os próximos dias, respeitando as minhas preferências; 4) o que conversar com o meu profissional de saúde.";
+export const PROFILE_ANALYSIS_REQUEST = `${PROFILE_ANALYSIS_PREFIX}, cruzando a minha anamnese (objetivo, condições de saúde declaradas, uso de caneta, nível de atividade, sono e estresse), o meu diário recente, as medidas, as aplicações e os sintomas registrados, e as minhas preferências (alimentos favoritos e evitados, rotina, tempo para cozinhar e orçamento). Use as metas do app como estão, sem recalcular, e não comente nem sugira doses. Responda só com blocos, nesta ordem: 1 bloco "texto" com uma síntese de até 120 caracteres; depois exatamente 4 blocos "lista" (ordenada=false) com estes títulos literais: "${PROFILE_REPORT_TITLES.well}", "${PROFILE_REPORT_TITLES.attention}", "${PROFILE_REPORT_TITLES.suggestions}" (refeições práticas que respeitem as minhas preferências) e "${PROFILE_REPORT_TITLES.talk}", cada lista com 2 a 3 itens de até 80 caracteres, em frases diretas, sem markdown e sem números de dose; por fim 1 bloco "sugestoes".`;
+
+export interface ReportSection {
+  key: ReportSectionKey;
+  title: string;
+  /** indo bem = positivo (verde-água), atenção = informativo (azul), sugestões = agente (menta), conversar = neutro. */
+  tone: Domain;
+  items: string[];
+}
+export interface ProfileReport {
+  /** A síntese (o bloco "texto"), sem markdown. */
+  summary: string;
+  /** As 4 seções, na ordem do cartão. */
+  sections: ReportSection[];
+  /** Próximas perguntas (bloco "sugestoes"), quando houver. */
+  suggestions: string[];
+}
+
+const REPORT_TONE: Record<ReportSectionKey, Domain> = {
+  well: "habit",
+  attention: "water",
+  suggestions: "food",
+  talk: "neutral",
+};
+const REPORT_KEYS = Object.keys(PROFILE_REPORT_TITLES) as ReportSectionKey[];
+
+const foldText = (text: string) =>
+  text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+/** Sem negrito, marcador ou numeração à frente e com os espaços normalizados. */
+const plainItem = (text: string) =>
+  text
+    .replace(/\*\*/g, "")
+    .replace(/^\s*(?:[-*•]|\d+[.)])\s+/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+/** A que seção o título de uma lista pertence: aceita numeração, dois-pontos e variações ("Pontos de atenção"). */
+function reportKey(title: string | null): ReportSectionKey | null {
+  if (!title) return null;
+  const folded = foldText(plainItem(title)).replace(/[:.!]+$/, "").trim();
+  if (folded.includes("indo bem")) return "well";
+  if (folded.includes("conversar")) return "talk";
+  if (folded.startsWith("sugest")) return "suggestions";
+  if (folded.includes("atencao")) return "attention";
+  return null;
+}
+
+const isText = (b: ChatBlock): b is Extract<ChatBlock, { tipo: "texto" }> => b.tipo === "texto";
+const isList = (b: ChatBlock): b is Extract<ChatBlock, { tipo: "lista" }> => b.tipo === "lista";
+
+/**
+ * Lê a resposta ao pedido de análise como relatório: exatamente 1 bloco "texto" (a síntese) e as
+ * 4 listas com os títulos pedidos, em qualquer ordem, com "sugestoes" opcional. Qualquer outro
+ * bloco, lista repetida, ausente ou vazia devolve null: a resposta segue no desenho normal.
+ */
+export function profileReport(sections: readonly ChatSection[]): ProfileReport | null {
+  const blocks = sections.flatMap((section) => section.blocos);
+  const texts = blocks.filter(isText);
+  const lists = blocks.filter(isList);
+  const others = blocks.filter((b) => !isText(b) && !isList(b) && b.tipo !== "sugestoes");
+  if (texts.length !== 1 || lists.length !== 4 || others.length) return null;
+  const found = new Map<ReportSectionKey, string[]>();
+  for (const list of lists) {
+    const key = reportKey(list.titulo);
+    const items = list.itens.map(plainItem).filter(Boolean);
+    if (!key || found.has(key) || !items.length) return null;
+    found.set(key, items);
+  }
+  const summary = plainItem(texts[0].texto);
+  if (!summary) return null;
+  return {
+    summary,
+    sections: REPORT_KEYS.map((key) => ({
+      key,
+      title: PROFILE_REPORT_LABELS[key],
+      tone: REPORT_TONE[key],
+      items: found.get(key) ?? [],
+    })),
+    suggestions: blocks.flatMap((b) => (b.tipo === "sugestoes" ? b.itens : [])),
+  };
+}
+
+export interface ReportContext {
+  sensitive: boolean;
+  allergyDetails: string;
+  hideCalories: boolean;
+  hideBodyNumbers: boolean;
+}
+/**
+ * O relatório como a tela o desenha: blocos limpos para o perfil (layoutSections: sugestões sem
+ * medicamento, incentivo sensível ou alergênico) e todo texto já sem calorias ou números do corpo
+ * ocultos. Null quando, depois da limpeza, a estrutura não bate: a tela volta aos blocos normais.
+ */
+export function visibleProfileReport(
+  sections: readonly ChatSection[],
+  ctx: ReportContext,
+): ProfileReport | null {
+  const layout = layoutSections(sections, ctx);
+  const plain = maskStructured(layout, ctx.hideCalories, {
+    plain: true,
+    hideBodyNumbers: ctx.hideBodyNumbers,
+  });
+  const report = profileReport(plain.sections);
+  return report ? { ...report, suggestions: plain.suggestions } : null;
+}
+
+/**
+ * Respostas com desenho próprio: a que segue o pedido de análise, quando veio na estrutura pedida,
+ * é o cartão-relatório ("report"); a que segue o comentário automático do dia é o recado compacto
+ * ("daily"). Respostas com erro, ou após um pedido que falhou, seguem o desenho de sempre.
+ */
+export type ReplyView = "report" | "daily";
+export function replyViews(messages: ChatMessage[]): Map<string, ReplyView> {
+  const views = new Map<string, ReplyView>();
+  messages.forEach((message, index) => {
+    const request = messages[index - 1];
+    if (message.sender !== "ai" || message.status === "error") return;
+    if (request?.sender !== "user" || request.status === "error") return;
+    if (isDailyCommentRequest(request.text)) views.set(message.id, "daily");
+    else if (isProfileAnalysisRequest(request.text) && profileReport(message.blocks ?? []))
+      views.set(message.id, "report");
+  });
+  return views;
+}
 
 /**
  * Como cada mensagem aparece no chat. O texto salvo não muda: o pedido técnico da dieta
  * vira um aviso compacto, o plano que o segue vira um cartão-resumo, o pedido de análise do
- * perfil e o pedido do comentário automático do dia viram avisos (a resposta segue normal) e
- * respostas com blocos visuais (SIS-02) são desenhadas por blocos.
+ * perfil e o pedido do comentário automático do dia viram avisos (as respostas deles têm desenho
+ * próprio em replyViews) e respostas com blocos visuais (SIS-02) são desenhadas por blocos.
  */
 export type MessageView =
   | "text"
@@ -57,7 +207,7 @@ export function messageViews(
     // Pedido de análise que falhou continua como texto, com o "Tentar de novo" da bolha.
     if (
       message.sender === "user" &&
-      message.text === PROFILE_ANALYSIS_REQUEST &&
+      isProfileAnalysisRequest(message.text) &&
       message.status !== "error"
     )
       views.set(message.id, "profile-request");

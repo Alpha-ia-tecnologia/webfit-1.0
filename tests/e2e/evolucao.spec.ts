@@ -600,3 +600,39 @@ test("bem-estar com poucos dados e sem registro", async ({ page }) => {
   await card.getByRole("button", { name: "Registrar bem-estar" }).click();
   await expect(page.getByRole("dialog", { name: "Registrar bem-estar" })).toBeVisible();
 });
+
+/* ---------- Sinais do app (chips de insight + folha) ---------- */
+
+/** Bem-estar com um marcador de cansaço, estresse ou ansiedade. */
+function tiredEntry(date: string, tag: string) {
+  return diarySchema.parse({
+    id: `cansaco-${date}`,
+    userId: "seed",
+    date,
+    time: "21:00",
+    createdAt: `${date}T21:00:00Z`,
+    updatedAt: `${date}T21:00:00Z`,
+    type: "bem_estar",
+    title: "Bem-estar",
+    description: "",
+    rating: 3,
+    tags: [tag],
+  });
+}
+
+test("sinal do descanso: chip abaixo do cabeçalho, folha com a frase e a pergunta pronta, sem parágrafo na tela", async ({ page }) => {
+  // Três dias com cansaço, estresse ou ansiedade nos últimos 7: "Cuidar do descanso".
+  const state = { ...withJourney(), diary: [tiredEntry(day(6), "Cansaço"), tiredEntry(day(4), "Estresse"), tiredEntry(day(1), "Ansiedade")] };
+  await seed(page, state);
+  await openEvolucao(page);
+  const chip = page.getByTestId("insight-chips").locator('[data-signal="sono-estresse"]');
+  await expect(chip).toHaveText("Cuidar do descanso");
+  await expect(page.locator("main")).not.toContainText(/rotina de sono|Observado nos seus registros/);
+  await chip.click();
+  const sheet = page.getByRole("dialog", { name: "Cuidar do descanso" });
+  await expect(sheet.getByTestId("insight-sheet")).toContainText("rotina de sono");
+  await expect(sheet).not.toContainText(CAUSAL);
+  await expect(sheet.getByRole("button", { name: "Dispensar por 3 dias", exact: true })).toBeVisible();
+  await sheet.getByRole("button", { name: "Descansar melhor", exact: true }).click();
+  await expect(page.getByLabel("Mensagem para o agente")).toHaveValue(/descansar melhor/);
+});

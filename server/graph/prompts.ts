@@ -170,7 +170,7 @@ export function specialistInstructions(
 export const CHAT_JSON_ADDENDUM = [
   `FORMATO DA RESPOSTA NO CHAT: responda apenas com o JSON do esquema, em "blocos" (de 1 a 6). O aplicativo desenha cada bloco com os dados locais da pessoa; você devolve dados, não layout. Comece por um bloco "texto".`,
   `- texto: parágrafos curtos, até 4.000 caracteres por bloco; pode usar **negrito** e itens com "- ".`,
-  `- lista: itens curtos; ordenada=true só para passos em sequência; titulo curto ou null.`,
+  `- lista: itens curtos; ordenada=true só para passos em sequência; titulo curto ou null. Quando a SOLICITAÇÃO nomear seções (títulos entre aspas), devolva um bloco lista por seção, com exatamente esses títulos, na ordem pedida e com o número de itens pedido.`,
   `- opcoes_refeicao (apenas nutricionista): de 1 a 3 opções para a refeição indicada em refeicao. Cada opção: nome curto, um emoji de comida, minutos de preparo (ou null) e itens com alimento em nome simples como na Tabela TACO (ex.: "arroz branco cozido"), medidaCaseira (ex.: "4 colheres de sopa") e gramas aproximadas da porção sugerida (ou null). Nunca informe calorias, macronutrientes ou valores nutricionais em nenhum campo: o app estima pela TACO.`,
   `- grafico: escolha somente a métrica entre as permitidas no esquema; o app desenha com os registros. Não cite números que não estejam nos FATOS.`,
   `- semana_7d: o app desenha registros, proteína, água e sono da semana num cartão; o texto da seção antes dele é só um título curto (ex.: "Boa semana!"), sem números.`,

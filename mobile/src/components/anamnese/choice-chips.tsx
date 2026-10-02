@@ -122,7 +122,7 @@ export function ChoiceChips({ label, prompt, hint, error, optional, value, confi
   const pills = (
     <View style={styles.pills}>
       {exclusive.length > 0 && <View style={styles.exclusiveRow}>{exclusive.map((option) => chip(option, undefined, true))}</View>}
-      {exclusive.length > 0 && showCommon && <Divider />}
+      {exclusive.length > 0 && showCommon && <Divider text={config.divider ?? "ou escolha"} />}
       {showCommon && config.sections ? (
         <View style={styles.sections}>
           {choiceSections(config, visible).map((section, index) => (
@@ -224,8 +224,8 @@ function SectionTitle({ text }: { text: string }) {
   );
 }
 
-/** "ou escolha" entre as excludentes e as opções comuns (.choice-divider); decorativo. */
-function Divider() {
+/** "ou escolha" (ou o texto da pergunta) entre as excludentes e as opções comuns (.choice-divider); decorativo. */
+function Divider({ text }: { text: string }) {
   const styles = useStyles();
   const colors = useThemeColors();
   return (
@@ -237,7 +237,7 @@ function Divider() {
     >
       <View style={styles.line} />
       <AppText size={fontSize.xs} weight={600} color={colors.muted}>
-        ou escolha
+        {text}
       </AppText>
       <View style={styles.line} />
     </View>

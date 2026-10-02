@@ -12,9 +12,9 @@ import { GOAL_RULES, goalsForDate, needsIndividualCare, shiftDate, totalsFor } f
 
 export interface IntakeAlert {
   kind: "protein" | "low_intake";
-  /** Até 7 palavras. */
+  /** Título do Resumo do Hoje: até 7 palavras (o chip curto fica em INTAKE_CHIPS, day.ts). */
   title: string;
-  /** Orientação curta, sem números. */
+  /** Orientação da folha: até duas frases e 140 caracteres, sem números. */
   body: string;
 }
 
@@ -30,12 +30,12 @@ const PROTEIN_SHARE = 0.7;
 const LOW_INTAKE: IntakeAlert = {
   kind: "low_intake",
   title: "Você comeu pouco nos últimos dias",
-  body: "Nos últimos dias você comeu bem pouco. Tente refeições menores e mais frequentes, com proteína em cada uma, e beba água. Se o enjoo ou a falta de apetite continuarem, fale com quem prescreveu.",
+  body: "Tente refeições menores e mais frequentes, com proteína, e beba água. Se enjoo ou falta de apetite continuarem, fale com quem prescreveu.",
 };
 /** Mesmo alerta sem a água: restrição de líquidos informada ou ainda sem resposta. */
 const LOW_INTAKE_NO_WATER: IntakeAlert = {
   ...LOW_INTAKE,
-  body: "Nos últimos dias você comeu bem pouco. Tente refeições menores e mais frequentes, com proteína em cada uma. Se o enjoo ou a falta de apetite continuarem, fale com quem prescreveu.",
+  body: "Tente refeições menores e mais frequentes, com proteína em cada uma. Se enjoo ou falta de apetite continuarem, fale com quem prescreveu.",
 };
 
 /** Conselho de beber água só com "Não" na restrição de líquidos (como nas dicas do ciclo). */
@@ -44,7 +44,7 @@ export const canSuggestWater = (profile: Pick<Profile, "fluidRestriction">) =>
 const LOW_PROTEIN: IntakeAlert = {
   kind: "protein",
   title: "Proteína abaixo do combinado",
-  body: "Nos últimos dias a proteína ficou abaixo do combinado. Inclua uma fonte de proteína em cada refeição, como ovos, iogurte, frango, peixe ou feijão, mesmo em porções pequenas.",
+  body: "Inclua uma fonte de proteína em cada refeição, como ovos, iogurte, frango, peixe ou feijão, mesmo em porções pequenas.",
 };
 
 /** Piso calórico sem acompanhamento individual, o mesmo das metas automáticas. */

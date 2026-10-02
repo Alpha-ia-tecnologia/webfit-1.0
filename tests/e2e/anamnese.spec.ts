@@ -653,8 +653,10 @@ test("condições: perfil antigo escolhe na lista, 'Outra' pede os detalhes e 'N
   const tags = page.locator('[data-field="conditionTags"]');
   const details = page.locator('[data-field="conditions"]');
   const chip = (name: string) => tags.getByRole("button", { name, exact: true });
-  await expect(tags.getByRole("group", { name: "Metas com cuidados" })).toBeVisible();
-  await expect(tags.getByRole("group", { name: "Pedem avaliação individual" })).toBeVisible();
+  await expect(tags.getByRole("group", { name: "Com ajustes nas metas" })).toBeVisible();
+  await expect(tags.getByRole("group", { name: "Com orientação individual" })).toBeVisible();
+  // Divisor próprio da pergunta de múltipla escolha (decorativo).
+  await expect(tags.locator(".choice-divider")).toHaveText("ou marque o que se aplica");
   await expect(tags.getByRole("button", { name: /^Outros/ })).toHaveCount(0);
   for (const name of ["Nenhuma", "Obesidade", "Doença renal", "Outra"])
     await expect(chip(name)).toHaveAttribute("aria-pressed", "false");

@@ -6,17 +6,22 @@ import { localDate, shiftDate } from "../../src/lib/domain";
 import type { AgentReply, AppState, DiaryEntry, Profile } from "../../src/types";
 
 /**
- * IA proativa: o comentário automático do dia (uma vez por dia, ao abrir o Hoje, pelo envio do chat)
- * e os sinais do app (cartão pequeno por tela, dispensável por 3 dias). /api/status e /api/agent são
- * simulados; nenhuma chamada real ao provedor.
+ * IA proativa: o recado do dia (uma vez por dia, ao abrir o Hoje, pelo envio do chat; vira o título
+ * do Resumo, com a folha para abrir a conversa ou dispensar) e os sinais do app (chips com folha por
+ * tela, dispensáveis por 3 dias). /api/status e /api/agent são simulados; nenhuma chamada real.
  */
 
 type AgentRequest = { mode: string; text: string };
 
+/** O recado: um bloco "texto" de uma frase (≤ 90), como o pedido exige. */
+const COMMENT_TEXT = "Inclua uma fruta e proteína no lanche da tarde.";
 const COMMENT_REPLY: AgentReply = {
-  text: "Você tem registrado as refeições com constância. Hoje, inclua uma fruta no lanche da tarde.",
+  text: COMMENT_TEXT,
   meta: REPLY_META,
+  structured: { kind: "chat", sections: [{ papel: null, blocos: [{ tipo: "texto", texto: COMMENT_TEXT }] }] },
 };
+/** Qualquer forma do recado na tela: título do Resumo, chip do dia em branco ou chip do cartão. */
+const COMMENT_ON_SCREEN = '[data-source="comment"], [data-signal="comment"], [data-chip="comment"]';
 
 /** /api/status pronto e /api/agent em NDJSON (ou com erro), com os pedidos contados. */
 async function mockApi(page: Page, { fail = false } = {}) {
@@ -126,39 +131,53 @@ const meal = (date: string, time: string, calories: number): DiaryEntry =>
   entry(date, time, { calories, macros: { protein: 30, carbs: 100, fat: 20 }, items: [{ food: FOOD, grams: 200 }] });
 const water = (date: string, ml: number): DiaryEntry => entry(date, "10:00", { type: "agua", title: "Água", amountMl: ml });
 
-test("comentário do dia: roda uma vez ao abrir o Hoje, vira cartão e aviso na conversa", async ({ page }) => {
+test("recado do dia: roda uma vez ao abrir o Hoje, vira o título do Resumo e aviso na conversa", async ({ page }) => {
   const requests = await mockApi(page);
-  await seed(page, stateWith({ consentAi: true }));
+  // Um registro hoje: o Resumo (e não "Comece seu dia") é a voz do Hoje.
+  await seed(page, stateWith({ consentAi: true }, { diary: [meal(today, "08:00", 400)] }));
 
   await expect.poll(() => requests.length).toBe(1);
   expect(requests[0].mode).toBe("chat");
   expect(requests[0].text.startsWith(DAILY_COMMENT_PREFIX)).toBe(true);
-  const card = page.getByTestId("daily-comment");
-  await expect(card).toContainText("Seu agente comentou");
-  await expect(card).toContainText(COMMENT_REPLY.text);
+  expect(requests[0].text).toMatch(/exatamente um bloco de texto/);
+  const card = page.getByTestId("next-step");
+  await expect(card).toHaveAttribute("data-source", "comment");
+  await expect(card.locator(".next-step-kicker")).toHaveText(/^Seu agente · \d{2}:\d{2}$/);
+  const title = card.getByRole("button", { name: COMMENT_TEXT });
+  await expect(title).toBeVisible();
+  // Sem parágrafo nem X no cartão: o detalhe fica na folha.
+  await expect(card).not.toContainText(/Dispensar|revisão/);
   await expect.poll(async () => (await savedState(page)).aiDailyCommentDate).toBe(today);
 
-  // Na conversa: o pedido técnico vira o aviso; a resposta aparece normal.
-  await card.getByRole("button", { name: "Abrir a conversa", exact: true }).click();
-  await expect(page.getByTestId("daily-request")).toContainText("Comentário automático do dia");
-  await expect(page.getByText(COMMENT_REPLY.text)).toBeVisible();
+  // A folha do recado: a mesma frase, "Abrir a conversa" e dispensar.
+  await title.click();
+  const sheet = page.getByRole("dialog", { name: "Recado do seu agente" });
+  await expect(sheet.getByTestId("insight-sheet")).toHaveText(COMMENT_TEXT);
+  await sheet.getByRole("button", { name: "Abrir a conversa", exact: true }).click();
+  // Na conversa: o pedido técnico vira o aviso; a resposta aparece.
+  await expect(page.getByTestId("daily-request")).toContainText(/Recado do dia · \d{2}:\d{2}/);
+  // A nota traz só a frase: o nome e a hora ficam no aviso acima (sem "Recado do dia" repetido).
+  await expect(page.getByTestId("daily-note")).not.toContainText("Recado do dia");
+  await expect(page.getByText(COMMENT_TEXT).first()).toBeVisible();
   await expect(page.getByText(DAILY_COMMENT_PREFIX, { exact: false })).toHaveCount(0);
 
   // De volta ao Hoje e depois de recarregar: nenhum pedido novo no mesmo dia.
   await page.getByRole("navigation").getByRole("button", { name: "Hoje", exact: true }).click();
   await Promise.all([page.waitForResponse("**/api/status"), page.reload()]);
   await expect(hoje(page)).toBeVisible();
-  await expect(page.getByTestId("daily-comment")).toBeVisible();
+  await expect(page.getByTestId("next-step")).toHaveAttribute("data-source", "comment");
   expect(requests).toHaveLength(1);
 
-  // Dispensar some com o cartão de hoje (a conversa continua).
-  await page.getByRole("button", { name: "Dispensar o comentário de hoje", exact: true }).click();
-  await expect(page.getByTestId("daily-comment")).toHaveCount(0);
+  // Dispensar (na folha) tira o recado do Hoje; a conversa continua.
+  await page.getByTestId("next-step").getByRole("button", { name: COMMENT_TEXT }).click();
+  await page.getByRole("button", { name: "Dispensar o recado de hoje", exact: true }).click();
+  await expect(page.locator(COMMENT_ON_SCREEN)).toHaveCount(0);
+  await expect(page.getByTestId("next-step").locator(".next-step-kicker")).toHaveText(/^Resumo · /);
   await expect.poll(async () => (await savedState(page)).signalDismissals[DAILY_COMMENT_KEY]).toBe(today);
   expect((await savedState(page)).messages).toHaveLength(2);
 });
 
-test("comentário do dia: não roda com a preferência desligada, sem consentimento ou em perfil calmo", async ({ page }) => {
+test("recado do dia: não roda com a preferência desligada, sem consentimento ou em perfil calmo", async ({ page }) => {
   const requests = await mockApi(page);
   for (const state of [
     stateWith({ consentAi: true }, { aiDailyComment: false }),
@@ -170,16 +189,16 @@ test("comentário do dia: não roda com a preferência desligada, sem consentime
     // Um ciclo completo do Hoje com o agente pronto: nada sai.
     await page.waitForTimeout(500);
     expect(requests).toHaveLength(0);
-    await expect(page.getByTestId("daily-comment")).toHaveCount(0);
+    await expect(page.locator(COMMENT_ON_SCREEN)).toHaveCount(0);
   }
 });
 
-test("comentário do dia: falha em silêncio, sem nova tentativa no mesmo dia", async ({ page }) => {
+test("recado do dia: falha em silêncio, sem nova tentativa no mesmo dia", async ({ page }) => {
   const requests = await mockApi(page, { fail: true });
   await seed(page, stateWith({ consentAi: true }));
   await expect.poll(() => requests.length).toBe(1);
   await expect.poll(async () => (await savedState(page)).aiDailyCommentDate).toBe(today);
-  await expect(page.getByTestId("daily-comment")).toHaveCount(0);
+  await expect(page.locator(COMMENT_ON_SCREEN)).toHaveCount(0);
   await expect(page.getByText("Provedor indisponível.")).toHaveCount(0);
   expect((await savedState(page)).messages).toHaveLength(0);
   await Promise.all([page.waitForResponse("**/api/status"), page.reload()]);
@@ -188,26 +207,33 @@ test("comentário do dia: falha em silêncio, sem nova tentativa no mesmo dia", 
   expect(requests).toHaveLength(1);
 });
 
-test("sinais: cartão no Hoje e no Diário, pergunta pronta para o agente e pausa de 3 dias", async ({ page }) => {
+test("sinais: chips no Hoje e no Diário, folha com a pergunta pronta para o agente e pausa de 3 dias", async ({ page }) => {
   await mockApi(page);
   const diary = [1, 2, 3].flatMap((n) => [water(day(n), 500), meal(day(n), "08:00", 1100), meal(day(n), "13:00", 1100)]);
-  // Sem consentimento: só os sinais (nenhum comentário automático).
+  // Sem consentimento: só os sinais (nenhum recado automático).
   await seed(page, stateWith({ consentAi: false }, { diary }));
 
-  const hojeSignal = page.getByTestId("signal-card");
-  await expect(hojeSignal).toHaveAttribute("data-signal", "agua-baixa");
-  await expect(hojeSignal).toContainText("Observado nos seus registros");
-  await expect(hojeSignal).toContainText("A água ficou mais baixa");
-  await hojeSignal.getByRole("button", { name: "Dispensar por 3 dias", exact: true }).click();
-  await expect(page.getByTestId("signal-card")).toHaveCount(0);
+  // Hoje em branco: a linha de chips acima de "Comece seu dia"; sem kicker nem parágrafo na tela.
+  const chips = page.getByTestId("insight-chips");
+  const hojeChip = chips.locator('[data-signal="agua-baixa"]');
+  await expect(hojeChip).toHaveText("Água abaixo");
+  await expect(page.locator("main")).not.toContainText(/garrafa à vista/);
+  await hojeChip.click();
+  const sheet = page.getByRole("dialog", { name: "Água abaixo" });
+  await expect(sheet).toContainText("3 dos últimos 5 dias");
+  await expect(sheet.getByRole("button", { name: "Lembrar da água", exact: true })).toBeVisible();
+  await sheet.getByRole("button", { name: "Dispensar por 3 dias", exact: true }).click();
+  await expect(page.locator('[data-signal="agua-baixa"]')).toHaveCount(0);
   await expect.poll(async () => (await savedState(page)).signalDismissals["agua-baixa"]).toBe(today);
 
-  // Diário (hoje): três dias acima da meta; a ação abre o agente com a pergunta pronta.
+  // Diário (hoje): três dias acima da meta; a ação da folha abre o agente com a pergunta pronta.
   await page.getByRole("navigation").getByRole("button", { name: "Diário", exact: true }).click();
-  const diarySignal = page.getByTestId("signal-card");
-  await expect(diarySignal).toHaveAttribute("data-signal", "energia-acima");
-  await expect(diarySignal).toContainText("Alguns dias acima da meta");
-  await diarySignal.getByRole("button", { name: "Ideias que saciam mais", exact: true }).click();
+  const diaryChip = page.locator('[data-signal="energia-acima"]');
+  await expect(diaryChip).toHaveText("3 dias acima da meta");
+  await diaryChip.click();
+  const diarySheet = page.getByRole("dialog", { name: "3 dias acima da meta" });
+  await expect(diarySheet).toContainText("fibras e proteína");
+  await diarySheet.getByRole("button", { name: "Ideias que saciam", exact: true }).click();
   await expect(page.getByLabel("Mensagem para o agente")).toHaveValue(/sem pular refeições/);
 });
 
@@ -220,7 +246,7 @@ test("sinais: nada de energia com calorias ocultas e nada para perfil calmo", as
   await expect(page.locator('[data-signal="energia-acima"]')).toHaveCount(0);
 
   await seed(page, stateWith({ pregnancy: "gestacao" }, { diary }));
-  await expect(page.getByTestId("signal-card")).toHaveCount(0);
+  await expect(page.getByTestId("insight-chips")).toHaveCount(0);
 });
 
 test("comentário do dia: com a cópia no servidor ligada, espera a comparação antes de rodar", async ({ page }) => {
@@ -252,7 +278,7 @@ test("comentário do dia: com a cópia no servidor ligada, espera a comparação
   answer(state.revision + 1);
   await page.waitForTimeout(800);
   expect(requests).toHaveLength(0);
-  await expect(page.getByTestId("daily-comment")).toHaveCount(0);
+  await expect(page.locator(COMMENT_ON_SCREEN)).toHaveCount(0);
 });
 
 test("comentário do dia: cópia no servidor igual à do aparelho libera o pedido", async ({ page }) => {
@@ -275,5 +301,9 @@ test("comentário do dia: cópia no servidor igual à do aparelho libera o pedid
   await page.route("**/api/sync", (route) => route.fulfill({ json: { revision: state.revision + 1, updatedAt: new Date().toISOString() } }));
   await seed(page, state);
   await expect.poll(() => requests.length).toBe(1);
-  await expect(page.getByTestId("daily-comment")).toContainText(COMMENT_REPLY.text);
+  // Dia em branco: o recado é um chip acima de "Comece seu dia", com a frase na folha.
+  const chip = page.locator('[data-signal="comment"]');
+  await expect(chip).toHaveText("Recado do agente");
+  await chip.click();
+  await expect(page.getByRole("dialog", { name: "Recado do seu agente" })).toContainText(COMMENT_TEXT);
 });

@@ -2,12 +2,15 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Fragment, useCallback, useRef, useState, type ReactNode } from "react";
 import { ScrollView, View, type Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { dayInsight, isCalmOn } from "@shared/lib/day";
+import { latestDailyComment } from "@shared/lib/daily-comment";
+import { dayInsight, isCalmOn, type InsightSheetAction } from "@shared/lib/day";
 import { intakeAlert } from "@shared/lib/intake-alert";
 import { pendingMealSlot } from "@shared/lib/diary-day";
+import { adjustmentView } from "@shared/lib/balance-explain";
 import { dailyTargets, localDate, localTime, totalsFor, uid } from "@shared/lib/domain";
 import { parseHomeLayout, type HomeSectionKey } from "@shared/lib/home-layout";
 import { defaultMealCategory } from "@shared/lib/meals";
+import { activeSignals, dismissSignal } from "@shared/lib/signals";
 import { macroBars, weekWater } from "@shared/lib/today";
 import { injectionCardModel, shouldShowTreatment } from "@shared/lib/treatment";
 import { canCelebrate } from "@shared/lib/wellbeing";
@@ -30,14 +33,14 @@ import { WeekStrip } from "@/components/hoje/week-strip";
 import { AppHeader } from "@/components/layout/app-header";
 import { QuickEntryForm } from "@/components/quick/quick-entry-form";
 import { HojeWeekRecap } from "@/components/semana/hoje-week-recap";
-import { DailyCommentCard, ScreenSignal } from "@/components/signals/screen-signal";
-import { AppText, Notice, Sheet } from "@/components/ui";
+import { InsightChips } from "@/components/signals/insight-chips";
+import { Notice, Sheet } from "@/components/ui";
 import { focusNode } from "@/lib/focus";
 import { useTimeouts } from "@/lib/timeouts";
 import { useApp } from "@/state/app-context";
 import { useDiaryActions } from "@/state/use-diary-actions";
-import { makeStyles, useThemeColors } from "@/theme/theme";
-import { fontSize, TAB_BAR_SPACE } from "@/theme/tokens";
+import { makeStyles } from "@/theme/theme";
+import { TAB_BAR_SPACE } from "@/theme/tokens";
 
 /** Folga acima da seção ao rolar a partir dos atalhos do topo. */
 const SECTION_SCROLL_OFFSET = 8;
@@ -49,7 +52,6 @@ const SHEET_FADE_MS = 350;
 /** Visão do dia: a semana, anéis no topo, um próximo passo, as seções na ordem de "Editar Hoje". */
 export function HojeScreen() {
   const styles = useStyles();
-  const colors = useThemeColors();
   const { state, clock, setDate, commit, notify, editMeal, openInjection, askAgent } = useApp();
   const actions = useDiaryActions();
   const router = useRouter();
@@ -92,6 +94,7 @@ export function HojeScreen() {
   const layout = parseHomeLayout(p.homeLayout);
   const isShown = (key: HomeSectionKey) => layout.some((s) => s.key === key && !s.isHidden);
   const celebrates = canCelebrate(p);
+  // A única voz proativa do Hoje (como no web): o Resumo junta recado do dia, alerta da caneta, sinais e ajuste.
   const insight = dayInsight({
     profile: p,
     totals,
@@ -103,7 +106,24 @@ export function HojeScreen() {
     time: now,
     // Caneta: poucos dias seguidos com pouca comida ou pouca proteína (nunca para perfis calmos).
     intakeAlert: intakeAlert(state, today),
+    comment: latestDailyComment(state, today),
+    signals: activeSignals(state, today, "hoje"),
+    adjustment: {
+      adjustment: goals.adjustment,
+      proteinBoost: goals.proteinBoost,
+      note: goals.adjustmentNote,
+      view: adjustmentView(goals),
+    },
   });
+  /** Chips com folha para o dia em branco (o Resumo ainda não aparece): recado, alerta, sinais e ajuste. */
+  const blankChips = [...(insight.titleChip ? [insight.titleChip] : []), ...insight.chipItems];
+  /** Ação de uma folha: pergunta pronta, abrir a conversa ou "Como calculamos". */
+  const runSheetAction = (action: InsightSheetAction) => {
+    if (action.kind === "agent") askAgent(action.prompt);
+    else if (action.kind === "chat") router.push("/agente");
+    else setExplainOpen(true);
+  };
+  const dismissInsight = (key: string) => void commit((s) => dismissSignal(s, key, today));
 
   const scrollTo = (y: number) =>
     scroller.current?.scrollTo({
@@ -174,6 +194,7 @@ export function HojeScreen() {
     if (action.kind === "water") addWater(action.ml);
     else if (action.kind === "meal") editMeal(null);
     else if (action.kind === "habit") void toggleHabit(action.habitId);
+    else if (action.kind === "chat") router.push("/agente");
     else askAgent(insight.prompt);
   };
 
@@ -277,26 +298,28 @@ export function HojeScreen() {
           onExplain={() => setExplainOpen(true)}
         />
         {goals.reason && <Notice>{goals.reason}</Notice>}
-        {/* Ajuste dinâmico do dia (como no web): informativo, sem cor de alerta. */}
-        {goals.adjustmentNote ? (
-          <AppText size={fontSize.xs} color={colors.muted} lineHeight={19}>
-            {goals.adjustmentNote}
-          </AppText>
-        ) : null}
-        {/* IA proativa (como no web): o comentário do dia e o sinal do app antes do Resumo. */}
-        <DailyCommentCard />
-        <ScreenSignal screen="hoje" />
+        {/* Dia em branco: "Comece seu dia" com a linha de chips (recado, alerta, sinais, ajuste) acima;
+            depois do 1º registro, o Resumo é a única voz proativa (ajuste e sinais viram chips dele). */}
         {isDayBlank ? (
-          <StartCard
-            time={now}
-            mealCategory={defaultMealCategory(now, p)}
-            quickWaterMl={p.fluidRestriction === "sim" ? null : START_WATER_ML}
-            onMeal={() => addMealToday(defaultMealCategory(localTime(), p))}
-            onWater={() => (p.fluidRestriction === "sim" ? setWaterOpen(true) : addWater(START_WATER_ML))}
-            onMood={() => setMoodOpen(true)}
-          />
+          <>
+            <InsightChips chips={blankChips} label="Para hoje" onAction={runSheetAction} onDismiss={dismissInsight} />
+            <StartCard
+              time={now}
+              mealCategory={defaultMealCategory(now, p)}
+              quickWaterMl={p.fluidRestriction === "sim" ? null : START_WATER_ML}
+              onMeal={() => addMealToday(defaultMealCategory(localTime(), p))}
+              onWater={() => (p.fluidRestriction === "sim" ? setWaterOpen(true) : addWater(START_WATER_ML))}
+              onMood={() => setMoodOpen(true)}
+            />
+          </>
         ) : (
-          <NextStepCard insight={insight} onAction={runInsight} onAsk={() => askAgent(insight.prompt)} />
+          <NextStepCard
+            insight={insight}
+            onAction={runInsight}
+            onAsk={() => askAgent(insight.prompt)}
+            onSheetAction={runSheetAction}
+            onDismiss={dismissInsight}
+          />
         )}
         <HojeWeekRecap today={today} />
         {ordered.map((section) => (

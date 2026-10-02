@@ -5,12 +5,16 @@ import {
   bmiOf,
   BLOCKING_CONDITION_TAGS,
   CARE_NOTES_CLOSING,
+  CARE_TEXT_MAX,
+  careItemsFor,
+  careItemsOf,
   careNotesFor,
   CONDITION_GROUPS,
   CONDITION_LABELS,
   CONDITION_TAGS,
   conditionLabels,
   formatConditionTags,
+  GLUCOSE_CARE_NOTE,
   hasBlockingCondition,
   parseConditionTags,
   PEN_CARE_NOTE,
@@ -27,9 +31,13 @@ test("lista fechada: 7 com ajustes, 5 que pedem avaliação e “Nenhuma”, cad
   assert.equal(CONDITION_LABELS.hipertensao, "Hipertensão (pressão alta)");
   assert.equal(CONDITION_LABELS.diabetes_tipo_1_insulina, "Diabetes tipo 1 ou uso de insulina");
   assert.equal(CONDITION_LABELS.nenhuma, "Nenhuma");
-  // Os grupos cobrem a lista inteira, sem repetir.
+  // Os grupos cobrem a lista inteira, sem repetir; títulos curtos da anamnese (polimento 2026-10-01).
   const grouped = CONDITION_GROUPS.flatMap((g) => g.tags);
   assert.deepEqual([...grouped].sort(), [...CONDITION_TAGS].sort());
+  assert.deepEqual(
+    CONDITION_GROUPS.map((g) => g.title),
+    ["Sem condições", "Com ajustes nas metas", "Com orientação individual"],
+  );
   assert.ok(BLOCKING_CONDITION_TAGS.includes("outra"));
 });
 
@@ -97,11 +105,65 @@ test("cuidados: uma linha por cuidado, glicose uma vez e fechamento só quando a
   for (const note of all) assert.ok(!/\d/.test(note), note);
 });
 
+test("cuidados em chips: rótulo curto, ícone e frase de até 90 caracteres, na ordem condições → caneta → IMC baixo", () => {
+  const items = careItemsFor({
+    conditionTags: ["hipertensao", "pre_diabetes", "diabetes_tipo_2", "obesidade"],
+    usesPen: true,
+    underweightForLoss: true,
+    fluidRestriction: "nao",
+  });
+  assert.deepEqual(
+    items.map((item) => [item.key, item.label, item.icon]),
+    [
+      ["pressao", "Pressão alta", "heartPulse"],
+      ["glicose", "Glicose", "droplet"],
+      ["imc", "IMC", "scale"],
+      ["caneta", "Caneta", "syringe"],
+      ["imc_baixo", "IMC baixo", "shieldCheck"],
+    ],
+  );
+  // Todas as frases (as 7 condições, as duas da caneta e a do IMC baixo): curtas, "Rótulo: frase", sem números.
+  const every = [
+    ...careItemsFor({
+      conditionTags: [...ALLOWED_CONDITION_TAGS],
+      usesPen: true,
+      underweightForLoss: true,
+      fluidRestriction: "nao",
+    }),
+    ...careItemsFor({ conditionTags: [], usesPen: true, underweightForLoss: false, fluidRestriction: "sim" }),
+  ];
+  assert.equal(every.length, 6 + 1 + 1 + 1);
+  for (const item of every) {
+    assert.ok(item.text.length <= CARE_TEXT_MAX, `${item.text} (${item.text.length})`);
+    assert.ok(item.text.startsWith(`${item.label}: `), item.text);
+    assert.match(item.body, /^[A-ZÁÉÍÓÚÂÊÔÃÕÇ]/, item.body);
+    assert.ok(!/\d|kcal|\bkg\b|\bmg\b|dose/i.test(item.text), item.text);
+    assert.ok(item.label.split(" ").length <= 2, item.label);
+  }
+  assert.equal(GLUCOSE_CARE_NOTE, "Glicose: distribua os carboidratos no dia, com integrais, fibras e proteína.");
+});
+
+test("careItemsOf devolve os cuidados por trás de Goals.careNotes, sem o fechamento; frase desconhecida vira genérica", () => {
+  const input = { conditionTags: ["gordura_figado" as const], usesPen: true, underweightForLoss: false, fluidRestriction: "nao" };
+  const notes = careNotesFor(input);
+  assert.deepEqual(careItemsOf(notes), careItemsFor(input));
+  assert.deepEqual(careItemsOf([]), []);
+  assert.deepEqual(careItemsOf([CARE_NOTES_CLOSING]), []);
+  const [other] = careItemsOf(["Frase nova do servidor."]);
+  assert.deepEqual(other, {
+    key: "outro",
+    label: "Cuidado",
+    icon: "stethoscope",
+    body: "Frase nova do servidor.",
+    text: "Frase nova do servidor.",
+  });
+});
+
 test("caneta com restrição de líquidos (ou sem resposta): o cuidado não fala em beber água", () => {
   for (const fluidRestriction of ["sim", "nao_sei", ""]) {
     const notes = careNotesFor({ conditionTags: [], usesPen: true, underweightForLoss: false, fluidRestriction });
     assert.deepEqual(notes, [PEN_CARE_NOTE_NO_WATER, CARE_NOTES_CLOSING]);
     for (const note of notes) assert.doesNotMatch(note, /água/);
   }
-  assert.match(PEN_CARE_NOTE, /beba água/);
+  assert.match(PEN_CARE_NOTE, /água/);
 });

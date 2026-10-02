@@ -6,6 +6,7 @@ import {
   suggestionEmoji,
   weekCardLayout,
   type ChatBlock,
+  type MealOption,
   type WeekCardView,
 } from "../../lib/agent-blocks";
 import { useApp } from "../../lib/context";
@@ -135,32 +136,47 @@ export function ChatBlocks({
         );
       })}
       {footer}
-      {isLatest && plain.suggestions.length > 0 && (
-        <div
-          className="prompt-pills chat-suggestions"
-          role="group"
-          aria-label="Sugestões do agente"
-        >
-          {plain.suggestions.map((suggestion) => {
-            const emoji = suggestionEmoji(suggestion, options);
-            return (
-              <button
-                key={suggestion}
-                type="button"
-                className="prompt-pill reply"
-                onClick={() => onSuggestion(suggestion)}
-              >
-                {emoji && (
-                  <span className="prompt-pill-emoji" aria-hidden="true">
-                    {emoji}
-                  </span>
-                )}
-                {suggestion}
-              </button>
-            );
-          })}
-        </div>
+      {isLatest && (
+        <QuickReplies suggestions={plain.suggestions} options={options} onSuggestion={onSuggestion} />
       )}
     </>
+  );
+}
+
+/**
+ * Respostas rápidas no fim da última resposta (blocos e cartão-relatório): uma fila que rola, com o
+ * emoji da opção ou do alimento citado. Nada quando não há sugestões.
+ */
+export function QuickReplies({
+  suggestions,
+  options,
+  onSuggestion,
+}: {
+  suggestions: readonly string[];
+  options: readonly MealOption[];
+  onSuggestion: (text: string) => void;
+}) {
+  if (!suggestions.length) return null;
+  return (
+    <div className="prompt-pills chat-suggestions" role="group" aria-label="Sugestões do agente">
+      {suggestions.map((suggestion) => {
+        const emoji = suggestionEmoji(suggestion, options);
+        return (
+          <button
+            key={suggestion}
+            type="button"
+            className="prompt-pill reply"
+            onClick={() => onSuggestion(suggestion)}
+          >
+            {emoji && (
+              <span className="prompt-pill-emoji" aria-hidden="true">
+                {emoji}
+              </span>
+            )}
+            {suggestion}
+          </button>
+        );
+      })}
+    </div>
   );
 }

@@ -52,6 +52,8 @@ export interface ChoiceConfig {
   hideOther?: boolean;
   /** Pílulas comuns em grupos com título, todas à vista (sem "Ver mais"). */
   sections?: readonly ChoiceSection[];
+  /** Texto do divisor entre as excludentes e as demais pílulas ("ou escolha" por padrão). */
+  divider?: string;
 }
 export const CHOICE_SEPARATOR = ", ";
 

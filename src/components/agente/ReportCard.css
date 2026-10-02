@@ -1,0 +1,233 @@
+/* Cartão-relatório do agente (conceito 05, "Boa semana!"): selo, síntese, 4 seções recolhíveis e
+   rodapé; e o recado do dia, a resposta ao comentário automático numa bolha pequena. */
+.report-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border-radius: 24px;
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+.report-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.report-kicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.report-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-2xs);
+  font-weight: 700;
+  color: var(--wf-green-700);
+  background: var(--wf-mint-50);
+}
+.report-time {
+  font-variant-numeric: tabular-nums;
+}
+.report-summary {
+  margin: 0;
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-lg);
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--wf-text);
+  overflow-wrap: anywhere;
+}
+.report-sections {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.report-section {
+  --report-fg: var(--wf-tone-neutral-fg);
+  min-width: 0;
+  border-top: 1px solid var(--wf-border-soft);
+}
+.report-section:first-child {
+  border-top: 0;
+}
+/* Linha de 48 px (toque), tile de 32 px, título de 15 px, contagem e seta. */
+.report-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 6px 0;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.report-row::-webkit-details-marker {
+  display: none;
+}
+.report-card .report-tile.icon-tile {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+.report-title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--wf-fs-md);
+  font-weight: 600;
+  color: var(--wf-text);
+}
+.report-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: var(--wf-fs-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--wf-text-muted);
+  background: var(--wf-surface-2);
+}
+.report-chevron {
+  flex-shrink: 0;
+  color: var(--wf-text-muted);
+  transition: transform 0.2s var(--wf-ease);
+}
+.report-section[open] .report-chevron {
+  transform: rotate(180deg);
+}
+/* Itens de 13 px alinhados ao título, com o ponto na cor do tom da seção. */
+.report-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 12px 44px;
+  padding: 0;
+  list-style: none;
+}
+.report-items li {
+  position: relative;
+  padding-left: 14px;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.45;
+  color: var(--wf-text-2);
+  overflow-wrap: anywhere;
+}
+.report-items li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--report-fg);
+}
+/* "Sugestões para os próximos dias": chips em menta que quebram linha. */
+.report-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.report-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 6px 12px;
+  border-radius: 14px;
+  font-size: var(--wf-fs-sm);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--wf-green-800);
+  background: var(--wf-mint-50);
+  border: 1px solid var(--wf-mint-200);
+  overflow-wrap: anywhere;
+}
+.report-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px dashed var(--wf-border);
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.report-foot svg {
+  flex-shrink: 0;
+  color: var(--wf-green-700);
+}
+/* O conteúdo que abre entra com fade e 8 px; nada se move para quem prefere menos animação. */
+.report-section[open] > :not(summary) {
+  animation: wf-report-in 0.24s var(--wf-ease) both;
+}
+@keyframes wf-report-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .report-section[open] > :not(summary) {
+    animation: none;
+  }
+  .report-chevron {
+    transition: none;
+  }
+}
+/* Recado do dia: bolinha do agente e a frase em 15 px (o aviso acima traz o nome e a hora). */
+.daily-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+.daily-note .chat-ai-dot {
+  margin-top: 1px;
+}
+.daily-note-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.daily-note-text {
+  margin: 0;
+  font-size: var(--wf-fs-md);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--wf-text);
+  overflow-wrap: anywhere;
+}
+/* Observação extra do recado (um 2º bloco "texto", quando vier): 13 px, tom secundário. */
+.daily-note-detail {
+  margin: 0;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.45;
+  color: var(--wf-text-2);
+  overflow-wrap: anywhere;
+}

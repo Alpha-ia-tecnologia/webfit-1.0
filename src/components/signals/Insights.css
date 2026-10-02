@@ -1,0 +1,183 @@
+/* ---------- IA proativa: chips de insight (Diário, Evolução, Seringa e o Hoje em branco) e a folha ----------
+   Linha horizontal de chips de 32 px (ícone 16 px + título ≤ 4 palavras) no lugar do cartão com parágrafo;
+   o toque abre a folha com a frase, a ação e "Dispensar". Tons calmos pelos tokens, nunca vermelho. */
+.signal-chips {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.signal-chips::-webkit-scrollbar {
+  display: none;
+}
+.signal-chip {
+  --chip-fg: var(--wf-tone-neutral-fg);
+  --chip-bg: var(--wf-tone-neutral-bg);
+  --chip-border: var(--wf-tone-neutral-border);
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px 0 10px;
+  border: 1px solid var(--chip-border);
+  border-radius: 999px;
+  background: var(--chip-bg);
+  color: var(--chip-fg);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  /* Entrada em cascata (40 ms por chip): fade + 8 px, sem laço. */
+  animation: insight-in 0.24s var(--wf-ease) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
+  transition:
+    transform 0.15s var(--wf-ease),
+    border-color 0.2s var(--wf-ease);
+}
+/* Cuidado em azul (água), reforço em verde-água (combinado), agente em menta, ajuste no tom da comida. */
+.signal-chip.is-info {
+  --chip-fg: var(--wf-tone-water-fg);
+  --chip-bg: var(--wf-tone-water-bg);
+  --chip-border: var(--wf-tone-water-border);
+}
+.signal-chip.is-positive {
+  --chip-fg: var(--wf-tone-habit-fg);
+  --chip-bg: var(--wf-tone-habit-bg);
+  --chip-border: var(--wf-tone-habit-border);
+}
+.signal-chip.is-agent {
+  --chip-fg: var(--wf-green-700);
+  --chip-bg: var(--wf-mint-50);
+  --chip-border: var(--wf-mint-200);
+}
+.signal-chip.is-adjust {
+  --chip-fg: var(--wf-tone-food-fg);
+  --chip-bg: var(--wf-tone-food-bg);
+  --chip-border: var(--wf-tone-food-border);
+}
+.signal-chip:hover {
+  border-color: var(--chip-fg);
+}
+.signal-chip:active {
+  transform: scale(0.97);
+}
+.signal-chip:focus-visible {
+  outline: 2px solid var(--chip-fg);
+  outline-offset: 2px;
+}
+.signal-chip svg {
+  flex-shrink: 0;
+}
+@keyframes insight-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Folha de insight: ícone, 1–2 frases, ação e dispensar ---------- */
+.modal-overlay.insight-overlay {
+  align-items: flex-end;
+  padding: 0;
+}
+.modal.insight-sheet {
+  --sheet-fg: var(--wf-tone-neutral-fg);
+  --sheet-bg: var(--wf-tone-neutral-bg);
+  width: min(480px, 100%);
+  gap: 14px;
+  padding: 18px 20px calc(22px + env(safe-area-inset-bottom));
+  border-radius: 28px 28px 0 0;
+  animation: insight-sheet-up 0.26s var(--wf-ease) both;
+}
+.modal.insight-sheet.is-info {
+  --sheet-fg: var(--wf-tone-water-fg);
+  --sheet-bg: var(--wf-tone-water-bg);
+}
+.modal.insight-sheet.is-positive {
+  --sheet-fg: var(--wf-tone-habit-fg);
+  --sheet-bg: var(--wf-tone-habit-bg);
+}
+.modal.insight-sheet.is-agent {
+  --sheet-fg: var(--wf-green-700);
+  --sheet-bg: var(--wf-mint-50);
+}
+.modal.insight-sheet.is-adjust {
+  --sheet-fg: var(--wf-tone-food-fg);
+  --sheet-bg: var(--wf-tone-food-bg);
+}
+.modal.insight-sheet h2 {
+  font-size: var(--wf-fs-lg);
+}
+@media (min-width: 720px) {
+  .modal-overlay.insight-overlay {
+    align-items: center;
+    padding: 20px;
+  }
+  .modal.insight-sheet {
+    border-radius: 28px;
+  }
+}
+@keyframes insight-sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.insight-sheet-body {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: start;
+}
+.insight-sheet-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: var(--sheet-bg);
+  color: var(--sheet-fg);
+}
+.insight-sheet-text {
+  padding-top: 8px;
+  font-size: var(--wf-fs-base);
+  line-height: 1.5;
+  color: var(--wf-text-2);
+}
+.insight-sheet-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.insight-sheet-actions .btn {
+  width: 100%;
+  min-height: 48px;
+  font-size: var(--wf-fs-md);
+}
+.insight-sheet-actions .text-btn {
+  align-self: center;
+  min-height: 44px;
+}
+.insight-sheet-note {
+  font-size: var(--wf-fs-xs);
+  text-align: center;
+  color: var(--wf-text-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .signal-chip,
+  .modal.insight-sheet {
+    animation: none;
+    transition: none;
+  }
+}
