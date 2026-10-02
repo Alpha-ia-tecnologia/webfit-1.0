@@ -344,6 +344,29 @@ export async function deleteAccount(client: pg.ClientBase, account: Account, pas
 
 // ---------- Administração (scripts/admin.ts por e-mail; painel /api/admin por id) ----------
 
+/**
+ * Conta criada pelo dono do servidor, sem convite (scripts/admin.ts create-owner). A senha inicial é
+ * aleatória e ninguém a conhece: a pessoa define a dela com o código de redefinição que acompanha.
+ */
+export async function createAccountWithResetCode(
+  client: pg.ClientBase,
+  input: { email: string; name?: string; role: Role },
+): Promise<{ account: Account; code: string; expiresAt: string }> {
+  const email = requireEmail(input.email);
+  const name = (input.name ?? "").trim().slice(0, 80);
+  const passwordHash = await hashPassword(newSessionToken());
+  const created = await client.query<Account>(
+    `insert into webfit.accounts (email, name, password_hash, role) values ($1, $2, $3, $4)
+     on conflict (email) do nothing
+     returning id, email, name, role`,
+    [email, name, passwordHash, input.role],
+  );
+  const account = created.rows[0];
+  if (!account) throw new AuthError(409, "Já existe uma conta com este e-mail.");
+  const reset = await createPasswordResetById(client, account.id);
+  return { account, code: reset!.code, expiresAt: reset!.expiresAt };
+}
+
 export async function setRole(client: pg.ClientBase, emailInput: string, role: Role): Promise<boolean> {
   const updated = await client.query("update webfit.accounts set role = $2 where email = $1", [requireEmail(emailInput), role]);
   return updated.rowCount === 1;

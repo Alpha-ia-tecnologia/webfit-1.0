@@ -1,6 +1,7 @@
 /**
  * Administração das contas do WebFit online (no servidor, com DATABASE_URL apontando para o banco):
  *
+ *   npm run admin -- create-owner <email> ["Nome"]         conta de dono sem convite + código para definir a senha
  *   npm run admin -- invite ["Nome ou nota"] [--dias 14]   código de convite para mandar a alguém
  *   npm run admin -- reset <email>                         código para a pessoa redefinir a senha (24 h)
  *   npm run admin -- owner <email>                         dono do servidor (sem limite de IA)
@@ -14,6 +15,8 @@
 import { config } from "dotenv";
 import { databaseTarget, withClient } from "../server/db/client";
 import {
+  AuthError,
+  createAccountWithResetCode,
   createInvite,
   createPasswordReset,
   INVITE_DAYS,
@@ -27,6 +30,7 @@ config({ path: ".env.local", quiet: true });
 config({ quiet: true });
 
 const USAGE = `Uso: npm run admin -- <comando>
+  create-owner <email> ["Nome"]  cria a conta de dono e gera o código para definir a senha
   invite ["nota"] [--dias N]   gera um código de convite
   reset <email>                gera um código de redefinição de senha
   owner <email> | member <email>
@@ -42,6 +46,27 @@ async function main(args: string[]) {
   };
   await withClient(url, async (client) => {
     switch (command) {
+      case "create-owner": {
+        const [email, ...nameParts] = rest;
+        try {
+          const { account, code } = await createAccountWithResetCode(client, {
+            email: email ?? "",
+            name: nameParts.join(" "),
+            role: "owner",
+          });
+          console.log(`Conta de dono criada: ${account.email}`);
+          console.log(`\nCódigo para definir a senha (vale ${RESET_HOURS} horas, uma vez):\n\n  ${code}\n`);
+          console.log('No site, toque em "Esqueci minha senha", cole o código e escolha a sua senha.');
+        } catch (error) {
+          if (!(error instanceof AuthError)) throw error;
+          return fail(
+            error.status === 409
+              ? `${error.message} Para torná-la dona e gerar um código de senha: owner <email> e depois reset <email>.`
+              : error.message,
+          );
+        }
+        return;
+      }
       case "invite": {
         const daysFlag = rest.indexOf("--dias");
         const days = daysFlag >= 0 ? Number(rest[daysFlag + 1]) : INVITE_DAYS;
