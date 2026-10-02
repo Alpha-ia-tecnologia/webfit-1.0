@@ -1,3 +1,4 @@
+import { ANAMNESE_GROUPS } from "../../data/anamneseOptions";
 import { questionnaire, type Question } from "../../data/questionnaire";
 import type { Draft } from "../../types";
 import {
@@ -8,6 +9,7 @@ import {
 import { formatDate, localDate } from "../../lib/domain";
 import { intervalLabel, penIntervalDays } from "../../lib/injection";
 import { toNumber } from "./inputs";
+import { CONDITION_TAGS_KEY, conditionTagsText } from "./condition-choice";
 
 /** Marcos que viram um aviso acolhedor; o confete fica só na revelação do plano. */
 export const MILESTONES = [50, 100] as const;
@@ -37,6 +39,19 @@ export function isShown(
   );
 }
 
+/** A lista de outra resposta (texto "a,b" do rascunho ou lista do perfil) inclui o item? */
+function listIncludes(value: unknown, item: string): boolean {
+  const items: unknown[] = Array.isArray(value)
+    ? value
+    : String(value ?? "").split(",");
+  return items.some((part) => String(part).trim() === item);
+}
+
+/** Opcional que outra resposta tornou obrigatório (os detalhes com "Outra" marcada). */
+export const isRequiredByAnswer = (answers: Draft, field: Question) =>
+  !!field.requiredWhen &&
+  listIncludes(answers[field.requiredWhen[0]], field.requiredWhen[1]);
+
 /** Campos que pontuam: obrigatórios visíveis e o consentimento local. */
 export function essentialFields(
   answers: Draft,
@@ -47,6 +62,7 @@ export function essentialFields(
     (field) =>
       isShown(answers, field, today) &&
       (field.key === "consentLocal" ||
+        isRequiredByAnswer(answers, field) ||
         (!field.optional && field.type !== "checkbox")),
   );
 }
@@ -75,6 +91,20 @@ export function renderableFields(
     ),
   );
 }
+
+/** Chave que abre o grupo de outra: a pergunta das condições abre "Seu histórico e seus cuidados". */
+const GROUP_ALIAS: Readonly<Record<string, string>> = {
+  [CONDITION_TAGS_KEY]: "conditions",
+};
+/** Título e ícone do grupo que a pergunta abre (web e app). */
+export const groupStartOf = (key: string) =>
+  ANAMNESE_GROUPS[key] ?? ANAMNESE_GROUPS[GROUP_ALIAS[key] ?? ""];
+
+/** Controles que são uma pergunta só: sozinhos no grupo, a própria pergunta é o título. */
+export const isSingleQuestion = (field: Question) =>
+  !field.widget ||
+  field.widget === "numbersChoice" ||
+  field.widget === "conditions";
 
 /** Chaves visíveis cobertas pelo mesmo widget de `field` (para o selo "Bloco respondido" e o foco de erro). */
 export function widgetKeys(
@@ -138,6 +168,7 @@ export function answerText(field: Question, value: Draft[string]): string {
   }
   if (field.key === "penWeekday" && String(value ?? "").trim() === "")
     return "Varia";
+  if (field.key === CONDITION_TAGS_KEY) return conditionTagsText(value);
   if (typeof value === "boolean")
     return (
       field.options?.find(([option]) => option === String(value))?.[1] ??

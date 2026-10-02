@@ -50,6 +50,7 @@ import { SyringeCard } from "./SyringeCard";
 import { seedDose, useDoseState } from "./useDoseState";
 import { useInjectionSave } from "./useInjectionSave";
 import { WhenRow } from "./WhenRow";
+import { ScreenSignal } from "../signals/ScreenSignal";
 import "../anamnese/AnamneseInputs.css";
 import "./Injecao.css";
 
@@ -295,6 +296,8 @@ export function ScreenInjecao() {
             )}
           </>
         )}
+        {/* Sinal do app para quem usa caneta (comer pouco, enjoo); fora da edição de um registro. */}
+        {!editing && <ScreenSignal screen="seringa" />}
         {stock && <StockRow model={stock} onEdit={() => setStockOpen(true)} />}
         <RecentStrip
           injections={state.injections}

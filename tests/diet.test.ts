@@ -267,3 +267,22 @@ test("ocultar números do corpo: não invalida a dieta e tira o peso dos chips (
   assert.ok(!dietChips(minor, T).some((c) => /kg/.test(c.label)));
   assert.equal(dietChips(profile, T)[0]!.label, "Manter 72 kg");
 });
+
+test("perfil antigo sem condições estruturadas mantém a assinatura ao ganhar a lista vazia", () => {
+  const { conditionTags: _tags, ...legacy } = profileFixture();
+  const legacyProfile = legacy as ReturnType<typeof profileFixture>;
+  const legacyPlan = createDietPlan(reply, legacyProfile);
+  const parsed = profileSchema.parse(legacy);
+  assert.deepEqual(parsed.conditionTags, []);
+  assert.equal(dietProfileSignature(parsed), dietProfileSignature(legacyProfile));
+  assert.equal(isDietPlanStale(legacyPlan, parsed), false);
+  // O estado inteiro carregado de novo também não invalida a dieta salva.
+  const loaded = stateSchema.parse({ ...stateFixture(), profile: legacy });
+  assert.equal(isDietPlanStale(legacyPlan, loaded.profile!), false);
+  // Marcar condições de verdade muda a assinatura (a dieta precisa ser revista).
+  assert.equal(isDietPlanStale(legacyPlan, { ...parsed, conditionTags: ["hipertensao"] }), true);
+  assert.notEqual(
+    dietProfileSignature({ ...parsed, conditionTags: ["hipertensao"] }),
+    dietProfileSignature({ ...parsed, conditionTags: ["diabetes_tipo_2"] }),
+  );
+});

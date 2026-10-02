@@ -86,6 +86,7 @@ const FALLBACK_META = { icon: "clipboard" as SectionIcon, tone: "neutral" as Dom
 
 /** Seções com dado de saúde íntimo: a face do cartão só mostra quantas respostas há. */
 const PRIVATE_KEYS: ReadonlySet<string> = new Set([
+  "conditionTags",
   "conditions",
   "medications",
   "pregnancy",

@@ -238,7 +238,7 @@ async function walkthrough(width) {
   await attempt(`${w} (b)`, async () => {
     for (const name of ["Gestação ou amamentação", EATING_LABEL, "Possui orientação para restringir líquidos?", "Como prefere ver números?"])
       check((await page.getByRole("radiogroup", { name }).count()) === 1, `${w} (b): grupo de rádios "${name}"`);
-    check((await page.getByTestId("anamnese-field-conditions").getByRole("button", { name: "Nenhuma", exact: true }).count()) === 1, `${w} (b): condições em pílulas`);
+    check((await page.getByTestId("anamnese-field-conditionTags").getByRole("button", { name: "Nenhuma", exact: true }).count()) === 1, `${w} (b): condições em pílulas (lista fechada desde 2026-10-01)`);
     check((await page.getByRole("radio", { name: "Mostrar calorias", exact: true }).getAttribute("aria-checked")) === "true", `${w} (b): "Mostrar calorias" marcado`);
     await noSideScroll(page, width, "etapa 2");
     if (width === 390) {

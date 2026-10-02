@@ -265,14 +265,27 @@ test("sanitizeExamResult: mantém perguntas neutras com alta/baixo e tira as que
   assert.equal(result.resultados[1]!.marcacao, "H");
 });
 
-test("revisor do laudo recusa classificação no texto livre; política não diz que a caneta muda metas", () => {
+test("revisor do laudo recusa classificação no texto livre; política: metas já consideram o perfil e a caneta", () => {
   assert.match(EXAM_REVIEW_ADDENDUM, /perguntas, observações ou trechos ilegíveis/);
   for (const word of ["normal", "alterado", "acima", "abaixo", "elevado", "alto", "baixo", "fora ou dentro da faixa"])
     assert.ok(EXAM_REVIEW_ADDENDUM.includes(word), word);
   assert.match(EXAM_REVIEW_ADDENDUM, /comparação de um valor com a referência/);
-  assert.doesNotMatch(POLICY, /consideram o objetivo e o uso de caneta/);
-  assert.match(POLICY, /uso de caneta ou de outros medicamentos não altera essas metas/);
-  assert.match(POLICY, /piso de 1\.200 kcal \(feminino\) ou 1\.500 kcal \(masculino\)/);
+  // Decisão de 2026-10-01: as metas passam a considerar IMC, atividade, objetivo, condições e caneta.
+  assert.doesNotMatch(POLICY, /não altera essas metas/);
+  assert.match(
+    POLICY,
+    /já consideram o IMC, o nível de atividade, o objetivo, as condições declaradas e o uso de caneta: use-as como estão e nunca recalcule metas/,
+  );
+  assert.match(POLICY, /abaixo do piso de 1\.200 kcal \(feminino\) ou 1\.500 kcal \(masculino\)/);
+  assert.match(POLICY, /priorize proteína em cada refeição e refeições menores/);
+  // Hidratação só sem restrição de líquidos declarada (ou em dúvida), como no resto do app.
+  assert.match(POLICY, /incentive hidratação apenas quando a restrição hídrica informada for "nao"/);
+  assert.match(POLICY, /com restrição de líquidos ou em dúvida, não recomende aumentar líquidos/);
+  assert.doesNotMatch(POLICY, /priorize proteína em cada refeição, hidratação/);
+  assert.match(POLICY, /nunca sugira, altere ou comente dose/);
+  // Ajuste dinâmico (2026-10): o app ajusta a meta de hoje pelo dia anterior; a IA não recalcula.
+  assert.match(POLICY, /O aplicativo pode ajustar a meta de hoje a partir do consumo de ontem/);
+  assert.match(POLICY, /sem recalcular nem repetir o cálculo/);
 });
 
 test("examResultSchema: recorta textos, data fora do formato vira null e nome ausente recusa", () => {

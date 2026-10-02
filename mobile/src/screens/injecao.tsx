@@ -64,6 +64,7 @@ import { WhenRow } from "@/components/injecao/when-row";
 import { Screen } from "@/components/layout/screen";
 import { QuickEntryForm } from "@/components/quick/quick-entry-form";
 import { AppText, Button, Card, IconButton, Notice, Sheet } from "@/components/ui";
+import { ScreenSignal } from "@/components/signals/screen-signal";
 import { focusNode } from "@/lib/focus";
 import { selectionHaptic } from "@/lib/haptics";
 import { useTimeouts } from "@/lib/timeouts";
@@ -451,6 +452,8 @@ function InjecaoContent() {
             {editing && <Button label="Cancelar edição" variant="text" onPress={leave} style={styles.center} />}
           </>
         )}
+        {/* Sinal do app para quem usa caneta (comer pouco, enjoo); fora da edição de um registro. */}
+        {!editing && <ScreenSignal screen="seringa" />}
         {stock && <StockRow model={stock} onEdit={() => setStockMode("edit")} />}
         {history}
       </ScrollView>

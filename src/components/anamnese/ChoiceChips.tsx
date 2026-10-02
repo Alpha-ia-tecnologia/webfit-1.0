@@ -3,6 +3,7 @@ import { Check, ChevronDown, Plus, Search } from "lucide-react";
 import {
   choiceLayout,
   choiceName,
+  choiceSections,
   choiceText,
   composeChoices,
   filterChoices,
@@ -65,7 +66,9 @@ export function ChoiceChips({
     focusCommon.current = false;
     commonRow.current?.querySelector<HTMLButtonElement>("button")?.focus();
   }, [isExpanded]);
-  const isOtherOpen = parsed.other !== "" || isOtherRequested;
+  // Lista fechada (hideOther): sem "Outros"; texto fora da lista não abre campo livre.
+  const hasOther = !config.hideOther;
+  const isOtherOpen = hasOther && (parsed.other !== "" || isOtherRequested);
   const isPills = choiceLayout(config) === "pills";
   const isMulti = config.mode === "multi";
   const helpId = hint || error ? `${id}-help` : undefined;
@@ -73,7 +76,7 @@ export function ChoiceChips({
   const otherLabel = config.otherLabel ?? "Outros";
   const pick = (option: ChoiceOption) => {
     const next = toggleChoice(parsed.selected, option, config);
-    const other = config.mode === "single" ? "" : parsed.other;
+    const other = config.mode === "single" || !hasOther ? "" : parsed.other;
     if (config.mode === "single") setOtherRequested(false);
     if (option.none && !parsed.selected.includes(option.value)) setExpanded(false);
     onChange(composeChoices(next, other, config));
@@ -144,7 +147,7 @@ export function ChoiceChips({
       </button>
     );
   };
-  const otherChip = (
+  const otherChip = hasOther && (
     <button
       type="button"
       className={`choice-chip other ${isPills ? "is-pill" : ""} ${isOtherOpen ? "on" : ""}`}
@@ -183,7 +186,33 @@ export function ChoiceChips({
           ou escolha
         </p>
       )}
-      {showCommon ? (
+      {showCommon && config.sections ? (
+        <div className="choice-sections" ref={commonRow}>
+          {choiceSections(config, visible).map((section, index) => {
+            const titleId = `${id}-section-${index}`;
+            return (
+              <div
+                key={section.title ?? "rest"}
+                className="choice-section"
+                role={section.title ? "group" : undefined}
+                aria-labelledby={section.title ? titleId : undefined}
+              >
+                {section.title && (
+                  <p id={titleId} className="choice-section-title">
+                    {section.title}
+                  </p>
+                )}
+                <div className="choice-pill-row">
+                  {section.options.map((option) =>
+                    chip(option, config.options.indexOf(option)),
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          {otherChip && <div className="choice-pill-row">{otherChip}</div>}
+        </div>
+      ) : showCommon ? (
         <div className="choice-pill-row" ref={commonRow}>
           {visible.map(chip)}
           {hidden.length > 0 && (

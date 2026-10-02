@@ -700,10 +700,13 @@ for (const width of [390, 360]) {
   await check(`${width} (8) interruptores com o nome exato; linhas de 52 px; sem rolagem lateral`, async () => {
     await expect(page.getByRole("switch", { name: "Ocultar calorias nas telas e respostas", exact: true })).toHaveCount(1);
     await expect(page.getByRole("switch", { name: "Lembretes dentro do aplicativo", exact: true })).toHaveCount(1);
+    await expect(page.getByRole("switch", { name: "Ajuste dinâmico das metas", exact: true })).toBeChecked();
+    await expect(page.getByRole("switch", { name: "Comentários automáticos da IA", exact: true })).toBeChecked();
     await expect(page.getByRole("switch", { name: /Permitir envio do contexto/ })).toBeVisible();
     const heights = await page.getByTestId("setting-row").evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
-    // 8 linhas desde "Ocultar números do corpo" (Onda 4 · L4, ESPACO-13); cada uma com 52 px.
-    if (heights.length !== 8 || heights.some((h) => h < 52 - 0.5)) throw Error(heights.join(" "));
+    // 8 linhas desde "Ocultar números do corpo" (Onda 4 · L4, ESPACO-13), + "Guardar uma cópia no servidor"
+    // (cópia no servidor) e + "Ajuste dinâmico das metas" e "Comentários automáticos da IA" (2026-10-01): 11, cada uma com 52 px.
+    if (heights.length !== 11 || heights.some((h) => h < 52 - 0.5)) throw Error(heights.join(" "));
     await noSideScroll(page, "preferências");
   });
   await check(`${width} (8) agente pronto: "Pronto · DeepSeek e OpenAI"; "Avançado" recolhido sem "npm run dev:lan"`, async () => {

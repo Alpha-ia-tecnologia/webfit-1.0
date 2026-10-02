@@ -3,6 +3,7 @@ import { View } from "react-native";
 import {
   choiceLayout,
   choiceName,
+  choiceSections,
   choiceText,
   composeChoices,
   filterChoices,
@@ -48,7 +49,10 @@ export function ChoiceChips({ label, prompt, hint, error, optional, value, confi
   const parsed = parseChoices(value, config);
   const isNarrow = useIsNarrowGrid();
   const choiceGrid = useChoiceGrid();
-  const [isOtherOpen, setOtherOpen] = useState(parsed.other !== "");
+  // Lista fechada (hideOther): sem "Outros"; texto fora da lista não abre campo livre.
+  const hasOther = !config.hideOther;
+  const [isOtherRequested, setOtherOpen] = useState(parsed.other !== "");
+  const isOtherOpen = hasOther && isOtherRequested;
   const [isExpanded, setExpanded] = useState(false);
   const [isSheetOpen, setSheetOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -72,7 +76,7 @@ export function ChoiceChips({ label, prompt, hint, error, optional, value, confi
   const otherLabel = config.otherLabel ?? "Outros";
   const pick = (option: ChoiceOption) => {
     const next = toggleChoice(parsed.selected, option, config);
-    const other = config.mode === "single" ? "" : parsed.other;
+    const other = config.mode === "single" || !hasOther ? "" : parsed.other;
     if (config.mode === "single") setOtherOpen(false);
     if (option.none && !parsed.selected.includes(option.value)) setExpanded(false);
     onChange(composeChoices(next, other, config));
@@ -105,7 +109,7 @@ export function ChoiceChips({ label, prompt, hint, error, optional, value, confi
       onPress={() => pick(option)}
     />
   );
-  const otherChip = (
+  const otherChip = hasOther && (
     <ChoiceChip text={otherLabel} isOn={isOtherOpen} isOther isPill={isPills} isNarrow={isNarrow} onPress={toggleOther} />
   );
   const { exclusive, visible, hidden } = splitChoices(config, parsed.selected);
@@ -119,7 +123,26 @@ export function ChoiceChips({ label, prompt, hint, error, optional, value, confi
     <View style={styles.pills}>
       {exclusive.length > 0 && <View style={styles.exclusiveRow}>{exclusive.map((option) => chip(option, undefined, true))}</View>}
       {exclusive.length > 0 && showCommon && <Divider />}
-      {showCommon ? (
+      {showCommon && config.sections ? (
+        <View style={styles.sections}>
+          {choiceSections(config, visible).map((section, index) => (
+            <View
+              key={section.title ?? "rest"}
+              style={styles.section}
+              role={section.title ? "group" : undefined}
+              aria-label={section.title ?? undefined}
+            >
+              {section.title ? <SectionTitle text={section.title} /> : null}
+              <View style={choiceGrid}>
+                {section.options.map((option, optionIndex) =>
+                  chip(option, index === 0 && optionIndex === 0 ? firstCommon : undefined),
+                )}
+              </View>
+            </View>
+          ))}
+          {otherChip ? <View style={choiceGrid}>{otherChip}</View> : null}
+        </View>
+      ) : showCommon ? (
         <View style={choiceGrid}>
           {visible.map((option, index) => chip(option, index === 0 ? firstCommon : undefined))}
           {hidden.length > 0 && (
@@ -191,6 +214,16 @@ export function ChoiceChips({ label, prompt, hint, error, optional, value, confi
   );
 }
 
+/** Título de um grupo de pílulas (.choice-section-title). */
+function SectionTitle({ text }: { text: string }) {
+  const colors = useThemeColors();
+  return (
+    <AppText size={fontSize.xs} weight={700} lineHeight={17} color={colors.muted} style={{ letterSpacing: 0.24 }}>
+      {text}
+    </AppText>
+  );
+}
+
 /** "ou escolha" entre as excludentes e as opções comuns (.choice-divider); decorativo. */
 function Divider() {
   const styles = useStyles();
@@ -213,6 +246,9 @@ function Divider() {
 
 const useStyles = makeStyles((colors) => ({
   pills: { gap: 12 },
+  // .choice-sections / .choice-section: grupos com título, 14 px entre eles e 8 px até as pílulas.
+  sections: { gap: 14 },
+  section: { gap: 8 },
   // Excludentes lado a lado (crescem e centralizam o texto), 10 px entre elas.
   exclusiveRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   divider: { flexDirection: "row", alignItems: "center", gap: 16, marginVertical: 2 },

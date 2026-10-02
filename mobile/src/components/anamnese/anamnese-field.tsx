@@ -11,6 +11,7 @@ import type { Draft } from "@shared/types";
 import { Field, TextField } from "@/components/ui";
 import { ChoiceCards } from "./choice-cards";
 import { ChoiceChips } from "./choice-chips";
+import { ConditionsField } from "./conditions-field";
 import { DateWheels } from "./date-wheels";
 import { DayTimeline } from "./day-timeline";
 import { GoalsWidget } from "./goals-widget";
@@ -46,7 +47,7 @@ export type FieldProps = {
 
 /** Perguntas com linha de ajuda ("Escolha uma", "Marque todos que se aplicam"), onde cabe o "Por quê?". */
 export function acceptsAbout(f: Question): boolean {
-  if (f.widget) return f.widget === "numbersChoice";
+  if (f.widget) return f.widget === "numbersChoice" || f.widget === "conditions";
   return f.type === "select" || f.key === "weightLossPenDose" || CHOICE_FIELDS[f.key] !== undefined;
 }
 
@@ -67,6 +68,8 @@ export function AnamneseField(props: FieldProps) {
       return <QuietHours answers={answers} errors={errors} set={set} fields={fields} />;
     case "penSchedule":
       return <PenSchedule answers={answers} errors={errors} set={set} injectionsCount={injectionsCount} today={today} canRegister={canRegisterPen} />;
+    case "conditions":
+      return <ConditionsField answers={answers} errors={errors} fields={fields} about={about} set={set} />;
     case "numbersChoice":
       return <ChoiceCards field={f} value={String(Boolean(value))} error={error} about={about} onChange={(next) => set(f.key, next === "true")} />;
     default:

@@ -1,12 +1,16 @@
 import { Flame, Utensils, type LucideIcon } from "lucide-react-native";
-import { View } from "react-native";
-import type { DailyTarget } from "@shared/lib/domain";
+import { useWindowDimensions, View } from "react-native";
+import { adjustmentExplain, type DailyTarget } from "@shared/lib/domain";
 import { fmtNumber } from "@shared/lib/format";
 import { balanceStatus, percentOf } from "@shared/lib/today";
+import { CareNotes } from "@/components/espaco/care-notes";
 import { AppText, Sheet, StatusPill } from "@/components/ui";
 import { makeStyles, useThemeColors } from "@/theme/theme";
 import { fontSize } from "@/theme/tokens";
 import { Gauge } from "./gauge";
+
+/** Largura até a qual "Consumidas" e "Gasto estimado" ficam empilhados (o mesmo corte do web). */
+const NARROW_WIDTH = 360;
 
 /**
  * "Como calculamos": o balanço energético do dia com o gasto estimado e a origem da meta.
@@ -25,6 +29,8 @@ export function BalanceExplain({
 }) {
   const styles = useStyles();
   const colors = useThemeColors();
+  // Até 360 px as duas estatísticas ficam uma sob a outra (o rótulo não cabe ao lado do ícone), como no web.
+  const isNarrow = useWindowDimensions().width <= NARROW_WIDTH;
   const percent = percentOf(consumed, goals.calories);
   const remaining = goals.calories === null ? null : goals.calories - consumed;
   const status = balanceStatus(consumed, goals.calories);
@@ -48,7 +54,7 @@ export function BalanceExplain({
           {remaining === null ? "kcal consumidas" : remaining >= 0 ? "kcal restantes" : "kcal acima do planejado"}
         </AppText>
       </Gauge>
-      <View style={styles.stats}>
+      <View style={[styles.stats, isNarrow && styles.statsStacked]}>
         <Stat icon={Utensils} tone="sky" label="Consumidas" value={fmtNumber(consumed)} unit="kcal" />
         <Stat
           icon={Flame}
@@ -73,6 +79,12 @@ export function BalanceExplain({
           {goals.note}
         </AppText>
       ) : null}
+      {goals.adjustmentNote ? (
+        <AppText size={fontSize.xs} color={colors.muted} lineHeight={19}>
+          {adjustmentExplain(goals)}
+        </AppText>
+      ) : null}
+      <CareNotes notes={goals.careNotes} />
     </Sheet>
   );
 }
@@ -132,6 +144,7 @@ const useStyles = makeStyles((colors) => ({
     borderTopWidth: 1,
     borderTopColor: colors.borderSoft,
   },
+  statsStacked: { flexDirection: "column" },
   stat: {
     flex: 1,
     flexDirection: "row",

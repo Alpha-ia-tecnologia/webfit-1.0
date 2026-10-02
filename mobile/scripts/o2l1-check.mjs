@@ -258,34 +258,30 @@ async function anamneseChecks(width) {
     await scrollToTop(page);
     await page.screenshot({ path: path.join(shots, `${width}-step2.png`) });
   }
-  const conditions = page.getByTestId("anamnese-field-conditions");
+  // Condições (lista fechada, 2026-10-01): 13 pílulas; "Nenhuma" é excludente e recolhe as demais;
+  // "Outra" abre os detalhes, que guardam o texto como digitado.
+  const conditions = page.getByTestId("anamnese-field-conditionTags");
   await conditions.evaluate((el) => el.scrollIntoView({ block: "center" }));
-  const names = await pillNames(conditions);
-  check(names[0] === "Nenhuma" && names[1] === "Prefiro não informar", `${width} condições: excludentes no topo (${names.slice(0, 2).join(", ")})`);
-  const [top, firstCommon] = [await conditions.getByRole("button", { name: "Prefiro não informar" }).boundingBox(), await conditions.getByRole("button", { name: "Hipertensão" }).boundingBox()];
-  check(top.y < firstCommon.y, `${width} condições: excludentes acima das comuns`);
-  check(await conditions.getByText("ou escolha", { exact: true }).isVisible(), `${width} condições: divisor "ou escolha"`);
-  check(await conditions.getByRole("button", { name: "Ver mais 6", exact: true }).isVisible(), `${width} condições: "Ver mais 6"`);
-  await conditions.getByRole("button", { name: "Nenhuma", exact: true }).click();
-  check((await conditions.getByRole("button", { name: "Nenhuma", exact: true }).getAttribute("aria-pressed")) === "true", `${width} condições: "Nenhuma" marcada`);
-  check((await conditions.getByRole("button", { name: "Hipertensão" }).count()) === 0, `${width} condições: "Nenhuma" recolhe as demais`);
-  check((await conditions.getByText("ou escolha", { exact: true }).count()) === 0, `${width} condições: divisor some ao recolher`);
+  const none = conditions.getByRole("button", { name: "Nenhuma", exact: true });
+  check((await none.getAttribute("aria-pressed")) === "true", `${width} condições: "Nenhuma" do rascunho marcada`);
+  check((await conditions.getByRole("button", { name: "Hipertensão (pressão alta)" }).count()) === 0, `${width} condições: "Nenhuma" recolhe as demais`);
   const expand = conditions.getByRole("button", { name: "Mostrar outras opções", exact: true });
   check(await expand.isVisible(), `${width} condições: "Mostrar outras opções"`);
   if (width === 390) await page.screenshot({ path: path.join(shots, `${width}-step3-none.png`) });
   await expand.click();
   await page.waitForTimeout(200);
-  check(await conditions.getByRole("button", { name: "Hipertensão" }).isVisible(), `${width} condições: "Mostrar outras opções" reabre`);
-  const focused = await page.evaluate(() => document.activeElement?.getAttribute("aria-label"));
-  check(focused === "Hipertensão", `${width} condições: foco na primeira opção revelada (${focused})`);
-  // "Outra": o campo guarda o texto como digitado (o espaço entre as palavras não some a cada tecla).
+  const names = await pillNames(conditions);
+  check(names.length === 13, `${width} condições: 13 opções da lista (${names.length})`);
+  check(await conditions.getByRole("button", { name: "Hipertensão (pressão alta)" }).isVisible(), `${width} condições: "Mostrar outras opções" reabre`);
   const otherChip = conditions.getByRole("button", { name: "Outra", exact: true });
   await otherChip.click();
-  const otherField = conditions.getByLabel("Condições de saúde e diagnósticos conhecidos: outros", { exact: true });
+  check((await none.getAttribute("aria-pressed")) === "false", `${width} condições: "Outra" desmarca "Nenhuma"`);
+  const otherField = page.getByLabel("Detalhes ou outra condição", { exact: true });
   await otherField.pressSequentially("asma leve");
-  check((await otherField.inputValue()) === "asma leve", `${width} condições: "Outra" aceita espaços ao digitar ("${await otherField.inputValue()}")`);
-  await otherChip.click();
-  check((await otherField.count()) === 0, `${width} condições: fechar "Outra" apaga o texto livre`);
+  check((await otherField.inputValue()) === "asma leve", `${width} condições: detalhes aceitam espaços ao digitar ("${await otherField.inputValue()}")`);
+  await none.click();
+  check((await none.getAttribute("aria-pressed")) === "true", `${width} condições: "Nenhuma" marcada de novo`);
+  check((await conditions.getByRole("button", { name: "Outra", exact: true }).count()) === 0, `${width} condições: "Nenhuma" limpa "Outra"`);
   // Enum sem descrições vira pílula de rádio.
   const eating = page.getByRole("radiogroup", { name: /^Histórico de transtorno alimentar/ });
   check((await eating.getByRole("radio", { name: "Não", exact: true }).getAttribute("aria-checked")) !== null, `${width} enum em pílulas com aria-checked`);

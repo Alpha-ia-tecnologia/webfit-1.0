@@ -415,3 +415,12 @@ test("descrição de refeição: contexto mínimo (alergias, evitados e sinais),
   assert.equal(JSON.stringify(agentRequestContext(s, "chat")).includes("Losartana"), true);
   assert.throws(() => agentRequestContext({ ...s, profile: null }, "meal_text"), /Conclua a anamnese/);
 });
+
+test("conversa leva os títulos dos sinais do app como fatos; os outros modos não", () => {
+  const s = stateFixture();
+  const chat = agentRequestContext(s, "chat") as Record<string, unknown>;
+  assert.ok(Array.isArray(chat.signals));
+  assert.equal(extractFlags(chat).hideCalories, extractFlags(agentContext(s)).hideCalories);
+  assert.equal("signals" in (agentRequestContext(s, "diet") as Record<string, unknown>), false);
+  assert.equal("signals" in (agentRequestContext(s, "meal_text") as Record<string, unknown>), false);
+});

@@ -25,6 +25,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { QuickEntryForm } from "@/components/quick/quick-entry-form";
 import { srOnly } from "@/components/refeicao/web-a11y";
 import { AppText, Button, Card, Empty, IconButton, MealCard, Sheet, type MealCardTone } from "@/components/ui";
+import { ScreenSignal } from "@/components/signals/screen-signal";
 import { useApp } from "@/state/app-context";
 import { useDiaryActions } from "@/state/use-diary-actions";
 import { makeStyles, useThemeColors } from "@/theme/theme";
@@ -73,7 +74,7 @@ export function DiarioScreen() {
   const bandShown = useRef(false);
   const headerScroll = useSharedValue(0);
   const totals = totalsFor(state.diary, date);
-  const goals = dailyTargets(state, date);
+  const goals = dailyTargets(state, date, today);
   const day = useMemo(
     () => groupDiaryDay({ diary: state.diary, injections: state.injections, date }),
     [state.diary, state.injections, date],
@@ -162,6 +163,8 @@ export function DiarioScreen() {
                 balanceBottom.current = CONTENT_PADDING + e.nativeEvent.layout.y + e.nativeEvent.layout.height;
               }}
             />
+            {/* Sinal do app sobre os últimos dias: só olhando o dia de hoje. */}
+            {date === today && <ScreenSignal screen="diario" />}
 
             {day.isEmpty && (
               <Card>

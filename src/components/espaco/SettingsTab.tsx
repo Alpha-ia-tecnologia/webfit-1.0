@@ -7,10 +7,12 @@ import {
   Droplets,
   EyeOff,
   HardDrive,
+  MessageCircle,
   Moon,
   Ruler,
   ShieldCheck,
   Sparkles,
+  SlidersHorizontal,
   SunMoon,
   Target,
 } from "lucide-react";
@@ -38,11 +40,16 @@ import { SwitchRow, ValueRow } from "./SettingRow";
 import { HydrationSheet, QuietHoursSheet } from "./SettingSheets";
 import "./Settings.css";
 
-type SwitchKey =
+type ProfileSwitchKey =
   | "hideCalories"
   | "hideBodyNumbers"
   | "remindersEnabled"
   | "consentAi";
+/** Preferências guardadas no estado do app (não no perfil): ajuste dinâmico e comentário diário da IA. */
+type StateSwitchKey = "adaptiveTargets" | "aiDailyComment";
+type SwitchKey = ProfileSwitchKey | StateSwitchKey;
+const isStateKey = (key: SwitchKey): key is StateSwitchKey =>
+  key === "adaptiveTargets" || key === "aiDailyComment";
 const IN_ANAMNESE = "Na anamnese";
 
 /** Aba "Preferências e dados": escolhas em lista, o agente, onde ficam os dados, backup e exclusão. */
@@ -82,7 +89,10 @@ export function SettingsTab({
     setPending((current) => ({ ...current, [key]: value }));
     if (key === "consentAi" && !value) cancelAi();
     await commit(
-      (s) => withProfilePatch(s, { [key]: value }),
+      (s) =>
+        isStateKey(key)
+          ? { ...s, [key]: value }
+          : withProfilePatch(s, { [key]: value }),
       "Preferência salva.",
     );
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- tira a chave do objeto; só o resto importa
@@ -90,7 +100,7 @@ export function SettingsTab({
   };
   const switchProps = (key: SwitchKey) => ({
     id: `setting-${key}`,
-    checked: pending[key] ?? p[key],
+    checked: pending[key] ?? (isStateKey(key) ? state[key] : p[key]),
     disabled: pending[key] !== undefined,
     onChange: (value: boolean) => void change(key, value),
   });
@@ -143,6 +153,12 @@ export function SettingsTab({
             value={IN_ANAMNESE}
             onClick={() => openSection("manualCalories")}
           />
+          <SwitchRow
+            {...switchProps("adaptiveTargets")}
+            icon={SlidersHorizontal}
+            tone="food"
+            label="Ajuste dinâmico das metas"
+          />
           <ValueRow
             icon={Clock}
             tone="food"
@@ -168,6 +184,12 @@ export function SettingsTab({
             icon={Sparkles}
             tone="mind"
             label="Permitir envio do contexto ao DeepSeek e/ou à OpenAI ao usar IA"
+          />
+          <SwitchRow
+            {...switchProps("aiDailyComment")}
+            icon={MessageCircle}
+            tone="mind"
+            label="Comentários automáticos da IA"
           />
           <li className="set-row is-status">
             <IconTile tone="neutral" size="md" icon={Bot} className="set-icon" />

@@ -24,6 +24,7 @@ import { InjectionRow, WATER_QUICK_ML, WaterLine, WellbeingRow } from "./diario/
 import { DiarySearch } from "./diario/DiarySearch";
 import { QualityCard } from "./diario/QualityCard";
 import { useDiaryActions } from "./useDiaryActions";
+import { ScreenSignal } from "./signals/ScreenSignal";
 import "./diario/Diario.css";
 
 /** Vaga de refeição sem registro: ícone e tom de cada uma (lanche azul: rosa é só para erro). */
@@ -49,7 +50,7 @@ export function ScreenDiario() {
     [highlightId, setHighlightId] = useState<string | null>(null);
   const today = localDate();
   const totals = totalsFor(state.diary, date),
-    goals = dailyTargets(state, date);
+    goals = dailyTargets(state, date, today);
   const day = useMemo(
     () => groupDiaryDay({ diary: state.diary, injections: state.injections, date }),
     [state.diary, state.injections, date],
@@ -88,6 +89,8 @@ export function ScreenDiario() {
         isToday={date === today}
         onExplain={() => setExplainOpen(true)}
       />
+      {/* Sinal do app sobre os últimos dias: só olhando o dia de hoje. */}
+      {date === today && <ScreenSignal screen="diario" />}
 
       {day.isEmpty && (
         <Card className="diary-empty">

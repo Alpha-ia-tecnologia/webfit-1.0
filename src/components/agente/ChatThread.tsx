@@ -11,6 +11,7 @@ import {
   stageLabel,
   type AgentProgress,
 } from "../../lib/agent-stream";
+import { DAILY_COMMENT_CHIP } from "../../lib/daily-comment";
 import { visiblePlainText } from "../../lib/text";
 import type { AgentMeta, ChatMessage } from "../../types";
 import { RichText } from "../RichText";
@@ -156,6 +157,22 @@ export function ChatThread({
             </p>,
           ];
         }
+        if (view === "profile-request")
+          return [
+            separator,
+            <p className="chat-system" key={m.id} data-testid="profile-request">
+              <Sparkles size={13} aria-hidden="true" />
+              Você pediu uma análise do seu perfil · {timeOf(m.timestamp)}
+            </p>,
+          ];
+        if (view === "daily-request")
+          return [
+            separator,
+            <p className="chat-system" key={m.id} data-testid="daily-request">
+              <Sparkles size={13} aria-hidden="true" />
+              {DAILY_COMMENT_CHIP} · {timeOf(m.timestamp)}
+            </p>,
+          ];
         if (view === "diet-plan") {
           const request = messages[index - 1];
           return [

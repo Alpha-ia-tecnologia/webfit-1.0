@@ -31,10 +31,13 @@ import {
 import { parseBackup } from "../src/lib/backup";
 import { emptyDraft } from "../src/lib/domain";
 import { profileSchema, stateSchema, type Draft } from "../src/types";
-import { profileFixture, stateFixture } from "./fixtures";
+import { draftFixture, stateFixture } from "./fixtures";
 
 const TODAY = "2026-09-27";
-const full = () => profileFixture() as unknown as Draft;
+// Perfil completo de hoje: as condições já vêm da lista fechada (texto "a,b" no rascunho).
+const full = (): Draft => draftFixture();
+/** Perfil salvo antes da lista: só o texto livre das condições. */
+const legacy = (): Draft => draftFixture({ conditionTags: [] });
 const empty = () => emptyDraft() as Draft;
 const fieldOf = (key: string): Question =>
   questionnaire.flatMap((s) => s.fields).find((f) => f.key === key)!;
@@ -62,9 +65,15 @@ test("questionário: 8 etapas, triagem logo depois do básico e cada resposta do
     "pregnancy",
     "eatingDisorder",
     "fluidRestriction",
+    "conditionTags",
     "conditions",
     "hideCalories",
   ]);
+  // Condições: a lista fechada e os detalhes formam um bloco só; os detalhes valem com "Outra".
+  assert.equal(fieldOf("conditionTags").widget, "conditions");
+  assert.equal(fieldOf("conditions").widget, "conditions");
+  assert.equal(fieldOf("conditions").optional, true);
+  assert.deepEqual(fieldOf("conditions").requiredWhen, ["conditionTags", "outra"]);
   const keys = questionnaire.flatMap((s) => s.fields.map((f) => f.key));
   // Preferências fora do questionário: ordem do Hoje, versão do consentimento e "Ocultar números do corpo" (Meu espaço).
   const profileKeys = Object.keys(profileSchema.shape).filter(
@@ -110,6 +119,9 @@ test("etapa inicial: rascunho novo usa a etapa salva; antigo passa pelo mapa e p
   assert.equal(firstIncompleteStep(full()), null);
   assert.equal(firstIncompleteStep(noTriage), 1);
   assert.equal(firstIncompleteStep(empty()), 0);
+  // Perfil antigo (só texto livre): volta aos cuidados para escolher na lista.
+  assert.equal(firstIncompleteStep(legacy()), 1);
+  assert.equal(initialStep(legacy(), 7), 1);
 });
 
 test("marca do fluxo: gravada no rascunho e descartada pelo perfil", () => {
@@ -167,16 +179,24 @@ test("filtro de cuidado no rascunho: triagem vazia é sensível; idade desconhec
   assert.equal(canShowProjection(adult, TODAY), true);
   assert.equal(canShowProjection({ ...adult, goal: "manter" }, TODAY), false);
   // Condições e sexo não informado deixam o peso desejado, mas tiram a projeção.
-  const hypertension = { ...adult, conditions: "Hipertensão" };
+  // Perfil antigo (sem a lista): o texto livre decide, como antes.
+  const hypertension = { ...adult, conditions: "Hipertensão", conditionTags: "" };
   assert.equal(canShowBodyNumbers(hypertension, TODAY), true);
   assert.equal(canShowProjection(hypertension, TODAY), false);
   assert.equal(canShowProjection({ ...adult, sex: "nao_informado" }, TODAY), false);
+  // Na lista fechada: condições com ajustes mantêm a projeção; as que pedem avaliação a tiram.
+  const listed = (conditionTags: string) => ({ ...adult, conditions: "", conditionTags });
+  assert.equal(canShowProjection(listed("hipertensao,diabetes_tipo_2"), TODAY), true);
+  assert.equal(canShowProjection(listed("nenhuma"), TODAY), true);
+  assert.equal(canShowProjection(listed("hipertensao,doenca_renal"), TODAY), false);
+  assert.equal(canShowProjection({ ...listed("outra"), conditions: "Asma" }, TODAY), false);
   assert.deepEqual(careInput({ birthDate: null }), {
     birthDate: "",
     sex: "",
     pregnancy: "",
     eatingDisorder: "",
     conditions: "",
+    conditionTags: "",
   });
 });
 
@@ -308,6 +328,12 @@ test("respostas do primeiro acesso viram o cartão só para objetivo e consentim
 test("progresso: perfil completo em 100% e rascunho vazio sem silêncio com lembretes desligados", () => {
   const done = completion(full());
   assert.equal(done.percent, 100);
+  assert.ok(completion(legacy()).percent < 100, "perfil antigo ainda escolhe as condições");
+  // "Outra" torna os detalhes essenciais.
+  const other = { ...full(), conditionTags: "outra", conditions: "" };
+  assert.ok(essentialFields(other).some((f) => f.key === "conditions"));
+  assert.ok(!essentialFields(full()).some((f) => f.key === "conditions"));
+  assert.ok(completion(other).percent < 100);
   const start = completion(empty());
   assert.ok(start.answered > 0 && start.answered <= 8, String(start.answered));
   assert.ok(start.total >= 45 && start.total <= 70, String(start.total));
@@ -331,6 +357,12 @@ test("texto das respostas na revisão", () => {
   assert.equal(answerText(fieldOf("consentAi"), true), "Sim");
   assert.equal(answerText(fieldOf("sex"), "feminino"), "Feminino");
   assert.equal(answerText(fieldOf("name"), ""), "Não informado");
+  assert.equal(
+    answerText(fieldOf("conditionTags"), "hipertensao,outra"),
+    "Hipertensão (pressão alta), Outra",
+  );
+  assert.equal(answerText(fieldOf("conditionTags"), "nenhuma"), "Nenhuma");
+  assert.equal(answerText(fieldOf("conditionTags"), ""), "Não informado");
 });
 
 test("widgets: a linha do dia conta como uma pergunta e cobre as sete chaves", () => {

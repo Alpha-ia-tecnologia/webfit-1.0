@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import {
   completion,
+  groupStartOf,
   initialStep,
   isAnswered as fieldAnswered,
   MILESTONE_MESSAGES,
@@ -27,7 +28,7 @@ import {
   renderableFields,
   stepProgress,
 } from "@shared/components/anamnese/progress";
-import { ANAMNESE_GROUPS } from "@shared/data/anamneseOptions";
+import { profileToDraft, withConditionIssues } from "@shared/components/anamnese/condition-choice";
 import { questionnaire, type Question } from "@shared/data/questionnaire";
 import {
   applyAnswer,
@@ -108,8 +109,9 @@ export function AnamneseScreen({
   const sectionMode = editIndex !== null;
   const [initialAnswers] = useState<Draft>(() =>
     sectionMode && state.profile
-      ? { ...state.profile }
-      : (state.draft ?? (state.profile ? { ...state.profile } : emptyDraft())),
+      ? profileToDraft(state.profile)
+      : (state.draft ??
+        (state.profile ? profileToDraft(state.profile) : emptyDraft())),
   );
   const [answers, setAnswers] = useState<Draft>(initialAnswers);
   // Objetivo e consentimento que chegaram do primeiro acesso viram "O que você já contou" (etapa 1).
@@ -183,7 +185,7 @@ export function AnamneseScreen({
   const knownKeys = step === 0 && !sectionMode ? known : [];
   const visibleFields = renderableFields(section.fields, answers, knownKeys, today);
   const groups = visibleFields.reduce<Group[]>((result, field) => {
-    const start = ANAMNESE_GROUPS[field.key];
+    const start = groupStartOf(field.key);
     if (!result.length || start)
       result.push({
         title: start?.title ?? section.title,
@@ -269,15 +271,17 @@ export function AnamneseScreen({
     return next;
   };
   const validate = (values: Draft) => {
-    // Editor de seção: o que a mudança quebra em outra etapa vira aviso (e bloqueia o salvar).
-    const { fields: next, outside } = sectionMode
-      ? sectionIssues(values, step)
-      : { fields: stepErrors(values), outside: [] };
-    setErrors(next);
     const fields =
       step === lastStep
         ? questionnaire.flatMap((s) => s.fields)
         : section.fields;
+    // Editor de seção: o que a mudança quebra em outra etapa vira aviso (e bloqueia o salvar).
+    const { fields: schemaErrors, outside } = sectionMode
+      ? sectionIssues(values, step)
+      : { fields: stepErrors(values), outside: [] };
+    // Condições: sem nenhuma marcada (inclusive perfis antigos, só com texto), pede a escolha.
+    const next = withConditionIssues(values, schemaErrors, fields.map((f) => f.key));
+    setErrors(next);
     const pending = fields.filter((f) => next[f.key]);
     if (pending.length) {
       notify(pendingMessage(pending.map((f) => onDevice(f.label))), "warning");

@@ -24,6 +24,7 @@ import { MeasurementModal } from "./evolucao/MeasurementModal";
 import { SERIES, SeriesSheet } from "./evolucao/SeriesSheet";
 import { WeightCard } from "./evolucao/WeightCard";
 import { focusWhenReady, HIDE_BODY_SWITCH_ID } from "./espaco/focusWhenReady";
+import { ScreenSignal } from "./signals/ScreenSignal";
 import "./evolucao/Evolucao.css";
 import "./evolucao/Hidden.css";
 
@@ -88,6 +89,7 @@ export function ScreenEvolucao() {
           hidden={bodyHidden}
         />
       )}
+      <ScreenSignal screen="evolucao" />
       <section className="evol-days" aria-labelledby="evol-days-title">
         <div className="evol-days-head">
           <div className="evol-days-title">

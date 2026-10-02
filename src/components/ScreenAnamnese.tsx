@@ -31,7 +31,7 @@ import {
 import { SECTION_EDIT_COPY, sectionIssues } from "../lib/profile-summary";
 import { profileSchema, type Draft } from "../types";
 import { questionnaire, type Question } from "../data/questionnaire";
-import { ANAMNESE_GROUPS, STAGE_ICONS } from "../data/anamneseOptions";
+import { STAGE_ICONS } from "../data/anamneseOptions";
 import "./Anamnese.css";
 import "./anamnese/AnamneseInputs.css";
 import "./anamnese/AnamneseWidgets.css";
@@ -39,8 +39,10 @@ import "./anamnese/AnamneseSchedule.css";
 import {
   completion,
   essentialFields,
+  groupStartOf,
   initialStep,
   isAnswered as fieldAnswered,
+  isSingleQuestion,
   MILESTONE_MESSAGES,
   pendingMessage,
   reachedMilestone,
@@ -70,6 +72,7 @@ import { StepBar, type SaveStatus } from "./anamnese/StepBar";
 import { useSectionEdit } from "./anamnese/useSectionEdit";
 import { WeightProjection } from "./anamnese/WeightProjection";
 import { bmiOf } from "./anamnese/inputs";
+import { profileToDraft, withConditionIssues } from "./anamnese/condition-choice";
 
 /** Mola curta para marcas e selos: rápida, com leve sobressalto. */
 const spring = { type: "spring" as const, stiffness: 520, damping: 26 };
@@ -99,8 +102,9 @@ export function ScreenAnamnese({
   const [examBusy, setExamBusy] = useState(false);
   const [answers, setAnswers] = useState<Draft>(() =>
     sectionMode && state.profile
-      ? { ...state.profile }
-      : (state.draft ?? (state.profile ? { ...state.profile } : emptyDraft())),
+      ? profileToDraft(state.profile)
+      : (state.draft ??
+        (state.profile ? profileToDraft(state.profile) : emptyDraft())),
   );
   // Objetivo e consentimento que chegaram respondidos viram o cartão "O que você já contou".
   const [known] = useState(() => (sectionMode ? [] : prefilledKeys(answers)));
@@ -161,7 +165,7 @@ export function ScreenAnamnese({
   const groups = fields.reduce<
     { title: string; icon: LucideIcon; fields: Question[] }[]
   >((result, field) => {
-    const start = ANAMNESE_GROUPS[field.key];
+    const start = groupStartOf(field.key);
     if (!result.length || start)
       result.push({
         title: start?.title ?? section.title,
@@ -206,8 +210,8 @@ export function ScreenAnamnese({
           : "";
     setErrors((e) => ({ ...e, [key]: message }));
   };
-  /** Erros da etapa; no editor de seção, também os rótulos de outras etapas que a mudança invalida. */
-  const issuesOf = (values: Draft) => {
+  /** Erros do perfil; no editor de seção, também os rótulos de outras etapas que a mudança invalida. */
+  const schemaIssues = (values: Draft) => {
     if (sectionMode) return sectionIssues(values, step);
     const parsed = profileSchema.safeParse({
       ...values,
@@ -221,6 +225,14 @@ export function ScreenAnamnese({
         if (step === lastStep || keys.includes(key)) fields[key] = issue.message;
       }
     return { fields, outside: [] as string[] };
+  };
+  /** Erros da etapa (com a escolha das condições); no editor de seção, também os de outras etapas. */
+  const issuesOf = (values: Draft) => {
+    const keys = (step === lastStep ? ALL_FIELDS : section.fields).map(
+      (f) => f.key,
+    );
+    const { fields, outside } = schemaIssues(values);
+    return { fields: withConditionIssues(values, fields, keys), outside };
   };
   const validate = (values: Draft) => {
     const { fields: next, outside } = issuesOf(values);
@@ -608,8 +620,7 @@ export function ScreenAnamnese({
                 // Grupo de uma pergunta só: a própria pergunta é o título (o do grupo fica para leitores).
                 const [only] = group.fields;
                 const isSolo =
-                  group.fields.length === 1 &&
-                  (!only.widget || only.widget === "numbersChoice");
+                  group.fields.length === 1 && isSingleQuestion(only);
                 const penFields = group.fields.filter((f) =>
                   PEN_DETAIL_KEYS.includes(f.key),
                 );

@@ -4,6 +4,7 @@ import {
   dayInsight,
   energyRing,
   insightTitle,
+  INTAKE_PROMPTS,
   MOOD_LABELS,
   periodLabel,
   type DayInsightInput,
@@ -172,4 +173,55 @@ test("próximo passo: dia em dia sugere conversar com o agente", () => {
   );
   assert.equal(insight.headline, "Tudo em dia por aqui");
   assert.equal(insight.action?.kind, "agent");
+});
+
+const PROTEIN_ALERT = {
+  kind: "protein" as const,
+  title: "Proteína abaixo do combinado",
+  body: "Inclua uma fonte de proteína em cada refeição.",
+};
+
+test("alerta da caneta vem logo acima da proteína da noite, abaixo de refeição, água e combinado", () => {
+  const evening = input({ time: "19:00", intakeAlert: PROTEIN_ALERT });
+  const insight = dayInsight(evening);
+  assert.equal(insight.headline, "Proteína abaixo do combinado");
+  assert.equal(insight.detail, PROTEIN_ALERT.body);
+  assert.equal(insight.followUp, undefined);
+  assert.equal(insight.domain, "food");
+  assert.deepEqual(insight.action, { kind: "agent", label: "Pedir ideias ao agente" });
+  assert.doesNotMatch(insight.prompt, /\d|dose/i);
+  // Refeição, água e combinado continuam na frente.
+  assert.equal(dayInsight(input({ meals: [], time: "13:10", intakeAlert: PROTEIN_ALERT })).action?.kind, "meal");
+  assert.equal(
+    dayInsight(input({ totals: { ...input().totals, water: 500 }, intakeAlert: PROTEIN_ALERT })).domain,
+    "water",
+  );
+  assert.equal(
+    dayInsight(
+      input({ habits: [habit({ id: "cam", timeOfDay: "14:30" })], intakeAlert: PROTEIN_ALERT }),
+    ).action?.kind,
+    "habit",
+  );
+  // Sem alerta, a proteína da noite segue como antes.
+  assert.equal(dayInsight({ ...evening, intakeAlert: null }).headline, "Faltam 33 g de proteína");
+});
+
+test("alerta da caneta nunca aparece para perfis calmos, mesmo se vier na entrada", () => {
+  const evening = input({ time: "19:00", intakeAlert: PROTEIN_ALERT });
+  for (const calm of [
+    { eatingDisorder: "sim" as const },
+    { pregnancy: "amamentacao" as const },
+    { birthDate: "2012-05-10" },
+  ]) {
+    const insight = dayInsight({ ...evening, profile: { ...evening.profile, ...calm } });
+    assert.notEqual(insight.headline, PROTEIN_ALERT.title);
+    assert.equal(insight.detail, undefined);
+  }
+});
+
+test("perguntas prontas do alerta da caneta (Hoje e sinal da Seringa): ideias de refeição, sem números nem dose", () => {
+  for (const prompt of Object.values(INTAKE_PROMPTS)) {
+    assert.doesNotMatch(prompt, /\d|dose|aplica|kcal|caloria/i);
+    assert.match(prompt, /dentro da minha dieta/);
+  }
 });

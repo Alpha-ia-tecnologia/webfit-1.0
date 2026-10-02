@@ -23,6 +23,8 @@ import {
   uid,
 } from "../src/lib/domain";
 import { profileFixture, stateFixture } from "./fixtures";
+import { initialState } from "../src/lib/domain";
+import { prepareRestore } from "../src/lib/backup";
 import { mediaPart, requestSchema, systemInstruction } from "../server/agent";
 test("idade considera aniversário sem converter a data para UTC", () => {
   assert.equal(ageAt("2000-09-11", "2026-09-10"), 25);
@@ -40,7 +42,8 @@ test("metas usam a mesma fórmula e fator de atividade, com déficit explícito 
   assert.equal(goals.basal, 1586);
   assert.equal(goals.expenditure, 2458);
   assert.equal(goals.calories, 2458);
-  assert.equal(goalsFor({ ...p, goal: "perder" }, "2026-09-10").calories, 1958);
+  // IMC 26,4 (sobrepeso): déficit de 20% do gasto (492 kcal).
+  assert.equal(goalsFor({ ...p, goal: "perder" }, "2026-09-10").calories, 1966);
   assert.equal(
     goalsFor({ ...p, manualCalories: 1900 }, "2026-09-10").calories,
     1900,
@@ -49,7 +52,9 @@ test("metas usam a mesma fórmula e fator de atividade, com déficit explícito 
 test("respostas clínicas e informações omitidas impedem estimativas inadequadas", () => {
   const p = { ...profileFixture(), manualCalories: null };
   for (const change of [
-    { conditions: "Diabetes tipo 1" },
+    // Perfil antigo (só texto livre) e perfil com a lista fechada.
+    { conditionTags: [], conditions: "Diabetes tipo 1" },
+    { conditionTags: ["diabetes_tipo_1_insulina" as const] },
     { pregnancy: "gestacao" as const },
     { eatingDisorder: "sim" as const },
     { sex: "nao_informado" as const },
@@ -64,9 +69,53 @@ test("filtro de cuidado: data de nascimento ausente conta como menor de idade", 
   assert.equal(needsIndividualCare(p), false);
   assert.equal(needsIndividualCare({ ...p, birthDate: "" }), true);
   assert.equal(needsIndividualCare({ ...p, birthDate: "2010-06-15" }, "2026-09-27"), true);
-  assert.equal(needsIndividualCare({ ...p, conditions: "Nenhuma." }), false);
-  assert.equal(needsIndividualCare({ ...p, conditions: "Hipertensão" }), true);
+  // Perfis antigos (sem a lista): o texto livre decide.
+  const legacy = { ...p, conditionTags: [] };
+  assert.equal(needsIndividualCare({ ...legacy, conditions: "Nenhuma." }), false);
+  assert.equal(needsIndividualCare({ ...legacy, conditions: "Hipertensão" }), true);
   assert.equal(needsIndividualCare({ ...p, sex: "nao_informado" }), true);
+});
+test("filtro de cuidado com a lista de condições: só as que pedem avaliação bloqueiam", () => {
+  const p = profileFixture();
+  const listed = (conditionTags: string | string[], conditions = "") =>
+    needsIndividualCare({ ...p, conditionTags, conditions });
+  assert.equal(listed(["nenhuma"]), false);
+  assert.equal(listed(["hipertensao", "diabetes_tipo_2", "obesidade"]), false);
+  for (const tag of [
+    "diabetes_tipo_1_insulina",
+    "doenca_renal",
+    "insuficiencia_cardiaca",
+    "cancer_tratamento",
+    "outra",
+  ])
+    assert.equal(listed(["hipertensao", tag], "Detalhes"), true, tag);
+  // Rascunho: texto "a,b"; com a lista marcada, o texto dos detalhes não decide.
+  assert.equal(listed("hipertensao,pre_diabetes", "Hipertensão"), false);
+  assert.equal(listed("hipertensao,doenca_renal"), true);
+  // Lista vazia ou só com códigos desconhecidos: vale o texto livre (perfis antigos).
+  assert.equal(listed("", "Nenhuma"), false);
+  assert.equal(listed([], "Hipertensão"), true);
+  assert.equal(listed("desconhecida", "Hipertensão"), true);
+  // Os outros bloqueios continuam valendo com a lista liberada.
+  assert.equal(needsIndividualCare({ ...p, conditionTags: ["nenhuma"], pregnancy: "gestacao" }), true);
+});
+test("condições no perfil: rascunho em texto vira lista validada, Outra pede detalhes, Nenhuma é exclusiva", () => {
+  const p = profileFixture();
+  const parse = (changes: Record<string, unknown>) =>
+    profileSchema.safeParse({ ...p, ...changes });
+  const fromDraft = parse({ conditionTags: "hipertensao, diabetes_tipo_2,hipertensao", conditions: "" });
+  assert.equal(fromDraft.success, true);
+  assert.deepEqual(fromDraft.data?.conditionTags, ["hipertensao", "diabetes_tipo_2"]);
+  assert.equal(parse({ conditionTags: "inventada" }).success, false);
+  assert.equal(parse({ conditionTags: ["outra"], conditions: "" }).success, false);
+  assert.equal(parse({ conditionTags: ["outra"], conditions: "Asma" }).success, true);
+  assert.equal(parse({ conditionTags: ["nenhuma", "hipertensao"] }).success, false);
+  // Sem lista e sem texto: a pergunta não foi respondida.
+  assert.equal(parse({ conditionTags: [], conditions: "" }).success, false);
+  assert.equal(parse({ conditionTags: ["nenhuma"], conditions: "" }).success, true);
+  // Perfis antigos, sem o campo, carregam a lista vazia.
+  const { conditionTags: _omitted, ...legacy } = p;
+  assert.deepEqual(profileSchema.parse(legacy).conditionTags, []);
 });
 test("dia da aplicação vazio não conta como informação faltando para o agente", () => {
   const context = agentContext(stateFixture());
@@ -82,7 +131,7 @@ test("anamnese incompleta, alergia sem detalhe e datas inválidas são rejeitada
     false,
   );
   assert.equal(
-    profileSchema.safeParse({ ...p, conditions: "" }).success,
+    profileSchema.safeParse({ ...p, conditionTags: [], conditions: "" }).success,
     false,
   );
   assert.equal(
@@ -364,4 +413,56 @@ test("hideBodyNumbers: rascunho antigo não desfaz a escolha; vai ao agente e n�
   const context = agentContext(hidden);
   assert.equal(context.anamnese.hideBodyNumbers, true);
   assert.ok(!context.missingInformation.includes("hideBodyNumbers"));
+});
+
+test("preferências da IA proativa: estados e backups antigos carregam os padrões; valores inválidos não quebram", () => {
+  const fresh = initialState();
+  assert.equal(fresh.adaptiveTargets, true);
+  assert.equal(fresh.aiDailyComment, true);
+  assert.equal(fresh.aiDailyCommentDate, null);
+  assert.deepEqual(fresh.signalDismissals, {});
+  const {
+    adaptiveTargets: _a,
+    aiDailyComment: _b,
+    aiDailyCommentDate: _c,
+    signalDismissals: _d,
+    ...old
+  } = stateFixture();
+  const loaded = stateSchema.parse(old);
+  assert.equal(loaded.adaptiveTargets, true);
+  assert.equal(loaded.aiDailyComment, true);
+  assert.equal(loaded.aiDailyCommentDate, null);
+  assert.deepEqual(loaded.signalDismissals, {});
+  const odd = stateSchema.parse({ ...old, aiDailyCommentDate: "ontem", signalDismissals: { x: "2026-13-45" } });
+  assert.equal(odd.aiDailyCommentDate, null);
+  assert.deepEqual(odd.signalDismissals, {});
+  const kept = stateSchema.parse({
+    ...old,
+    adaptiveTargets: false,
+    aiDailyComment: false,
+    aiDailyCommentDate: "2026-09-30",
+    signalDismissals: { "kcal-acima": "2026-09-29" },
+  });
+  assert.equal(kept.adaptiveTargets, false);
+  assert.equal(kept.aiDailyComment, false);
+  assert.equal(kept.aiDailyCommentDate, "2026-09-30");
+  assert.deepEqual(kept.signalDismissals, { "kcal-acima": "2026-09-29" });
+});
+
+test("restaurar backup traz as preferências do arquivo sem liberar um segundo comentário no mesmo dia", () => {
+  const current = { ...stateFixture(), aiDailyCommentDate: "2026-10-01" };
+  const backup = {
+    ...stateFixture(),
+    adaptiveTargets: false,
+    aiDailyComment: false,
+    aiDailyCommentDate: "2026-09-20",
+    signalDismissals: { "agua-baixa": "2026-09-19" },
+  };
+  const restored = prepareRestore(backup, current);
+  assert.equal(restored.adaptiveTargets, false);
+  assert.equal(restored.aiDailyComment, false);
+  assert.equal(restored.aiDailyCommentDate, "2026-10-01");
+  assert.deepEqual(restored.signalDismissals, { "agua-baixa": "2026-09-19" });
+  const newer = prepareRestore({ ...backup, aiDailyCommentDate: "2026-10-02" }, { ...current, aiDailyCommentDate: null });
+  assert.equal(newer.aiDailyCommentDate, "2026-10-02");
 });

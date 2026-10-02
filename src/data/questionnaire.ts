@@ -5,7 +5,8 @@ export type WidgetKey =
   | "water"
   | "quietHours"
   | "penSchedule"
-  | "numbersChoice";
+  | "numbersChoice"
+  | "conditions";
 export interface Question {
   key: string;
   label: string;
@@ -24,6 +25,8 @@ export interface Question {
   step?: number;
   /** Só aparece (e só é obrigatório) quando a resposta de outra pergunta é igual ao valor. */
   showWhen?: [key: string, value: string];
+  /** Opcional que vira obrigatório quando a lista de outra resposta (texto "a,b") inclui o valor. */
+  requiredWhen?: [key: string, value: string];
   /** Controle composto: várias chaves com o mesmo widget são desenhadas uma vez, na primeira visível. */
   widget?: WidgetKey;
 }
@@ -94,7 +97,7 @@ export const questionnaire: {
     title: "Cuidados importantes",
     summary: "Antes das medidas, o que pede um cuidado especial.",
     description:
-      "Estas respostas vêm antes das medidas para o app saber o que mostrar e o que evitar. Você pode preferir não informar; uma resposta omitida não é interpretada como ausência de condição.",
+      "Estas respostas vêm antes das medidas para o app saber o que mostrar e o que evitar. Algumas condições de saúde ajustam as metas com cuidados na alimentação; outras pedem avaliação individual antes de qualquer meta automática. Você pode preferir não informar; uma resposta omitida não é interpretada como ausência de condição.",
     fields: [
       {
         key: "pregnancy",
@@ -126,11 +129,21 @@ export const questionnaire: {
           ["nao_sei", "Não sei"],
         ],
       },
+      // Condições da lista fechada (lib/conditions) e, no mesmo bloco, os detalhes ou a outra condição.
       {
-        key: "conditions",
+        key: "conditionTags",
         label: "Condições de saúde e diagnósticos conhecidos",
         prompt: "Tem algum diagnóstico de saúde?",
+        widget: "conditions",
+      },
+      {
+        key: "conditions",
+        label: "Detalhes ou outra condição",
         type: "textarea",
+        optional: true,
+        requiredWhen: ["conditionTags", "outra"],
+        hint: "Obrigatório quando você marca “Outra”.",
+        widget: "conditions",
       },
       {
         key: "hideCalories",
@@ -461,7 +474,7 @@ export const questionnaire: {
     title: "Objetivos e metas",
     summary: "O que importa para você, suas metas e o uso da IA.",
     description:
-      "Metas específicas são opcionais: a recomendação usa suas respostas e o objetivo escolhido. O uso de medicamento não altera essas estimativas. A meta de água é informada por você ou por um profissional.",
+      "Metas específicas são opcionais: a recomendação usa suas respostas, o objetivo escolhido, seu IMC, seu nível de atividade, as condições de saúde marcadas e o uso de caneta emagrecedora. Outros medicamentos não alteram essas estimativas. A meta de água é informada por você ou por um profissional.",
     fields: [
       {
         key: "targetWeight",

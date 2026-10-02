@@ -354,6 +354,14 @@ button.day-tile:active,
   line-height: 1.2;
   color: var(--wf-white);
 }
+/* Orientação curta sob o título (alerta da caneta): texto calmo, sem números. */
+.next-step-detail {
+  margin-top: -2px;
+  font-size: var(--wf-fs-base);
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--wf-on-fill-slate);
+}
 .next-step-chips {
   display: flex;
   flex-wrap: wrap;

@@ -6,6 +6,7 @@ import { dailyTargets, localDate, localTime, totalsFor, uid } from "../lib/domai
 import { bentoLayout, parseHomeLayout, type HomeSectionKey } from "../lib/home-layout";
 import { macroBars, weekWater } from "../lib/today";
 import { dayInsight, isCalmOn } from "../lib/day";
+import { intakeAlert } from "../lib/intake-alert";
 import { defaultMealCategory } from "../lib/meals";
 import { canCelebrate } from "../lib/wellbeing";
 import { habitSchema, type HabitItem } from "../types";
@@ -29,6 +30,8 @@ import { QuickEntryForm } from "./QuickEntryForm";
 import { DietPlanCard } from "./dieta/DietPlanCard";
 import { PantryRow } from "./hoje/PantryRow";
 import { HojeWeekRecap } from "./semana/HojeWeekRecap";
+import { DailyCommentCard } from "./signals/DailyCommentCard";
+import { ScreenSignal } from "./signals/ScreenSignal";
 import { useDiaryActions } from "./useDiaryActions";
 import "./hoje/Hoje.css";
 
@@ -89,6 +92,8 @@ export function ScreenHoje() {
     pantry: state.pantry,
     date: today,
     time: now,
+    // Caneta: poucos dias seguidos com pouca comida ou pouca proteína (nunca para perfis calmos).
+    intakeAlert: intakeAlert(state, today),
   });
   /** Atalhos do Hoje registram sempre no dia de hoje, mesmo que o Diário esteja em outra data. */
   const addMealToday = (category?: string) => {
@@ -254,6 +259,11 @@ export function ScreenHoje() {
         />
         <div className="hoje-lead-side">
           {goals.reason && <div className="notice">{goals.reason}</div>}
+          {/* Ajuste dinâmico do dia (a frase já respeita "Ocultar calorias"): informativo, sem cor de alerta. */}
+          {goals.adjustmentNote && <p className="hint">{goals.adjustmentNote}</p>}
+          {/* IA proativa: o comentário do dia e o sinal do app vêm antes; o Resumo segue o último da coluna. */}
+          <DailyCommentCard />
+          <ScreenSignal screen="hoje" />
           {isDayBlank ? (
             <StartCard
               time={now}

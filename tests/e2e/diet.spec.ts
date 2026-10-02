@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { profileFixture, stateFixture } from "../fixtures";
+import { draftFixture, stateFixture } from "../fixtures";
 import { initialState } from "../../src/lib/domain";
 import type { AgentReply, AppState, Profile } from "../../src/types";
 import { ANAMNESE_FINISH_LABEL } from "../../src/lib/copy";
@@ -90,7 +90,9 @@ async function savedState(page: Page): Promise<AppState> {
 function completedDraft(changes: Partial<Profile> = {}): AppState {
   return {
     ...initialState(),
-    draft: { ...profileFixture(), consentAi: true, ...changes },
+    // O comentário automático do dia (ia-proativa.spec.ts) mandaria um pedido extra ao abrir o Hoje.
+    aiDailyComment: false,
+    draft: draftFixture({ consentAi: true, ...changes }),
     draftStep: 7,
   };
 }

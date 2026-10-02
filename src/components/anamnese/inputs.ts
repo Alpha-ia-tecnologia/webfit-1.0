@@ -19,6 +19,10 @@ export type ChoiceIconKey =
   | "circleSlash"
   | "lock"
   | "syringe"
+  | "scale"
+  | "heartCrack"
+  | "ribbon"
+  | "plus"
   | "x";
 export interface ChoiceOption {
   value: string;
@@ -34,11 +38,20 @@ export interface ChoiceOption {
   /** Opção excludente ("Nenhuma", "Não uso"): limpa as demais ao ser escolhida. */
   none?: boolean;
 }
+/** Grupo de pílulas com título curto (os `values` são valores de opções). */
+export interface ChoiceSection {
+  title: string;
+  values: readonly string[];
+}
 export interface ChoiceConfig {
   mode: "single" | "multi";
   options: ChoiceOption[];
   otherLabel?: string;
   otherPlaceholder?: string;
+  /** Sem a pílula "Outros" de texto livre (a lista é fechada). */
+  hideOther?: boolean;
+  /** Pílulas comuns em grupos com título, todas à vista (sem "Ver mais"). */
+  sections?: readonly ChoiceSection[];
 }
 export const CHOICE_SEPARATOR = ", ";
 
@@ -162,7 +175,7 @@ export const choiceLayout = (config: ChoiceConfig): "cards" | "pills" =>
 export function splitChoices(
   config: ChoiceConfig,
   selected: string[],
-  limit = VISIBLE_CHOICES,
+  limit = config.sections ? Infinity : VISIBLE_CHOICES,
 ): { exclusive: ChoiceOption[]; visible: ChoiceOption[]; hidden: ChoiceOption[] } {
   const common = config.options.filter((option) => !option.none);
   const visible = common.filter(
@@ -173,6 +186,28 @@ export function splitChoices(
     visible,
     hidden: common.filter((option) => !visible.includes(option)),
   };
+}
+
+/**
+ * Pílulas comuns agrupadas pelos `sections` da configuração (um grupo sem título quando não há);
+ * opções fora de qualquer grupo vão para o fim, sem título.
+ */
+export function choiceSections(
+  config: ChoiceConfig,
+  options: ChoiceOption[],
+): { title: string | null; options: ChoiceOption[] }[] {
+  if (!config.sections) return [{ title: null, options }];
+  const grouped = config.sections.map((section) => ({
+    title: section.title,
+    options: options.filter((option) => section.values.includes(option.value)),
+  }));
+  const rest = options.filter(
+    (option) => !grouped.some((g) => g.options.includes(option)),
+  );
+  return [
+    ...grouped,
+    ...(rest.length ? [{ title: null, options: rest }] : []),
+  ].filter((group) => group.options.length > 0);
 }
 
 /** Busca da folha "Ver todas": ignora acentos e maiúsculas e também procura nos sinônimos. */

@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { bmiOf } from "@shared/components/anamnese/inputs";
 import { ECHO_KEYS, echoFor } from "@shared/components/anamnese/echoes";
 import { PEN_DETAIL_KEYS, penDetailsComplete, penDetailsSummary } from "@shared/components/anamnese/pen-details";
-import { widgetKeys } from "@shared/components/anamnese/progress";
+import { isSingleQuestion, widgetKeys } from "@shared/components/anamnese/progress";
 import type { Question } from "@shared/data/questionnaire";
 import { canShowBodyNumbers } from "@shared/lib/anamnese-flow";
 import { BODY_PRIVACY_COPY } from "@shared/lib/body-privacy";
@@ -54,7 +54,7 @@ export function QuestionGroup({ title, groupFields, registerField, isFollowing, 
   // IMC, figura e projeção somem. canShowBodyNumbers não muda: apagaria o peso desejado.
   const bodyHidden = useApp().state.profile?.hideBodyNumbers === true;
   const [only] = groupFields;
-  const isSolo = groupFields.length === 1 && (!only?.widget || only.widget === "numbersChoice");
+  const isSolo = groupFields.length === 1 && !!only && isSingleQuestion(only);
   const penFields = groupFields.filter((field) => PEN_DETAIL_KEYS.includes(field.key));
   const hasPenError = PEN_DETAIL_KEYS.some((key) => !!errors[key]) || !!errors.penWeekday;
   const renderField = (field: Question) => {

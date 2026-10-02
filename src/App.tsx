@@ -75,6 +75,7 @@ import {
 } from "./lib/account";
 import { AuthScreen } from "./components/auth/AuthScreen";
 import { useServerSync } from "./lib/use-server-sync";
+import { useDailyComment } from "./lib/use-daily-comment";
 import {
   AppContext,
   type DespensaSection,
@@ -950,6 +951,28 @@ export default function App() {
       }
     }
   };
+  // Comentário automático do dia (IA proativa): uma vez por dia, com o Hoje aberto; falha em silêncio.
+  useDailyComment({
+    state,
+    isHome: screen === "hoje",
+    aiReady,
+    aiBusy,
+    isPaused: isRestoring || (serverMode === "online" && !account),
+    // Com a cópia no servidor ligada, espera a comparação: outro aparelho pode já ter rodado hoje.
+    sync: sync.controls,
+    getState: () => stateRef.current,
+    request: (mode, text) => aiRequest(mode, text),
+    commit: (update) => commit(update),
+    // Online, a cota do dia é conferida antes (o comentário conta 1 pedido).
+    checkQuota:
+      serverMode === "online"
+        ? async () => {
+            const me = await fetchMe(syncRequest);
+            if (me) setQuota(me.ai);
+            return me?.ai ?? null;
+          }
+        : undefined,
+  });
 
   if (loadError)
     return (

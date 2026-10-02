@@ -10,6 +10,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { chromium } from "@playwright/test";
 import { MILESTONE_MESSAGES } from "../../src/components/anamnese/progress.ts";
+import { CONDITION_COPY } from "../../src/components/anamnese/condition-choice.ts";
 import { initialState } from "../../src/lib/domain.ts";
 import { profileFixture } from "../../tests/fixtures.ts";
 
@@ -60,10 +61,11 @@ const server = createServer((req, res) => {
 });
 await new Promise((resolve) => server.listen(PORT, "127.0.0.1", resolve));
 
-// Rascunho completo na etapa 1, sem perfil concluído (primeiro acesso) e sem cintura informada.
+// Rascunho completo na etapa 1, sem perfil concluído (primeiro acesso), sem cintura informada e
+// sem detalhes de condições (pessoa nova: o campo só abre ao marcar uma condição).
 const fixture = {
   ...initialState(),
-  draft: { ...profileFixture(), waist: "" },
+  draft: { ...profileFixture(), conditionTags: "nenhuma", conditions: "", waist: "" },
   draftStep: 0,
 };
 const seedFile = path.join(shots, "seed.sqlite");
@@ -187,6 +189,26 @@ try {
         await group.getByRole("radio", { name: "Não", exact: true }).click();
         await echo.waitFor({ state: "detached", timeout: 5000 }).catch(() => undefined);
         check((await echo.count()) === 0, `${width}: eco some ao voltar para "Não"`);
+        // Detalhes das condições (como no web): recolhidos com "Nenhuma"; qualquer condição marcada
+        // abre o campo, opcional (obrigatório só com "Outra"); "Nenhuma" recolhe de novo.
+        const tags = page.getByTestId("anamnese-field-conditionTags");
+        const details = page.getByTestId("anamnese-field-conditions");
+        check((await details.count()) === 0, `${width}: detalhes das condições recolhidos com "Nenhuma"`);
+        const more = tags.getByRole("button", { name: "Mostrar outras opções", exact: true });
+        await more.evaluate((el) => el.scrollIntoView({ block: "center" }));
+        await more.click();
+        const diabetes = tags.getByText("Diabetes tipo 2", { exact: true }).first();
+        await diabetes.evaluate((el) => el.scrollIntoView({ block: "center" }));
+        await diabetes.click();
+        await details.waitFor({ timeout: 5000 }).catch(() => undefined);
+        check(await details.isVisible(), `${width}: detalhes aparecem ao marcar "Diabetes tipo 2"`);
+        check(
+          await details.getByText(CONDITION_COPY.detailsOptional, { exact: true }).isVisible(),
+          `${width}: detalhes opcionais sem "Outra"`,
+        );
+        await tags.getByText("Nenhuma", { exact: true }).first().click();
+        await details.waitFor({ state: "detached", timeout: 5000 }).catch(() => undefined);
+        check((await details.count()) === 0, `${width}: "Nenhuma" recolhe os detalhes`);
       }
       if (step === 3) {
         const saved = page.locator('[aria-label="Salvo neste aparelho"]');

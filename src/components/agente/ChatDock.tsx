@@ -9,6 +9,7 @@ import {
   Mic,
   Plus,
   Refrigerator,
+  ScanSearch,
   Square,
   Utensils,
 } from "lucide-react";
@@ -45,7 +46,7 @@ function suggestionIcon(suggestion: ChatSuggestion) {
 }
 
 /**
- * Barra fixa do chat (conceito 05): "+" redondo (foto do prato, exame, despensa), o campo em
+ * Barra fixa do chat (conceito 05): "+" redondo (foto do prato, exame, despensa, análise do perfil), o campo em
  * pílula com o ditado dentro, à direita, e o envio redondo. Os atalhos do app só aparecem quando a
  * última resposta não trouxe sugestões; o aviso de revisão fica em "O que o agente considera".
  */
@@ -60,6 +61,7 @@ export function ChatDock({
   onAttachPhoto,
   onOpenExams,
   onOpenPantry,
+  onAnalyzeProfile,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -72,6 +74,8 @@ export function ChatDock({
   onAttachPhoto: (file: File) => void;
   onOpenExams: () => void;
   onOpenPantry: () => void;
+  /** "+" → Analisar meu perfil: envia o pedido pronto; só habilitado quando dá para enviar (canSend). */
+  onAnalyzeProfile: () => void;
 }) {
   const [isRecording, setRecording] = useState(false);
   const voice = useRef<Recognition | null>(null);
@@ -163,6 +167,12 @@ export function ChatDock({
             },
             { label: "Exame", icon: FileText, onSelect: onOpenExams },
             { label: "Despensa", icon: Refrigerator, onSelect: onOpenPantry },
+            {
+              label: "Analisar meu perfil",
+              icon: ScanSearch,
+              disabled: !canSend,
+              onSelect: onAnalyzeProfile,
+            },
           ]}
         />
         <input

@@ -1,5 +1,11 @@
 import { z } from "zod";
 import { chatSectionsSchema } from "./lib/agent-blocks";
+import {
+  CONDITION_TAGS,
+  MAX_CONDITION_TAGS,
+  NO_CONDITION_TAG,
+  splitConditionTags,
+} from "./lib/conditions";
 import { dietPlanV2Schema } from "./lib/diet-plan";
 import { examResultSchema } from "./lib/exam-result";
 import { kitchenBasicsSchema, recipeSetSchema } from "./lib/recipe-schema";
@@ -81,7 +87,16 @@ export const profileSchema = z
     bodyFat: optionalNumber(1, 75),
     measurementDate: dateSchema,
     measurementMethod: text,
-    conditions: text,
+    // Detalhes / outra condição: obrigatório com "outra" ou sem nenhuma condição marcada (perfis antigos).
+    // Sem default: a chave continua obrigatória (a anamnese mínima da dieta exige a resposta).
+    conditions: z.string().trim().max(2000),
+    // Condições estruturadas; no rascunho chegam como texto "a,b". Perfis antigos carregam [].
+    conditionTags: z
+      .preprocess(
+        splitConditionTags,
+        z.array(z.enum(CONDITION_TAGS)).max(MAX_CONDITION_TAGS),
+      )
+      .default([]),
     medications: text,
     // Canetas emagrecedoras (GLP-1). Perfis salvos antes deste campo carregam "nao_informado".
     weightLossPen: z
@@ -151,6 +166,26 @@ export const profileSchema = z
     dinnerTime: time,
   })
   .superRefine((p, ctx) => {
+    // Perfis antigos têm só o texto livre; nos novos, a lista é a resposta.
+    if (!p.conditionTags.length && !p.conditions)
+      ctx.addIssue({
+        code: "custom",
+        path: ["conditionTags"],
+        message:
+          "Escolha uma opção. Se não tiver nenhuma condição, marque “Nenhuma”.",
+      });
+    if (p.conditionTags.includes("outra") && !p.conditions)
+      ctx.addIssue({
+        code: "custom",
+        path: ["conditions"],
+        message: "Conte qual é a outra condição.",
+      });
+    if (p.conditionTags.includes(NO_CONDITION_TAG) && p.conditionTags.length > 1)
+      ctx.addIssue({
+        code: "custom",
+        path: ["conditionTags"],
+        message: "“Nenhuma” não combina com outras condições.",
+      });
     if (p.allergies === "sim" && !p.allergyDetails.trim())
       ctx.addIssue({
         code: "custom",
@@ -596,7 +631,7 @@ export const treatmentStockSchema = z
 export type TreatmentStock = z.infer<typeof treatmentStockSchema>;
 /** Como a meta calórica foi obtida; null quando não há meta. */
 export type GoalStrategy =
-  "manual" | "manutencao" | "deficit" | "deficit_caneta" | "superavit" | null;
+  "manual" | "manutencao" | "deficit" | "superavit" | null;
 export interface Goals {
   basal: number | null;
   expenditure: number | null;
@@ -610,6 +645,8 @@ export interface Goals {
   strategy: GoalStrategy;
   /** Explicação curta do déficit, superávit ou piso aplicado. */
   note: string | null;
+  /** Cuidados do perfil (condições, caneta, IMC baixo): só texto, sem números, dados do corpo ou dose. */
+  careNotes: string[];
 }
 export interface NotificationItem {
   id: string;
@@ -659,7 +696,17 @@ export const stateSchema = z.object({
   draft: z
     .record(
       z.string(),
-      z.union([z.string(), z.number(), z.boolean(), z.null()]),
+      z.union([
+        z.string(),
+        z.number(),
+        z.boolean(),
+        z.null(),
+        // Rede de segurança: lista copiada do perfil (condições) volta ao texto "a,b" do rascunho.
+        z
+          .array(z.string())
+          .max(MAX_CONDITION_TAGS)
+          .transform((items) => items.join(",")),
+      ]),
     )
     .nullable(),
   draftStep: z.number().int().min(0).max(7),
@@ -691,6 +738,19 @@ export const stateSchema = z.object({
   serverSync: z.boolean().default(false),
   // Os dados já pertencem a uma conta do servidor online (o userId é o id dela): nunca vão para outra conta.
   accountBound: z.boolean().default(false),
+  // Ajuste dinâmico das metas (Configurações): a meta de hoje acompanha o dia anterior, dentro de limites
+  // fixos (dailyTargets em domain.ts). Estados e backups anteriores carregam ligado.
+  adaptiveTargets: z.boolean().default(true),
+  // Comentário automático diário do agente no Hoje (Configurações); anteriores carregam ligado.
+  aiDailyComment: z.boolean().default(true),
+  // Último dia local (AAAA-MM-DD) em que o comentário automático rodou: no máximo um por dia, mesmo entre aparelhos.
+  aiDailyCommentDate: dateSchema.nullable().default(null).catch(null),
+  // Sinais do app dispensados: id do sinal → data local (AAAA-MM-DD) em que foi dispensado (pausa de 3 dias).
+  signalDismissals: z
+    .record(z.string().max(100), dateSchema)
+    .refine((r) => Object.keys(r).length <= 200, "Sinais dispensados demais.")
+    .default({})
+    .catch({}),
   updatedAt: z.string(),
 });
 export type AppState = z.infer<typeof stateSchema>;

@@ -12,6 +12,7 @@ import {
 import { layoutSections } from "../lib/agent-blocks";
 import {
   chatSuggestions,
+  PROFILE_ANALYSIS_REQUEST,
   type ChatSuggestion,
 } from "../lib/agent-presentation";
 import { isSensitive, waterBehind } from "../lib/day";
@@ -110,7 +111,8 @@ export function ScreenAgente() {
       setSending(false);
       return;
     }
-    setInput("");
+    // Pedido pronto (atalho, análise do perfil) não apaga o que a pessoa estava escrevendo.
+    setInput((current) => (current.trim() === text.trim() ? "" : current));
     try {
       const { text: replyText, meta, structured } = await aiRequest(
         "chat",
@@ -163,6 +165,10 @@ export function ScreenAgente() {
   const pickBlockSuggestion = (text: string) => {
     if (canSend) void send(text);
     else setInput(text);
+  };
+  /** "+ → Analisar meu perfil": o pedido pronto vai pelo mesmo envio do chat (vira um aviso na conversa). */
+  const analyzeProfile = () => {
+    if (canSend) void send(PROFILE_ANALYSIS_REQUEST);
   };
   /** "+ → Foto do prato": Registrar refeição de hoje, com a análise pedida assim que a foto carregar. */
   const attachPhoto = (file: File) => {
@@ -248,6 +254,7 @@ export function ScreenAgente() {
           onAttachPhoto={attachPhoto}
           onOpenExams={() => openEspaco("documentos")}
           onOpenPantry={() => navigate("despensa")}
+          onAnalyzeProfile={analyzeProfile}
         />
         <div ref={end} className="chat-end" />
       </div>

@@ -7,6 +7,7 @@ import { parseChoices } from "../components/anamnese/inputs";
 import { CHOICE_FIELDS } from "../data/anamneseOptions";
 import type { AppState, Appointment, Profile } from "../types";
 import { normalizeText } from "./allergens";
+import { conditionLabels, parseConditionTags, type ConditionTag } from "./conditions";
 import { plural } from "./format";
 
 export type EssentialKey =
@@ -49,6 +50,8 @@ const PROFESSIONALS_MAX = 3;
 const UNKNOWN_PEN = "Não sei o nome";
 const UNKNOWN_PEN_CHIP = "Caneta para emagrecer (nome não informado)";
 const ALLERGIES_NO_DETAILS = "Alergias informadas, sem detalhes";
+const OTHER_TAG: ConditionTag = "outra";
+const OTHER_CONDITION_CHIP = "Outra condição";
 /**
  * Do primeiro número solto em diante, inclusive entre parênteses: "Losartana 50 mg 1x ao dia" e
  * "Sertralina (50mg)" → só o nome; o número colado ao nome ("Vitamina B12") fica.
@@ -77,6 +80,7 @@ function clipChip(s: string): string {
 const FIXED_CHIPS: ReadonlySet<string> = new Set([
   UNKNOWN_PEN_CHIP,
   ALLERGIES_NO_DETAILS,
+  OTHER_CONDITION_CHIP,
 ]);
 
 /** Apara, tira vazios, junta repetidos sem caixa nem acento, primeira letra maiúscula, até 8. */
@@ -136,6 +140,19 @@ function allergyGroup(p: Profile): EssentialGroup | null {
   if (p.allergies === "nao_sei") return group("alergias", ["A confirmar"]);
   const chips = cleanChips(choiceParts(p.allergyDetails, "allergyDetails"));
   return group("alergias", chips.length ? chips : [ALLERGIES_NO_DETAILS]);
+}
+
+/**
+ * Condições: as marcadas na lista fechada (sem "Nenhuma") e os detalhes do texto livre. "Outra"
+ * vira os próprios detalhes; sem detalhes, fica o chip "Outra condição".
+ */
+function conditionGroup(p: Profile): EssentialGroup | null {
+  const tags = parseConditionTags(p.conditionTags);
+  const details = choiceParts(p.conditions, "conditions");
+  const hasDetails = details.some((d) => d.trim() !== "");
+  const labels = conditionLabels(tags.filter((t) => t !== OTHER_TAG));
+  const other = tags.includes(OTHER_TAG) && !hasDetails ? [OTHER_CONDITION_CHIP] : [];
+  return group("condicoes", cleanChips([...labels, ...other, ...details]));
 }
 
 function medicationGroup(p: Profile): EssentialGroup | null {
@@ -218,7 +235,7 @@ export function essentialSummary(
   if (!p) return { groups: [], summary: ESSENTIAL_COPY.empty, isEmpty: true };
   const groups = [
     allergyGroup(p),
-    group("condicoes", cleanChips(choiceParts(p.conditions, "conditions"))),
+    conditionGroup(p),
     medicationGroup(p),
     group("cuidados", careChips(p)),
     group("profissionais", professionalChips(state.appointments)),

@@ -10,6 +10,7 @@ import { initialState, updateProfile } from "../../src/lib/domain.ts";
 import { AGENT_STAGES, AGENT_UNAVAILABLE, NDJSON_TYPE } from "../../src/lib/agent-stream.ts";
 import { profileFixture } from "../../tests/fixtures.ts";
 import { SETTINGS_TAB } from "../../src/lib/copy.ts";
+import { PROFILE_ANALYSIS_REQUEST } from "../../src/lib/agent-presentation.ts";
 const target = path.resolve(process.argv[2] ?? "mobile/dist");
 const output = path.join(target, "agent-check");
 mkdirSync(output, { recursive: true });
@@ -310,6 +311,29 @@ try {
     ]);
     await context.close();
     console.log("PASS: painel mostra o provedor; erro dentro do NDJSON chega à tela e a nova tentativa conclui a conversa");
+  }
+  {
+    // "Analisar meu perfil" (folha do "+"): desativado sem consentimento; com o agente pronto envia o
+    // pedido pronto pelo chat normal e a conversa mostra o chip no lugar do texto longo.
+    const blocked = await setup({ consent: false, status: "ready" });
+    await buttonFor(blocked.page, "Mais opções do chat").click();
+    await expect(buttonFor(blocked.page, "Analisar meu perfil")).toBeDisabled();
+    await blocked.context.close();
+    const { page, context, control } = await setup({ status: "ready" });
+    const typed = "rascunho que fica";
+    await inputFor(page).fill(typed);
+    await buttonFor(page, "Mais opções do chat").click();
+    await buttonFor(page, "Analisar meu perfil").click();
+    await expect(page.getByText(reply.text, { exact: true })).toBeVisible();
+    await expect(page.getByText(/^Você pediu uma análise do seu perfil/)).toBeVisible();
+    await expect(page.getByText(PROFILE_ANALYSIS_REQUEST, { exact: true })).toHaveCount(0);
+    await expect(inputFor(page)).toHaveValue(typed);
+    expect(control.requests.map((r) => [r.mode, r.text])).toEqual([["chat", PROFILE_ANALYSIS_REQUEST]]);
+    // A folha do "+" fecha antes do envio.
+    await expect(page.getByText("Mais opções", { exact: true })).toHaveCount(0);
+    await page.screenshot({ path: path.join(output, "profile-analysis-mobile.png") });
+    await context.close();
+    console.log("PASS: Analisar meu perfil fica desativado sem consentimento; envia o pedido pronto pelo chat e mostra o chip");
   }
   {
     const { page, context, control } = await setup({ status: "ready", route: "/despensa" });

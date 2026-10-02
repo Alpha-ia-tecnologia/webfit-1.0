@@ -42,10 +42,14 @@ type Props = {
   onOpenExams: () => void;
   /** "+" → Despensa. */
   onOpenPantry: () => void;
+  /** "+" → Analisar meu perfil (pedido pronto ao agente). */
+  onAnalyzeProfile: () => void;
+  /** "Analisar meu perfil" habilitado: agente disponível e nada em curso. */
+  canAnalyze: boolean;
 };
 
 /**
- * Barra fixa do chat (ChatDock do web, conceito 05): "+" redondo (foto do prato, exame, despensa), o campo em pílula com
+ * Barra fixa do chat (ChatDock do web, conceito 05): "+" redondo (foto do prato, exame, despensa, análise do perfil), o campo em pílula com
  * o ditado dentro, à direita, e o envio redondo. Os atalhos do app só aparecem quando a última resposta não trouxe
  * sugestões; o aviso de revisão fica em "O que o agente considera".
  */
@@ -64,6 +68,8 @@ export function ChatDock({
   onAttachPhoto,
   onOpenExams,
   onOpenPantry,
+  onAnalyzeProfile,
+  canAnalyze,
 }: Props) {
   const styles = useStyles();
   const { scheme, colors } = useTheme();
@@ -113,7 +119,13 @@ export function ChatDock({
         </AppText>
       ) : null}
       <View style={styles.form}>
-        <AttachButton onAttachPhoto={onAttachPhoto} onOpenExams={onOpenExams} onOpenPantry={onOpenPantry} />
+        <AttachButton
+          onAttachPhoto={onAttachPhoto}
+          onOpenExams={onOpenExams}
+          onOpenPantry={onOpenPantry}
+          onAnalyzeProfile={onAnalyzeProfile}
+          canAnalyze={canAnalyze}
+        />
         <View style={styles.field}>
           <TextInput
             accessibilityLabel="Mensagem para o agente"

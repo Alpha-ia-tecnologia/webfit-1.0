@@ -18,6 +18,8 @@ export const dietContextSchema = z.object({
     .object({
       routine: profileSchema.shape.routine,
       conditions: profileSchema.shape.conditions,
+      // Lista fechada de condições (perfis antigos chegam sem ela: vale o texto livre).
+      conditionTags: profileSchema.shape.conditionTags,
       medications: profileSchema.shape.medications,
       pregnancy: profileSchema.shape.pregnancy,
       fluidRestriction: profileSchema.shape.fluidRestriction,
@@ -38,6 +40,11 @@ export const dietContextSchema = z.object({
     .refine((a) => a.allergies !== "sim" || !!a.allergyDetails.trim(), {
       path: ["allergyDetails"],
       message: "Descreva as alergias antes de solicitar uma dieta.",
+    })
+    // Condições respondidas: alguma da lista ou, nos perfis antigos, o texto livre.
+    .refine((a) => a.conditionTags.length > 0 || !!a.conditions, {
+      path: ["conditionTags"],
+      message: "Responda as condições de saúde antes de solicitar uma dieta.",
     }),
 });
 

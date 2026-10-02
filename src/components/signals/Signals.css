@@ -1,0 +1,115 @@
+/* ---------- IA proativa: sinais do app e "Seu agente comentou" (tons calmos, nunca vermelho) ---------- */
+.signal-card {
+  --signal-fg: var(--wf-tone-neutral-fg);
+  --signal-bg: var(--wf-tone-neutral-bg);
+  --signal-border: var(--wf-tone-neutral-border);
+  position: relative;
+  display: grid;
+  /* O X ocupa 40 px (alvo mínimo de toque); o ícone fica centrado no mesmo ponto de antes. */
+  grid-template-columns: 36px minmax(0, 1fr) 40px;
+  column-gap: 10px;
+  align-items: start;
+  padding: 14px 8px 14px 14px;
+  border: 1px solid var(--signal-border);
+  border-radius: var(--wf-radius-lg);
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-card);
+}
+.signal-card.is-info {
+  --signal-fg: var(--wf-tone-water-fg);
+  --signal-bg: var(--wf-tone-water-bg);
+  --signal-border: var(--wf-tone-water-border);
+}
+.signal-card.is-positive {
+  --signal-fg: var(--wf-tone-habit-fg);
+  --signal-bg: var(--wf-tone-habit-bg);
+  --signal-border: var(--wf-tone-habit-border);
+}
+.signal-card.is-agent {
+  --signal-fg: var(--wf-accent-fill);
+  --signal-bg: var(--wf-mint-50);
+  --signal-border: var(--wf-mint-200);
+}
+.signal-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--signal-bg);
+  color: var(--signal-fg);
+}
+.signal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.signal-kicker {
+  font-size: var(--wf-fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--signal-fg);
+}
+.signal-card h2 {
+  font-family: var(--wf-font-heading);
+  font-size: var(--wf-fs-md);
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--wf-text);
+}
+.signal-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--wf-fs-sm);
+  line-height: 1.55;
+  color: var(--wf-text-2);
+}
+.signal-action {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  min-height: 40px;
+  margin-top: 2px;
+  padding: 0 14px;
+  border: 1px solid var(--signal-border);
+  border-radius: 999px;
+  background: var(--signal-bg);
+  color: var(--signal-fg);
+  font-size: var(--wf-fs-sm);
+  font-weight: 700;
+  transition: transform 0.15s var(--wf-ease);
+}
+.signal-action:hover {
+  border-color: var(--signal-fg);
+}
+.signal-action:active,
+.signal-dismiss:active {
+  transform: scale(0.97);
+}
+.signal-action:focus-visible,
+.signal-dismiss:focus-visible {
+  outline: 2px solid var(--signal-fg);
+  outline-offset: 2px;
+}
+.signal-footnote {
+  font-size: var(--wf-fs-xs);
+  color: var(--wf-text-muted);
+}
+.signal-dismiss {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: none;
+  color: var(--wf-text-muted);
+}
+.signal-dismiss:hover {
+  background: var(--wf-surface-3);
+  color: var(--wf-text);
+}

@@ -1,9 +1,21 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  CONDITION_CHOICES,
+  CONDITION_COPY,
+  choicesToTags,
+  isOtherConditionOn,
+  profileToDraft,
+  tagsToChoices,
+  withConditionIssues,
+  conditionDetailsCopy,
+  showsConditionDetails,
+} from "../src/components/anamnese/condition-choice";
+import {
   completion,
   essentialFields,
   isAnswered,
+  isRequiredByAnswer,
   MILESTONE_MESSAGES,
   pendingMessage,
   reachedMilestone,
@@ -16,6 +28,7 @@ import type { ChoiceConfig } from "../src/components/anamnese/inputs";
 import {
   bmiOf,
   choiceLayout,
+  choiceSections,
   composeChoices,
   filterChoices,
   splitChoices,
@@ -38,7 +51,7 @@ import {
 } from "../src/data/anamneseOptions";
 import { emptyDraft } from "../src/lib/domain";
 import { profileFixture } from "./fixtures";
-import type { Draft } from "../src/types";
+import { profileSchema, type Draft } from "../src/types";
 
 test("pontuação do perfil conta só respostas essenciais e varia com a alergia", () => {
   const empty = emptyDraft() as Draft;
@@ -57,7 +70,10 @@ test("pontuação do perfil conta só respostas essenciais e varia com a alergia
       (f) => f.key === "allergyDetails",
     ),
   );
-  const full = completion(profileFixture() as unknown as Draft);
+  const full = completion({
+    ...(profileFixture() as unknown as Draft),
+    conditionTags: "nenhuma",
+  });
   assert.equal(full.percent, 100);
   assert.equal(full.answered, full.total);
 });
@@ -343,4 +359,92 @@ test("parseChoices reconhece opções cujo valor contém vírgula e ignora sobra
     selected: ["Irregular"],
     other: "quase nunca",
   });
+});
+
+test("condições: pílulas da lista fechada, “Nenhuma” exclusiva e rascunho em códigos", () => {
+  const config = CONDITION_CHOICES;
+  assert.equal(config.options.length, 13);
+  assert.equal(config.hideOther, true);
+  assert.equal(choiceLayout(config), "pills");
+  // Todas à vista: sem "Ver mais", em grupos com título; "Nenhuma" fica entre as excludentes.
+  const split = splitChoices(config, []);
+  assert.deepEqual(split.exclusive.map((o) => o.value), ["Nenhuma"]);
+  assert.equal(split.visible.length, 12);
+  assert.equal(split.hidden.length, 0);
+  const sections = choiceSections(config, split.visible);
+  assert.deepEqual(sections.map((s) => [s.title, s.options.length]), [
+    ["Metas com cuidados", 7],
+    ["Pedem avaliação individual", 5],
+  ]);
+  // Texto das pílulas ↔ códigos do rascunho, na ordem da lista.
+  assert.equal(
+    tagsToChoices("diabetes_tipo_2,hipertensao"),
+    "Hipertensão (pressão alta), Diabetes tipo 2",
+  );
+  assert.equal(tagsToChoices(["outra"]), "Outra");
+  assert.equal(tagsToChoices("asma,"), "");
+  assert.equal(
+    choicesToTags("Diabetes tipo 2, Hipertensão (pressão alta)"),
+    "hipertensao,diabetes_tipo_2",
+  );
+  assert.equal(choicesToTags("Texto livre"), "");
+  // "Nenhuma" limpa as demais; outra escolha tira "Nenhuma".
+  const nenhuma = config.options.find((o) => o.none)!;
+  const renal = config.options.find((o) => o.value === "Doença renal")!;
+  assert.deepEqual(toggleChoice(["Doença renal"], nenhuma, config), ["Nenhuma"]);
+  assert.deepEqual(toggleChoice(["Nenhuma"], renal, config), ["Doença renal"]);
+  // Perfil salvo → rascunho: a lista vira texto "a,b".
+  const draft = profileToDraft({
+    ...profileFixture(),
+    conditionTags: ["hipertensao", "obesidade"],
+  });
+  assert.equal(draft.conditionTags, "hipertensao,obesidade");
+});
+
+test("condições: perfil antigo escolhe na lista e “Outra” pede os detalhes", () => {
+  const keys = ["conditionTags", "conditions"];
+  const legacy = { conditionTags: "", conditions: "Hipertensão" } as Draft;
+  assert.deepEqual(withConditionIssues(legacy, {}, keys), {
+    conditionTags: CONDITION_COPY.required,
+  });
+  // Sem escolha, o aviso do texto livre sai (vinha da falta de escolha).
+  assert.deepEqual(
+    withConditionIssues({ conditionTags: "" }, { conditions: "x", sex: "y" }, keys),
+    { sex: "y", conditionTags: CONDITION_COPY.required },
+  );
+  // Com escolha, os erros do perfil ficam como estão; fora da etapa, nada muda.
+  const other = { conditionTags: "outra", conditions: "" } as Draft;
+  assert.deepEqual(withConditionIssues(other, { conditions: "x" }, keys), { conditions: "x" });
+  assert.deepEqual(withConditionIssues(legacy, {}, ["name"]), {});
+  assert.equal(isOtherConditionOn(other), true);
+  assert.equal(isOtherConditionOn(legacy), false);
+  const details = questionnaire.flatMap((s) => s.fields).find((f) => f.key === "conditions")!;
+  assert.equal(isRequiredByAnswer(other, details), true);
+  assert.equal(isRequiredByAnswer({ conditionTags: "outrao" }, details), false);
+  assert.equal(isRequiredByAnswer({ conditionTags: ["hipertensao", "outra"] } as unknown as Draft, details), true);
+  // O perfil confere o mesmo: sem escolha e sem texto, ou "Outra" sem detalhes, não passa.
+  const base = { ...profileFixture(), conditions: "" };
+  const issue = (draft: object) =>
+    profileSchema.safeParse(draft).error?.issues.map((i) => String(i.path[0])) ?? [];
+  assert.deepEqual(issue({ ...base, conditionTags: "" }), ["conditionTags"]);
+  assert.deepEqual(issue({ ...base, conditionTags: "outra" }), ["conditions"]);
+  assert.deepEqual(issue({ ...base, conditionTags: "nenhuma,hipertensao" }), ["conditionTags"]);
+  assert.deepEqual(
+    profileSchema.parse({ ...base, conditionTags: "hipertensao,diabetes_tipo_2" }).conditionTags,
+    ["hipertensao", "diabetes_tipo_2"],
+  );
+});
+
+test("condições: detalhes opcionais à vista com qualquer condição marcada; obrigatórios só com 'Outra'", () => {
+  const draftWith = (conditionTags: string) => ({ conditionTags, conditions: "" });
+  assert.equal(showsConditionDetails(draftWith(""), false, false), false);
+  assert.equal(showsConditionDetails(draftWith("nenhuma"), false, false), false);
+  for (const tags of ["diabetes_tipo_2", "hipertensao", "doenca_renal", "outra", "hipertensao,outra"])
+    assert.equal(showsConditionDetails(draftWith(tags), false, false), true, tags);
+  // Texto já salvo (perfil antigo) ou aviso pendente mantêm o campo à vista.
+  assert.equal(showsConditionDetails(draftWith("nenhuma"), true, false), true);
+  assert.equal(showsConditionDetails(draftWith(""), false, true), true);
+  assert.equal(conditionDetailsCopy(false).hint, CONDITION_COPY.detailsOptional);
+  assert.equal(conditionDetailsCopy(true).hint, CONDITION_COPY.detailsRequired);
+  assert.doesNotMatch(conditionDetailsCopy(false).placeholder, /outra condição/);
 });

@@ -1,5 +1,5 @@
 import { test, expect, type Page, type Route } from "@playwright/test";
-import { profileFixture, stateFixture } from "../fixtures";
+import { draftFixture, stateFixture } from "../fixtures";
 import {
   CHAT_REPLY,
   CHAT_REPLY_INVALID,
@@ -330,7 +330,7 @@ test("dieta estruturada: próxima refeição, linha do tempo com trocas, estimat
   await mockAgent(page, () => DIET_REPLY);
   await seed(page, {
     ...initialState(),
-    draft: { ...profileFixture(), consentAi: true },
+    draft: { ...draftFixture(), consentAi: true },
     draftStep: 7,
   });
   await page.getByRole("button", { name: ANAMNESE_FINISH_LABEL, exact: true }).click();

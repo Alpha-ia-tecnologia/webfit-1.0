@@ -3,6 +3,7 @@ import { Fragment, useCallback, useRef, useState, type ReactNode } from "react";
 import { ScrollView, View, type Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { dayInsight, isCalmOn } from "@shared/lib/day";
+import { intakeAlert } from "@shared/lib/intake-alert";
 import { pendingMealSlot } from "@shared/lib/diary-day";
 import { dailyTargets, localDate, localTime, totalsFor, uid } from "@shared/lib/domain";
 import { parseHomeLayout, type HomeSectionKey } from "@shared/lib/home-layout";
@@ -29,13 +30,14 @@ import { WeekStrip } from "@/components/hoje/week-strip";
 import { AppHeader } from "@/components/layout/app-header";
 import { QuickEntryForm } from "@/components/quick/quick-entry-form";
 import { HojeWeekRecap } from "@/components/semana/hoje-week-recap";
-import { Notice, Sheet } from "@/components/ui";
+import { DailyCommentCard, ScreenSignal } from "@/components/signals/screen-signal";
+import { AppText, Notice, Sheet } from "@/components/ui";
 import { focusNode } from "@/lib/focus";
 import { useTimeouts } from "@/lib/timeouts";
 import { useApp } from "@/state/app-context";
 import { useDiaryActions } from "@/state/use-diary-actions";
-import { makeStyles } from "@/theme/theme";
-import { TAB_BAR_SPACE } from "@/theme/tokens";
+import { makeStyles, useThemeColors } from "@/theme/theme";
+import { fontSize, TAB_BAR_SPACE } from "@/theme/tokens";
 
 /** Folga acima da seção ao rolar a partir dos atalhos do topo. */
 const SECTION_SCROLL_OFFSET = 8;
@@ -47,6 +49,7 @@ const SHEET_FADE_MS = 350;
 /** Visão do dia: a semana, anéis no topo, um próximo passo, as seções na ordem de "Editar Hoje". */
 export function HojeScreen() {
   const styles = useStyles();
+  const colors = useThemeColors();
   const { state, clock, setDate, commit, notify, editMeal, openInjection, askAgent } = useApp();
   const actions = useDiaryActions();
   const router = useRouter();
@@ -98,6 +101,8 @@ export function HojeScreen() {
     pantry: state.pantry,
     date: today,
     time: now,
+    // Caneta: poucos dias seguidos com pouca comida ou pouca proteína (nunca para perfis calmos).
+    intakeAlert: intakeAlert(state, today),
   });
 
   const scrollTo = (y: number) =>
@@ -272,6 +277,15 @@ export function HojeScreen() {
           onExplain={() => setExplainOpen(true)}
         />
         {goals.reason && <Notice>{goals.reason}</Notice>}
+        {/* Ajuste dinâmico do dia (como no web): informativo, sem cor de alerta. */}
+        {goals.adjustmentNote ? (
+          <AppText size={fontSize.xs} color={colors.muted} lineHeight={19}>
+            {goals.adjustmentNote}
+          </AppText>
+        ) : null}
+        {/* IA proativa (como no web): o comentário do dia e o sinal do app antes do Resumo. */}
+        <DailyCommentCard />
+        <ScreenSignal screen="hoje" />
         {isDayBlank ? (
           <StartCard
             time={now}

@@ -121,7 +121,15 @@ const useStyles = makeStyles((colors) => ({
   text: { flex: 1, minWidth: 0, gap: 2 },
   tabular: { fontVariant: ["tabular-nums"] },
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 2 },
-  swapTag: { paddingVertical: 1, paddingHorizontal: 8, borderRadius: radius.pill, backgroundColor: colors.surface2 },
+  /** "no lugar de …" quebra a linha dentro da coluna a 320 px em vez de vazar para o lado. */
+  swapTag: {
+    flexShrink: 1,
+    maxWidth: "100%",
+    paddingVertical: 1,
+    paddingHorizontal: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface2,
+  },
   /** "⇄ Trocar": 28 px visíveis, 44 px de toque. */
   swapHit: { minHeight: 44, justifyContent: "center", flexShrink: 0 },
   swap: {

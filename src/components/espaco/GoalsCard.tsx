@@ -10,6 +10,7 @@ import {
   macroShares,
   type GoalOrigin,
 } from "../../lib/space";
+import { CareNotes } from "../CareNotes";
 import { MacroColumns } from "../MacroColumns";
 import { MacroBar } from "../meal/MacroBar";
 import { Card } from "../UI";
@@ -166,6 +167,7 @@ export function GoalsCard() {
           { key: "fat", grams: goals.fat, percent: percentOf("fat") },
         ]}
       />
+      <CareNotes notes={goals.careNotes} />
       <div id={howId} className="goals-how" hidden={!isHowOpen}>
         {isHowOpen && (
           <>

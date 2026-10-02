@@ -17,22 +17,30 @@ import { macroShares } from "./space";
 
 // zod 4: .pick() não funciona no profileSchema refinado; os campos vêm de .shape.
 const shape = profileSchema.shape;
-const goalDraftSchema = z.object({
-  birthDate: shape.birthDate,
-  sex: shape.sex,
-  pregnancy: shape.pregnancy,
-  eatingDisorder: shape.eatingDisorder,
-  conditions: shape.conditions,
-  weight: shape.weight,
-  height: shape.height,
-  activityLevel: shape.activityLevel,
-  goal: shape.goal,
-  manualCalories: shape.manualCalories,
-  manualWater: shape.manualWater,
-  manualProtein: shape.manualProtein,
-  manualCarbs: shape.manualCarbs,
-  manualFat: shape.manualFat,
-});
+const goalDraftSchema = z
+  .object({
+    birthDate: shape.birthDate,
+    sex: shape.sex,
+    pregnancy: shape.pregnancy,
+    eatingDisorder: shape.eatingDisorder,
+    conditions: shape.conditions,
+    conditionTags: shape.conditionTags,
+    // Caneta ainda sem resposta no rascunho ("") conta como não informada.
+    weightLossPen: shape.weightLossPen.catch("nao_informado"),
+    // Sem resposta ainda: conta como "não sei" (o cuidado da caneta sai sem o conselho de água).
+    fluidRestriction: shape.fluidRestriction.catch("nao_sei"),
+    weight: shape.weight,
+    height: shape.height,
+    activityLevel: shape.activityLevel,
+    goal: shape.goal,
+    manualCalories: shape.manualCalories,
+    manualWater: shape.manualWater,
+    manualProtein: shape.manualProtein,
+    manualCarbs: shape.manualCarbs,
+    manualFat: shape.manualFat,
+  })
+  // Sem condição marcada nem texto, a pergunta ainda não foi respondida.
+  .refine((g) => g.conditionTags.length > 0 || g.conditions !== "");
 
 /** Perfil de metas a partir do rascunho (campos de profileSchema.shape; null se faltar algum obrigatório). */
 export function draftGoalProfile(a: Draft): GoalProfile | null {

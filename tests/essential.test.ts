@@ -170,3 +170,41 @@ test("chips: primeira letra maiúscula, até 40 caracteres e no máximo 8", () =
   assert.equal(chips[0], "Hipotireoidismo");
   assert.equal(chips[1], `A${"a".repeat(38)}…`);
 });
+
+test("condições marcadas na lista aparecem mesmo sem detalhes (bloqueantes inclusas)", () => {
+  const result = summaryOf({
+    allergies: "nao",
+    medications: "Não uso medicamentos",
+    conditionTags: ["diabetes_tipo_1_insulina", "doenca_renal"],
+    conditions: "",
+  });
+  assert.deepEqual(chipsOf(result, "condicoes"), [
+    "Diabetes tipo 1 ou uso de insulina",
+    "Doença renal",
+  ]);
+  assert.equal(result.summary, "2 condições");
+  assert.equal(result.isEmpty, false);
+});
+
+test("condições marcadas e detalhes somam sem repetir; 'Outra' vira os detalhes", () => {
+  const result = summaryOf({
+    conditionTags: ["hipertensao", "outra"],
+    conditions: "Asma leve, asma leve",
+  });
+  assert.deepEqual(chipsOf(result, "condicoes"), [
+    "Hipertensão (pressão alta)",
+    "Asma leve",
+  ]);
+  const otherOnly = summaryOf({ conditionTags: ["outra"], conditions: "" });
+  assert.deepEqual(chipsOf(otherOnly, "condicoes"), ["Outra condição"]);
+  const none = summaryOf({ conditionTags: ["nenhuma"], conditions: "" });
+  assert.equal(chipsOf(none, "condicoes"), undefined);
+});
+
+test("perfil antigo, só com texto livre, continua mostrando as condições", () => {
+  const result = summaryOf({
+    conditionTags: [],
+    conditions: "Hipertensão, Diabetes tipo 2",
+  });
+  assert.deepEqual(chipsOf(result, "condicoes"), ["Hipertensão", "Diabetes tipo 2"]);
+});

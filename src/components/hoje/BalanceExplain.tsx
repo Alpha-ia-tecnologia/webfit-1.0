@@ -1,7 +1,8 @@
 import { Flame, Utensils } from "lucide-react";
-import type { DailyTarget } from "../../lib/domain";
+import { adjustmentExplain, type DailyTarget } from "../../lib/domain";
 import { fmtNumber } from "../../lib/format";
 import { balanceStatus, percentOf } from "../../lib/today";
+import { CareNotes } from "../CareNotes";
 import { Modal } from "../UI";
 import { Gauge } from "./Gauge";
 
@@ -70,6 +71,8 @@ export function BalanceExplain({
         {goals.expenditure !== null ? " · gasto diário estimado pela fórmula de Mifflin-St Jeor." : "."}
       </p>
       {goals.note && <p className="hint">{goals.note}</p>}
+      {goals.adjustmentNote && <p className="hint">{adjustmentExplain(goals)}</p>}
+      <CareNotes notes={goals.careNotes} />
     </Modal>
   );
 }

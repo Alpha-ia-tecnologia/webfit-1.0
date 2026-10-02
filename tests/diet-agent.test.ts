@@ -73,6 +73,19 @@ test("dieta: exige anamnese mínima e consentimento; recusa anexos antes do mode
   assert.equal(requestSchema.safeParse(input()).success, true);
   const missingField = input();
   delete (missingField.context.anamnese as Record<string, unknown>).conditions;
+  // Condições sem resposta: nem a lista nem o texto livre (perfil antigo em branco).
+  const noConditions = input();
+  Object.assign(noConditions.context.anamnese as Record<string, unknown>, {
+    conditionTags: [],
+    conditions: "",
+  });
+  // Com a lista respondida, os detalhes podem ficar em branco.
+  const listedOnly = input();
+  Object.assign(listedOnly.context.anamnese as Record<string, unknown>, {
+    conditionTags: ["nenhuma"],
+    conditions: "",
+  });
+  assert.equal(requestSchema.safeParse(listedOnly).success, true);
   const noAllergyDetails = input();
   (
     noAllergyDetails.context.anamnese as Record<string, unknown>
@@ -87,6 +100,7 @@ test("dieta: exige anamnese mínima e consentimento; recusa anexos antes do mode
     input({ file: "data:image/png;base64,AAAA" }),
     input({ file: "" }),
     missingField,
+    noConditions,
     noAllergyDetails,
     malformedGoals,
   ]) {

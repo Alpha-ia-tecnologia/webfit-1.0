@@ -107,17 +107,20 @@ export function StatusRow({
   label,
   status,
   tone,
+  testID,
 }: {
   icon: LucideIcon;
   label: string;
   status: string;
   tone: StatusTone;
+  /** Só a linha do agente usa "agent-status" (as outras situações não repetem o id). */
+  testID?: string;
 }) {
   const styles = useStyles();
   const { scheme, colors } = useTheme();
   const t = statusTones(colors, scheme)[tone];
   return (
-    <View style={styles.row} accessible accessibilityLabel={`${label}: ${status}`} testID="agent-status">
+    <View style={styles.row} accessible accessibilityLabel={`${label}: ${status}`} testID={testID}>
       <IconTile icon={icon} size="md" tone="neutral" />
       <AppText size={fontSize.sm} color={colors.text2} style={styles.grow}>
         {label}

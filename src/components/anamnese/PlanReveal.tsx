@@ -35,6 +35,7 @@ import {
 } from "../../lib/plan-reveal";
 import { macroShares } from "../../lib/space";
 import type { Draft, Goals, Profile } from "../../types";
+import { CareNotes } from "../CareNotes";
 import { IconTile } from "../IconTile";
 import { MacroColumns } from "../MacroColumns";
 import { MiniPlate } from "../MiniPlate";
@@ -210,6 +211,7 @@ export function PlanReveal({
             variant={variant}
             reducedMotion={reducedMotion}
           />
+          <CareNotes notes={goals.careNotes} />
           <div className="plan-duo">
             <WaterCard goals={goals} />
             <DayLine profile={profile} />

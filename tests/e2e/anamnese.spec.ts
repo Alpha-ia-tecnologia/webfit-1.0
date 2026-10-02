@@ -21,7 +21,9 @@ import { ANAMNESE_FINISH_LABEL } from "../../src/lib/copy";
 // caneta configurada, linha do dia, metas recomendadas, projeção em faixa e o plano inicial.
 test.use({ viewport: { width: 390, height: 844 } });
 
-const base = () => ({ ...profileFixture() }) as unknown as Draft;
+// Perfil completo de hoje: condições da lista fechada (texto "a,b" no rascunho).
+const base = () =>
+  ({ ...profileFixture(), conditionTags: "nenhuma" }) as unknown as Draft;
 const stepOf = (title: string) =>
   questionnaire.findIndex((step) => step.title === title);
 const heading = (page: Page, name: string) =>
@@ -528,11 +530,15 @@ test("projeção do peso desejado em faixa de meses, com cautela abaixo da refer
   await page.locator('input[name="targetWeight"]').fill("49");
   await expect(projection.locator("p")).toHaveText(UNDERWEIGHT_TEXT);
   await expect(projection).not.toContainText("Entre");
-  await seedDraft(page, { ...losing, conditions: "Hipertensão" }, goalsStep);
+  // Condição que pede avaliação individual: peso desejado fica, a projeção sai.
+  await seedDraft(page, { ...losing, conditionTags: "doenca_renal" }, goalsStep);
   await expect(
     page.getByRole("slider", { name: "Peso desejado (kg)" }),
   ).toBeVisible();
   await expect(page.getByTestId("weight-projection")).toHaveCount(0);
+  // Condição com ajustes (pressão alta) mantém a projeção.
+  await seedDraft(page, { ...losing, conditionTags: "hipertensao" }, goalsStep);
+  await expect(page.getByTestId("weight-projection")).toContainText(expected.title);
   await seedDraft(page, { ...losing, goal: "manter" }, goalsStep);
   await expect(
     page.getByRole("slider", { name: "Peso desejado (kg)" }),
@@ -638,17 +644,77 @@ test("revisão com calorias ocultas não mostra nenhum número de calorias", asy
   ).toHaveText("Ocultar calorias");
 });
 
-test("'Outra' guarda o texto como digitado, com espaços, uma tecla por vez", async ({
+test("condições: perfil antigo escolhe na lista, 'Outra' pede os detalhes e 'Nenhuma' é exclusiva", async ({
   page,
 }) => {
-  await seedDraft(page, { ...base(), conditions: "Hipertensão" }, stepOf("Cuidados importantes"));
-  const field = page.locator('[data-field="conditions"]');
-  await field.getByRole("button", { name: "Outra", exact: true }).click();
-  const other = field.getByLabel("Condições de saúde e diagnósticos conhecidos: outros", {
-    exact: true,
-  });
+  const careStep = stepOf("Cuidados importantes");
+  // Perfil antigo: só o texto livre, nenhuma condição marcada.
+  await seedDraft(page, { ...base(), conditionTags: "", conditions: "Hipertensão" }, careStep);
+  const tags = page.locator('[data-field="conditionTags"]');
+  const details = page.locator('[data-field="conditions"]');
+  const chip = (name: string) => tags.getByRole("button", { name, exact: true });
+  await expect(tags.getByRole("group", { name: "Metas com cuidados" })).toBeVisible();
+  await expect(tags.getByRole("group", { name: "Pedem avaliação individual" })).toBeVisible();
+  await expect(tags.getByRole("button", { name: /^Outros/ })).toHaveCount(0);
+  for (const name of ["Nenhuma", "Obesidade", "Doença renal", "Outra"])
+    await expect(chip(name)).toHaveAttribute("aria-pressed", "false");
+  // O texto antigo continua à vista, e a escolha na lista é pedida.
+  const text = details.locator('input[name="conditions"]');
+  await expect(text).toHaveValue("Hipertensão");
+  await next(page);
+  await expect(heading(page, "Cuidados importantes")).toBeVisible();
+  await expect(tags).toContainText("Escolha uma opção. Se não tiver nenhuma condição, marque “Nenhuma”.");
+
+  await chip("Hipertensão (pressão alta)").click();
+  await chip("Outra").click();
+  await expect(chip("Hipertensão (pressão alta)")).toHaveAttribute("aria-pressed", "true");
+  await expect(details).toContainText("Obrigatório com “Outra”");
+  await text.fill("");
+  await next(page);
+  await expect(details).toContainText("Conte qual é a outra condição.");
   // O valor gravado é aparado; o campo não pode engolir o espaço entre as palavras enquanto se digita.
-  await other.pressSequentially("asma leve");
-  await expect(other).toHaveValue("asma leve");
-  await expect(field.locator('input[name="conditions"]')).toHaveValue("Hipertensão, asma leve");
+  await text.pressSequentially("asma leve");
+  await expect(text).toHaveValue("asma leve");
+  await expect
+    .poll(async () => (await saved(page)).draft?.conditionTags)
+    .toBe("hipertensao,outra");
+
+  // "Nenhuma" limpa as demais; outra escolha tira "Nenhuma".
+  await chip("Nenhuma").click();
+  // Com "Nenhuma", as demais recolhem atrás de "Mostrar outras opções" (como nos outros chips).
+  await expect(chip("Hipertensão (pressão alta)")).toHaveCount(0);
+  await tags.getByRole("button", { name: "Mostrar outras opções" }).click();
+  await expect(chip("Hipertensão (pressão alta)")).toHaveAttribute("aria-pressed", "false");
+  await expect(chip("Outra")).toHaveAttribute("aria-pressed", "false");
+  await chip("Obesidade").click();
+  await expect(chip("Nenhuma")).toHaveAttribute("aria-pressed", "false");
+  await next(page);
+  await expect(heading(page, "Seu ponto de partida")).toBeVisible();
+  const draft = (await saved(page)).draft;
+  expect(draft?.conditionTags).toBe("obesidade");
+  expect(draft?.conditions).toBe("asma leve");
+});
+
+test("condições: detalhes opcionais aparecem ao marcar qualquer condição, sem exigir texto", async ({
+  page,
+}) => {
+  const careStep = stepOf("Cuidados importantes");
+  // Pessoa nova: "Nenhuma" marcada e nenhum texto salvo.
+  await seedDraft(page, { ...base(), conditionTags: "nenhuma", conditions: "" }, careStep);
+  const tags = page.locator('[data-field="conditionTags"]');
+  const details = page.locator('[data-field="conditions"]');
+  await expect(details).toHaveCount(0);
+  await tags.getByRole("button", { name: "Mostrar outras opções" }).click();
+  await tags.getByRole("button", { name: "Diabetes tipo 2", exact: true }).click();
+  // O campo abre opcional (sem "Obrigatório com “Outra”") e aceita detalhes.
+  await expect(details).toContainText("Opcional. Detalhes que ajudem a entender suas condições.");
+  await expect(details).not.toContainText("Obrigatório");
+  const text = details.locator('input[name="conditions"]');
+  await expect(text).not.toHaveAttribute("required", "");
+  await text.fill("uso metformina");
+  await next(page);
+  await expect(heading(page, "Seu ponto de partida")).toBeVisible();
+  const draft = (await saved(page)).draft;
+  expect(draft?.conditionTags).toBe("diabetes_tipo_2");
+  expect(draft?.conditions).toBe("uso metformina");
 });

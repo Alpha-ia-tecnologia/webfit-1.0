@@ -5,6 +5,7 @@ import { StyleSheet, View } from "react-native";
 import { chatDayLabel, describeAgentMetaFull, describeAgentMetaShort, messageViews } from "@shared/lib/agent-presentation";
 import { AGENT_STAGES, stageLabel, type AgentProgress } from "@shared/lib/agent-stream";
 import { visiblePlainText } from "@shared/lib/text";
+import { DAILY_COMMENT_CHIP } from "@shared/lib/daily-comment";
 import type { AgentMeta, ChatMessage } from "@shared/types";
 import { srOnly } from "@/components/refeicao/web-a11y";
 import { AppText, Button, LiveAnnouncement, Notice, RichText } from "@/components/ui";
@@ -74,7 +75,8 @@ export function SystemChip({ children }: { children: ReactNode }) {
   return (
     <View style={styles.system}>
       <Sparkles size={13} color={colors.green700} />
-      {children}
+      {/* Em telas estreitas o texto quebra ao lado do ícone (o ícone nunca fica sozinho na 1ª linha). */}
+      <View style={styles.systemText}>{children}</View>
     </View>
   );
 }
@@ -180,6 +182,22 @@ export function ChatThread({
                 </AppText>
               </SystemChip>
             );
+        } else if (view === "profile-request") {
+          body = (
+            <SystemChip>
+              <AppText size={fontSize.xs} weight={600} color={colors.text2}>
+                {`Você pediu uma análise do seu perfil · ${time}`}
+              </AppText>
+            </SystemChip>
+          );
+        } else if (view === "daily-request") {
+          body = (
+            <SystemChip>
+              <AppText size={fontSize.xs} weight={600} color={colors.text2} testID="daily-request">
+                {`${DAILY_COMMENT_CHIP} · ${time}`}
+              </AppText>
+            </SystemChip>
+          );
         } else if (view === "diet-plan") {
           const request = messages[index - 1];
           body = (
@@ -265,7 +283,6 @@ const useStyles = makeStyles((colors) => ({
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "center",
-    flexWrap: "wrap",
     justifyContent: "center",
     gap: 6,
     maxWidth: "100%",
@@ -274,6 +291,7 @@ const useStyles = makeStyles((colors) => ({
     borderRadius: radius.pill,
     backgroundColor: colors.surface2,
   },
+  systemText: { flexShrink: 1, minWidth: 0 },
   /** Resposta do agente: autor numa linha e o conteúdo embaixo, na largura toda. */
   aiRow: { alignSelf: "stretch", gap: 10, minWidth: 0 },
   aiHead: { flexDirection: "row", alignItems: "center", gap: 8, minWidth: 0 },

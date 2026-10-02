@@ -5,7 +5,6 @@ import {
   type AppState,
   type Profile,
   type Goals,
-  type GoalStrategy,
   type MealItem,
   type DiaryEntry,
   type NotificationItem,
@@ -20,8 +19,28 @@ import {
   tracksDoseSchedule,
 } from "./treatment";
 import { expiringSoon, USE_FIRST_KEY, USE_FIRST_REMINDER, USE_FIRST_TIME } from "./use-first";
+import { hasBlockingCondition, parseConditionTags } from "./conditions";
+import {
+  adaptiveAdjustment,
+  calorieFloorFor,
+  caloriePlan,
+  goalCareNotes,
+  isUnderweight,
+  KCAL_PER_G,
+  macroPlan,
+  proteinMaxShareFor,
+  type GoalProfile,
+} from "./goal-rules";
 
 export { localDate, localTime, shiftDate };
+export {
+  deficitFor,
+  GOAL_RULES,
+  KCAL_PER_G,
+  proteinBaseWeight,
+  UNDERWEIGHT_BMI,
+  type GoalProfile,
+} from "./goal-rules";
 export function formatDate(value: string) {
   return new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR");
 }
@@ -38,44 +57,10 @@ export const activityFactors = {
   moderado: 1.55,
   intenso: 1.725,
 };
-/** Regras das metas automáticas; valores informados pela pessoa sempre prevalecem. */
-export const GOAL_RULES = {
-  /** Déficit diário padrão para perda de peso. */
-  standardDeficit: 500,
-  /** Superávit moderado para ganho de peso. */
-  surplus: 300,
-  /** Piso calórico sem acompanhamento individual. */
-  calorieFloor: { feminino: 1200, masculino: 1500 },
-  /** Proteína por kg: base para manutenção; alta para perda ou ganho. */
-  proteinPerKg: { base: 1.2, high: 1.6 },
-  /** Teto da proteína como fração das calorias. */
-  proteinMaxShare: 0.35,
-  /** Fração das calorias vinda de gorduras. */
-  fatShare: 0.3,
-} as const;
-export const KCAL_PER_G = { protein: 4, carbs: 4, fat: 9 } as const;
 /** Tolerância entre a soma dos macros e a meta calórica (exportada para o editor de metas da anamnese). */
 export const MACRO_TOLERANCE = 1.05;
 const fmtKcal = (n: number) => n.toLocaleString("pt-BR");
 
-/** Campos que as metas automáticas leem; o rascunho da anamnese também os fornece. */
-export type GoalProfile = Pick<
-  Profile,
-  | "birthDate"
-  | "sex"
-  | "pregnancy"
-  | "eatingDisorder"
-  | "conditions"
-  | "weight"
-  | "height"
-  | "activityLevel"
-  | "goal"
-  | "manualCalories"
-  | "manualWater"
-  | "manualProtein"
-  | "manualCarbs"
-  | "manualFat"
->;
 /** Entrada do filtro de cuidado: strings, para servir ao perfil e ao rascunho. */
 export interface CareInput {
   birthDate: string;
@@ -83,9 +68,21 @@ export interface CareInput {
   pregnancy: string;
   eatingDisorder: string;
   conditions: string;
+  /** Condições estruturadas: texto do rascunho ("a,b") ou lista do perfil; ausente em entradas antigas. */
+  conditionTags?: string | readonly string[];
 }
 const NO_CONDITIONS =
   /^(nenhum[ao]?s?|n[aã]o|sem doen[çc]as|sem condi[çc][oõ]es)[.!]?$/i;
+/**
+ * Com condições marcadas, só as que pedem avaliação (incluindo "outra") bloqueiam; sem nenhuma
+ * marcada (perfis antigos), vale o texto livre como antes.
+ */
+function conditionsNeedCare(p: CareInput): boolean {
+  const tags = parseConditionTags(p.conditionTags);
+  return tags.length
+    ? hasBlockingCondition(tags)
+    : !NO_CONDITIONS.test(p.conditions.trim());
+}
 /** Respostas que pedem avaliação individual antes de estimar metas; data de nascimento ausente conta como menor de idade. */
 export function needsIndividualCare(
   p: CareInput,
@@ -99,119 +96,14 @@ export function needsIndividualCare(
     p.pregnancy !== "nao" ||
     p.eatingDisorder !== "nao" ||
     p.sex === "nao_informado" ||
-    !NO_CONDITIONS.test(p.conditions.trim())
+    conditionsNeedCare(p)
   );
 }
 
-interface CaloriePlan {
-  calories: number | null;
-  strategy: GoalStrategy;
-  source: string;
-  note: string | null;
-}
-/** Meta calórica automática a partir do gasto estimado e do objetivo. Medicamentos não alteram metas. */
-function caloriePlan(
-  profile: GoalProfile,
-  expenditure: number | null,
-): CaloriePlan {
-  if (expenditure === null)
-    return {
-      calories: null,
-      strategy: null,
-      source: "Meta calórica não definida",
-      note: null,
-    };
-  const floor =
-    profile.sex === "masculino"
-      ? GOAL_RULES.calorieFloor.masculino
-      : GOAL_RULES.calorieFloor.feminino;
-  const floorText = `${fmtKcal(floor)} kcal`;
-  const maintenance = (note: string | null): CaloriePlan => ({
-    calories: expenditure,
-    strategy: "manutencao",
-    source: "Estimativa de manutenção",
-    note,
-  });
-  if (profile.goal === "manter" || profile.goal === "organizar")
-    return maintenance(null);
-  if (profile.goal === "ganhar")
-    return {
-      calories: expenditure + GOAL_RULES.surplus,
-      strategy: "superavit",
-      source: "Estimativa com superávit moderado para ganho de peso",
-      note: `Superávit de ${GOAL_RULES.surplus} kcal/dia sobre o gasto estimado.`,
-    };
-  if (expenditure <= floor)
-    return maintenance(
-      `Seu gasto estimado já está no piso de ${floorText}; sem acompanhamento individual não aplicamos déficit.`,
-    );
-  const deficit = GOAL_RULES.standardDeficit;
-  const calories = Math.max(floor, expenditure - deficit);
-  const applied = expenditure - calories;
-  const floorNote =
-    applied < deficit ? `, limitado pelo piso de ${floorText}` : "";
-  return {
-    calories,
-    strategy: "deficit",
-    source: "Estimativa com déficit moderado para perda de peso",
-    note: `Déficit de ${fmtKcal(applied)} kcal/dia sobre o gasto estimado${floorNote}.`,
-  };
-}
-
-interface MacroPlan {
-  protein: number | null;
-  carbs: number | null;
-  fat: number | null;
-}
-/** Macros a partir das calorias: proteína por kg (com teto), gorduras por fração, carboidratos pelo restante. */
-function macroPlan(profile: GoalProfile, calories: number | null): MacroPlan {
-  if (calories === null)
-    return {
-      protein: profile.manualProtein,
-      carbs: profile.manualCarbs,
-      fat: profile.manualFat,
-    };
-  const perKg =
-    profile.goal === "perder" || profile.goal === "ganhar"
-      ? GOAL_RULES.proteinPerKg.high
-      : GOAL_RULES.proteinPerKg.base;
-  const proteinCap = Math.floor(
-    (calories * GOAL_RULES.proteinMaxShare) / KCAL_PER_G.protein,
-  );
-  // Macros automáticos nunca ultrapassam o que sobra das calorias depois dos valores manuais.
-  const proteinBudget =
-    profile.manualFat === null
-      ? Infinity
-      : Math.max(
-          0,
-          Math.floor(
-            (calories - profile.manualFat * KCAL_PER_G.fat) /
-              KCAL_PER_G.protein,
-          ),
-        );
-  const protein =
-    profile.manualProtein ??
-    Math.min(Math.round(perKg * profile.weight), proteinCap, proteinBudget);
-  const fatShare = GOAL_RULES.fatShare;
-  const fatBudget = Math.max(
-    0,
-    Math.floor((calories - protein * KCAL_PER_G.protein) / KCAL_PER_G.fat),
-  );
-  const fat =
-    profile.manualFat ??
-    Math.min(Math.round((calories * fatShare) / KCAL_PER_G.fat), fatBudget);
-  const carbs =
-    profile.manualCarbs ??
-    Math.max(
-      0,
-      Math.round(
-        (calories - protein * KCAL_PER_G.protein - fat * KCAL_PER_G.fat) /
-          KCAL_PER_G.carbs,
-      ),
-    );
-  return { protein, carbs, fat };
-}
-
+/**
+ * Metas do dia a partir do perfil. goalsForDate recalcula datas passadas com as regras vigentes
+ * (o histórico guarda o perfil, não as metas): mudanças nas regras valem também para dias anteriores.
+ */
 export function goalsFor(profile: GoalProfile, date = localDate()): Goals {
   const age = ageAt(profile.birthDate, date);
   const restricted = needsIndividualCare(profile, date);
@@ -251,6 +143,7 @@ export function goalsFor(profile: GoalProfile, date = localDate()): Goals {
     source: isManual ? "Meta informada por você" : plan.source,
     strategy: isManual ? "manual" : plan.strategy,
     note: note || null,
+    careNotes: goalCareNotes(profile, restricted),
     reason: restricted
       ? "As respostas pedem avaliação individual antes de estimar metas. Você pode acompanhar seus registros e informar metas orientadas por um profissional."
       : null,
@@ -281,27 +174,151 @@ export function goalsForDate(state: AppState, date: string): Goals {
         reason: null,
         strategy: null,
         note: null,
+        careNotes: [],
       };
 }
 export interface DailyTarget extends Goals {
-  /** Meta calórica registrada para o dia (automática ou manual). */
+  /** Meta calórica-base do dia (automática ou manual), antes do ajuste dinâmico. */
   baseCalories: number | null;
-  /** Mantido por compatibilidade; o consumo registrado não altera a meta. */
+  /** Proteína-base do dia, antes do ajuste (o alerta de ingestão mede contra ela). */
+  baseProtein: number | null;
+  /** Carboidratos-base do dia, antes do ajuste. */
+  baseCarbs: number | null;
+  /** Ajuste dinâmico em kcal sobre a meta-base (negativo: meta menor hoje); 0 sem ajuste. */
   adjustment: number;
-  /** Mantido por compatibilidade; não há compensação entre dias. */
+  /** Gramas de proteína somadas hoje porque ontem ficou abaixo da meta (nunca negativo). */
+  proteinBoost: number;
+  /**
+   * Frase sem culpa sobre o ajuste do dia (kcal só sem "Ocultar calorias"); null sem ajuste.
+   * "Hoje…" no dia de hoje; "Neste dia…" quando o Diário mostra outra data.
+   */
   adjustmentNote: string | null;
 }
+/** Frases do ajuste para o dia de hoje e para outra data (Diário navegando por dias). */
+const ADJUSTMENT_COPY = {
+  today: {
+    lower: "Hoje a meta está um pouco menor para equilibrar ontem",
+    higher: "Hoje a meta está um pouco maior porque ontem você comeu menos",
+    protein: "Hoje a proteína está um pouco maior para recuperar a de ontem.",
+  },
+  otherDay: {
+    lower: "Neste dia a meta é um pouco menor para equilibrar o dia anterior",
+    higher: "Neste dia a meta é um pouco maior porque no dia anterior você comeu menos",
+    protein: "Neste dia a proteína é um pouco maior para recuperar a do dia anterior.",
+  },
+} as const;
+export const PROTEIN_BOOST_NOTE = ADJUSTMENT_COPY.today.protein;
 /**
- * Usa a meta vigente na data, preservando calorias e macros informados.
- * O diário pode estar incompleto e não serve de base para compensar calorias em outro dia.
+ * Frase do ajuste: direção em palavras e, sem "Ocultar calorias", o tamanho em kcal. `isToday`
+ * false troca "Hoje…ontem" por "Neste dia…o dia anterior" (datas passadas no Diário).
  */
-export function dailyTargets(state: AppState, date: string): DailyTarget {
+export function adjustmentNoteFor(
+  adjustment: number,
+  proteinBoost: number,
+  hideCalories: boolean,
+  isToday = true,
+): string | null {
+  const copy = isToday ? ADJUSTMENT_COPY.today : ADJUSTMENT_COPY.otherDay;
+  const kcal = fmtKcal(Math.abs(adjustment));
+  const calories =
+    adjustment === 0 || hideCalories
+      ? null
+      : adjustment < 0
+        ? `${copy.lower} (${kcal} kcal a menos).`
+        : `${copy.higher} (${kcal} kcal a mais).`;
+  const protein = proteinBoost > 0 ? copy.protein : null;
+  return [calories, protein].filter(Boolean).join(" ") || null;
+}
+/** "Como calculamos" (só com calorias visíveis): a frase do ajuste com a meta-base do dia. */
+export function adjustmentExplain(goals: DailyTarget): string | null {
+  if (!goals.adjustmentNote) return null;
+  const base =
+    goals.adjustment !== 0 && goals.baseCalories !== null
+      ? ` Meta-base do dia: ${fmtKcal(goals.baseCalories)} kcal.`
+      : "";
+  return `${goals.adjustmentNote}${base}`;
+}
+const hasManualGoals = (p: Profile) =>
+  p.manualCalories !== null ||
+  p.manualProtein !== null ||
+  p.manualCarbs !== null ||
+  p.manualFat !== null;
+/**
+ * O ajuste dinâmico vale só para metas automáticas completas, com a preferência ligada e fora
+ * dos perfis calmos ou sensíveis (transtorno alimentar, gestação, menor de idade).
+ */
+function adaptsOn(state: AppState, date: string, goals: Goals): boolean {
+  const profile = profileForDate(state, date);
+  const current = state.profile ?? profile;
+  return (
+    state.adaptiveTargets &&
+    profile !== null &&
+    current !== null &&
+    goals.strategy !== "manual" &&
+    goals.calories !== null &&
+    goals.protein !== null &&
+    goals.carbs !== null &&
+    !hasManualGoals(profile) &&
+    !isCalmOn(profile, date) &&
+    !isCalmOn(current, date)
+  );
+}
+/**
+ * Meta do dia: a meta-base (goalsForDate) ajustada só pelo dia anterior, comparado à meta-base de
+ * ontem (sem encadear), dentro dos limites de GOAL_RULES.adaptive. Ontem precisa de 2+ refeições
+ * registradas. Metas manuais, metas nulas, perfis calmos e a preferência desligada ficam como estão;
+ * com "Ocultar calorias" só a proteína pode subir. Dias passados mostram o ajuste recalculado.
+ * `today` (o dia de hoje de quem vê) só muda a frase: outra data recebe "Neste dia…"; sem ele,
+ * a data pedida é tratada como hoje.
+ */
+export function dailyTargets(
+  state: AppState,
+  date: string,
+  today: string = date,
+): DailyTarget {
   const goals = goalsForDate(state, date);
-  return {
+  const stable: DailyTarget = {
     ...goals,
     baseCalories: goals.calories,
+    baseProtein: goals.protein,
+    baseCarbs: goals.carbs,
     adjustment: 0,
+    proteinBoost: 0,
     adjustmentNote: null,
+  };
+  if (!adaptsOn(state, date, goals)) return stable;
+  const profile = profileForDate(state, date)!;
+  const hideCalories = (state.profile ?? profile).hideCalories;
+  const yesterday = shiftDate(date, -1);
+  const before = goalsForDate(state, yesterday);
+  const eaten = totalsFor(state.diary, yesterday);
+  const result = adaptiveAdjustment({
+    today: {
+      calories: goals.calories!,
+      protein: goals.protein!,
+      carbs: goals.carbs!,
+    },
+    yesterday: { calories: before.calories, protein: before.protein },
+    eaten,
+    floor: calorieFloorFor(profile),
+    proteinMaxShare: proteinMaxShareFor(profile),
+    adjustCalories: !hideCalories,
+    noDecrease: isUnderweight(profile),
+  });
+  if (result.adjustment === 0 && result.proteinBoost === 0) return stable;
+  return {
+    ...stable,
+    calories: result.calories,
+    protein: result.protein,
+    carbs: result.carbs,
+    adjustment: result.adjustment,
+    proteinBoost: result.proteinBoost,
+    adjustmentNote: adjustmentNoteFor(
+      result.adjustment,
+      result.proteinBoost,
+      hideCalories,
+      date === today,
+    ),
   };
 }
 export function totalsFor(entries: DiaryEntry[], date: string) {
@@ -364,6 +381,10 @@ export function initialState(): AppState {
     goalHistory: [],
     serverSync: false,
     accountBound: false,
+    adaptiveTargets: true,
+    aiDailyComment: true,
+    aiDailyCommentDate: null,
+    signalDismissals: {},
     updatedAt: new Date().toISOString(),
   };
 }
@@ -383,6 +404,7 @@ export function emptyDraft() {
     measurementDate: localDate(),
     measurementMethod: "",
     conditions: "",
+    conditionTags: "",
     medications: "",
     weightLossPen: "",
     weightLossPenName: "",
@@ -599,9 +621,6 @@ export function notificationsFor(
   }
   return list;
 }
-/** Pedido de resumo mantido para compatibilidade; o fluxo após a anamnese usa DIET_PLAN_REQUEST. */
-export const ANAMNESIS_SUMMARY_REQUEST =
-  "Acabei de concluir minha anamnese. Faça um resumo da minha condição atual com base nas respostas: o que está bem, pontos de atenção e três prioridades práticas para os próximos dias. Sem diagnóstico e sem prescrição.";
 export function agentContext(state: AppState, date = localDate()) {
   if (!state.profile) throw new Error("Conclua a anamnese primeiro.");
   /* eslint-disable @typescript-eslint/no-unused-vars -- nome e consentimentos ficam fora do contexto enviado à IA */

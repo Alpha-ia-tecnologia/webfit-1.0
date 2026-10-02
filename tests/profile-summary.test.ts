@@ -51,7 +51,7 @@ test("profileSections: destaques exatos do perfil de teste, com ícone e tom por
   const cards = profileSections(state.profile!, state.measurements, today);
   assert.deepEqual(byAnchor(state.profile!), {
     name: [`${ageAt("1992-06-15", today)} anos`, "Manter o peso"],
-    conditions: ["5 de 5 respostas", "Toque para ver os detalhes"],
+    conditions: ["6 de 6 respostas", "Toque para ver os detalhes"],
     weight: ["Medido hoje", "1 medição"],
     medications: ["5 de 5 respostas", "Toque para ver os detalhes"],
     allergies: ["Alergias informadas", "Alimentação variada, sem restrições"],

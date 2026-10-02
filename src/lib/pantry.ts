@@ -13,6 +13,7 @@ import {
 } from "../types";
 import { agentContext, ageAt, localDate, shiftDate, uid } from "./domain";
 import { fmtExpiry } from "./format";
+import { signalBriefs } from "./signals";
 import { dietProfileSignature, isDietPlanStale } from "./diet";
 import { visiblePlainText } from "./text";
 import { USE_FIRST_DAYS } from "./use-first";
@@ -282,7 +283,10 @@ export function agentRequestContext(
   if (mode === "meal_text") return mealTextContext(state);
   if (mode === "pantry_photo" || mode === "shopping_photo")
     return { location: location ?? "despensa" };
-  return mode === "recipe" ? recipeContext(state) : agentContext(state);
+  if (mode === "recipe") return recipeContext(state);
+  // Conversa: os títulos dos sinais (sem números) vão como fatos; vazio para perfis calmos.
+  if (mode === "chat") return { ...agentContext(state), signals: signalBriefs(state, localDate()) };
+  return agentContext(state);
 }
 export function recipeBlockReason(state: AppState): string {
   try {

@@ -137,6 +137,12 @@ export function BalanceCard({ totals, goals, hideCalories, isToday = false, onEx
         ))}
       {hideCalories && <MacroDonut macros={totals} />}
       <MacroSummary macros={macros} showBars isCompact />
+      {/* Ajuste dinâmico do dia (a frase já respeita "Ocultar calorias"): informativo, sem cor de alerta. */}
+      {goals.adjustmentNote ? (
+        <AppText size={fontSize.xs} color={colors.muted} lineHeight={19}>
+          {goals.adjustmentNote}
+        </AppText>
+      ) : null}
     </View>
   );
 }

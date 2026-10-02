@@ -67,11 +67,11 @@ export const planIntro = (isAiReady: boolean) =>
 /** Primeiro nome para o título ("Seu plano inicial, Ana"); vazio sem nome. */
 export const planFirstName = (name: string) => name.trim().split(/\s+/)[0] ?? "";
 
-/** Estratégia da meta, sem números: "Déficit moderado", "Superávit leve"… (null sem meta). */
+/** Estratégia da meta, sem números: "Déficit ajustado" (ao IMC, à atividade e à caneta), "Superávit leve"… (null sem meta). */
 export function strategyLabel(goals: Pick<Goals, "strategy">): string | null {
   switch (goals.strategy) {
     case "deficit":
-      return "Déficit moderado";
+      return "Déficit ajustado";
     case "superavit":
       return "Superávit leve";
     case "manutencao":

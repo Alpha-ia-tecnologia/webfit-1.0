@@ -162,7 +162,7 @@ test("selo das metas: definida por você, automática ou aguardando orientação
   assert.equal(goalOrigin(auto, goalsFor(auto)).label, "Automática");
   // Só a água informada não torna as metas de energia e macros manuais.
   assert.equal(auto.manualWater, 2000);
-  const pending = { ...auto, conditions: "Hipertensão" };
+  const pending = { ...auto, conditionTags: ["doenca_renal" as const] };
   assert.equal(goalOrigin(pending, goalsFor(pending)).key, "pending");
   assert.equal(canAdjustGoals(profile), true);
   assert.equal(canAdjustGoals({ ...profile, eatingDisorder: "sim" }), false);

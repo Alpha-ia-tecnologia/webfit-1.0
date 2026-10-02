@@ -11,6 +11,7 @@ import type { Draft } from "../../types";
 import { Field } from "../UI";
 import { ChoiceCards } from "./ChoiceCards";
 import { ChoiceChips } from "./ChoiceChips";
+import { ConditionsField } from "./ConditionsField";
 import { DateWheels } from "./DateWheels";
 import { DayTimeline } from "./DayTimeline";
 import { GoalsWidget } from "./GoalsWidget";
@@ -48,7 +49,7 @@ type Props = {
 
 /** Perguntas que desenham o "Por quê?" da etapa na própria linha de ajuda (escolhas em chips ou cartões). */
 export function acceptsAbout(f: Question): boolean {
-  if (f.widget) return f.widget === "numbersChoice";
+  if (f.widget) return f.widget === "numbersChoice" || f.widget === "conditions";
   return (
     f.type === "select" ||
     f.key === "weightLossPenDose" ||
@@ -125,6 +126,16 @@ export function AnamneseField({
           injectionsCount={injectionsCount}
           today={today}
           canRegister={canRegisterPen}
+          onChange={onChange}
+        />
+      );
+    case "conditions":
+      return (
+        <ConditionsField
+          answers={answers}
+          errors={errors}
+          fields={stepFields}
+          about={about}
           onChange={onChange}
         />
       );

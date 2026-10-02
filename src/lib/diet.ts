@@ -14,6 +14,18 @@ import { visibleText } from "./text";
 export const DIET_PLAN_REQUEST =
   "Crie minha dieta personalizada com base na anamnese: um breve resumo, refeições para um dia com horários, alimentos e porções sugeridas, substituições e orientações práticas. Considere meu objetivo, alergias, alimentos evitados, preferências, rotina, orçamento e tempo para cozinhar. Respeite meu plano profissional e as limitações de saúde informadas.";
 
+/**
+ * Perfis salvos antes das condições estruturadas não tinham conditionTags; ao carregar, o esquema
+ * acrescenta []. A lista vazia fica fora da assinatura (dietas salvas continuam atuais) e só uma
+ * lista marcada (inclusive "nenhuma") muda a assinatura.
+ */
+function signedAnswers(
+  answers: Record<string, unknown>,
+  conditionTags: readonly string[] | undefined,
+): Record<string, unknown> {
+  return conditionTags?.length ? { ...answers, conditionTags } : answers;
+}
+
 /** Identifica mudanças no contexto alimentar sem duplicar as respostas no plano. */
 export function dietProfileSignature(profile: Profile): string {
   /* eslint-disable @typescript-eslint/no-unused-vars -- campos tirados de propósito; só o resto entra na assinatura */
@@ -31,11 +43,15 @@ export function dietProfileSignature(profile: Profile): string {
     hydrationInterval,
     // Dia da aplicação da caneta: não muda o conteúdo alimentar nem invalida dietas salvas.
     penWeekday,
+    // Condições estruturadas: só entram quando marcadas (ver signedAnswers).
+    conditionTags,
     ...answers
   } = profile;
   /* eslint-enable @typescript-eslint/no-unused-vars */
   const value = JSON.stringify(
-    Object.entries(answers).sort(([a], [b]) => a.localeCompare(b)),
+    Object.entries(signedAnswers(answers, conditionTags)).sort(([a], [b]) =>
+      a.localeCompare(b),
+    ),
   );
   let first = 2166136261;
   let second = 5381;

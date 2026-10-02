@@ -48,6 +48,11 @@ export function NextStepCard({ insight, onAction, onAsk }: Props) {
         <AppText heading size={fontSize["2xl"]} weight={800} tracking={-0.02} lineHeight={29} color={colors.white} accessibilityRole="header" style={styles.title}>
           {insightTitle(insight)}
         </AppText>
+        {insight.detail ? (
+          <AppText size={fontSize.base} weight={600} lineHeight={21} color={colors.onFillSlate} style={styles.detail} testID="next-step-detail">
+            {insight.detail}
+          </AppText>
+        ) : null}
         {insight.chipItems.length > 0 && (
           <View style={styles.chips}>
             {insight.chipItems.map((chip) => {
@@ -106,6 +111,8 @@ const useStyles = makeStyles((colors) => ({
   icon: { width: ICON_BOX, height: ICON_BOX, borderRadius: radius.sm, alignItems: "center", justifyContent: "center" },
   body: { flex: 1, minWidth: 0, gap: 10 },
   title: { marginTop: -4 },
+  /** Orientação curta sob o título (alerta da caneta), como .next-step-detail do web. */
+  detail: { marginTop: -2 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 2 },
   chip: {
     flexDirection: "row",
@@ -132,7 +139,8 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.white,
     flexShrink: 1,
   },
-  shrink: { flexShrink: 1 },
+  /* Rótulo em duas linhas (ex.: "Pedir ideias ao agente") centrado, como o botão do web. */
+  shrink: { flexShrink: 1, textAlign: "center" },
   ask: {
     width: 48,
     height: 48,

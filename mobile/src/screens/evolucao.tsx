@@ -26,6 +26,7 @@ import { SERIES, SeriesSheet } from "@/components/evolucao/series-sheet";
 import { WeightCard } from "@/components/evolucao/weight-card";
 import { Screen } from "@/components/layout/screen";
 import { AppText, Button, IconButton } from "@/components/ui";
+import { ScreenSignal } from "@/components/signals/screen-signal";
 import { espacoHref } from "@/lib/espaco-link";
 import { useApp } from "@/state/app-context";
 import { makeStyles, useThemeColors } from "@/theme/theme";
@@ -79,6 +80,7 @@ export function EvolucaoScreen() {
         <StartLine journey={journey} items={startChecklist(state, today)} onRegister={() => setOpen(true)} hidden={hidden} />
       )}
       {hasJourney && <WeightCard target={journey.target} dose={calm || hidden ? null : timeline} isSensitive={calm} hidden={hidden} />}
+      <ScreenSignal screen="evolucao" />
       <View style={styles.days}>
         <View style={styles.daysHead}>
           <View style={styles.daysTitle}>

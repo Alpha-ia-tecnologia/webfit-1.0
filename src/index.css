@@ -2437,6 +2437,12 @@ input[type="checkbox"].switch:disabled {
     padding: 8px 10px;
     gap: 8px;
   }
+}
+/* Até 360 px as duas estatísticas de "Como calculamos" ficam uma sob a outra (o rótulo não cabe ao lado do ícone). */
+@media (max-width: 360px) {
+  .balance-stats {
+    grid-template-columns: 1fr;
+  }
   .diary-entry {
     padding: 12px;
     gap: 10px;

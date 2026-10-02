@@ -12,6 +12,7 @@ import { AppText, Button, Card, Notice } from "@/components/ui";
 import { useApp } from "@/state/app-context";
 import { makeStyles, useTheme, useThemeColors } from "@/theme/theme";
 import { fontSize, horizontal, radius, themeDomainTone, themeMacroColor, type MacroColors } from "@/theme/tokens";
+import { CareNotes } from "./care-notes";
 import { GoalsSheet } from "./goals-sheet";
 
 const EQUATION_URL = "https://pubmed.ncbi.nlm.nih.gov/2305711/";
@@ -200,6 +201,7 @@ export function GoalsCard() {
           </View>
         ))}
       </View>
+      <CareNotes notes={goals.careNotes} />
       {isHowOpen ? (
         <View style={styles.how} testID="goals-how">
           {ruler && <GoalRuler basal={ruler.basal} target={ruler.target} expenditure={ruler.expenditure} />}

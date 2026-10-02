@@ -69,7 +69,22 @@ async function selectRows(client: pg.ClientBase, table: string, order: string, u
 /** Cópias (códigos de instalação) que o servidor local aceita guardar; online, o convite limita as contas. */
 export const MAX_SYNC_USERS = 50;
 
-const DEVICE_KEYS = ["dietPlan", "pantry", "recipes", "kitchenBasics", "shoppingList", "savedMeals", "serverSync", "updatedAt"] as const;
+// Preferências e marcas do app sem coluna própria (ajuste dinâmico, comentário diário da IA, sinais
+// dispensados) também moram no documento: o stateSchema dá o padrão quando faltam (cópias antigas).
+const DEVICE_KEYS = [
+  "dietPlan",
+  "pantry",
+  "recipes",
+  "kitchenBasics",
+  "shoppingList",
+  "savedMeals",
+  "serverSync",
+  "adaptiveTargets",
+  "aiDailyComment",
+  "aiDailyCommentDate",
+  "signalDismissals",
+  "updatedAt",
+] as const;
 
 // ---------- Gravação ----------
 
@@ -153,6 +168,8 @@ export async function saveUserState(
 async function writeProfile(client: pg.ClientBase, state: AppState) {
   const { userId, profile } = state;
   if (profile) {
+    // Chaves do perfil viram colunas (camelCase → snake_case). Listas como conditionTags vão no JSON do
+    // json_populate_recordset e chegam como jsonb (0017); a leitura devolve a mesma lista.
     const row: Row = { user_id: userId };
     for (const [key, value] of Object.entries(profile)) row[snake(key)] = value;
     await insertRows(client, "profiles", Object.keys(row), [row]);
@@ -540,6 +557,10 @@ async function readUserState(client: pg.ClientBase, userId: string): Promise<App
     readNotifications: reads.map((r) => r.notification_id),
     goalHistory: goals.map((g) => ({ date: g.effective_date, profile: g.profile_snapshot })),
     serverSync: device.serverSync ?? false,
+    adaptiveTargets: device.adaptiveTargets ?? true,
+    aiDailyComment: device.aiDailyComment ?? true,
+    aiDailyCommentDate: device.aiDailyCommentDate ?? null,
+    signalDismissals: device.signalDismissals ?? {},
     updatedAt: device.updatedAt ?? new Date().toISOString(),
   };
   const parsed = stateSchema.safeParse(state);

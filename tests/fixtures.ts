@@ -4,7 +4,8 @@ import {
   localDate,
   updateProfile,
 } from "../src/lib/domain";
-import { profileSchema } from "../src/types";
+import { profileToDraft } from "../src/components/anamnese/condition-choice";
+import { profileSchema, type Draft, type Profile } from "../src/types";
 export function profileFixture() {
   return profileSchema.parse({
     ...emptyDraft(),
@@ -17,6 +18,9 @@ export function profileFixture() {
     height: 165,
     measurementDate: localDate(),
     measurementMethod: "Balança em casa",
+    // Perfil atual: "Nenhuma" marcada na lista fechada. Perfis antigos (só texto livre) são
+    // montados nos testes com `conditionTags: []`.
+    conditionTags: ["nenhuma"],
     conditions: "Nenhuma",
     medications: "Não",
     weightLossPen: "nao",
@@ -59,8 +63,16 @@ export function profileFixture() {
     consentAi: false,
   });
 }
+/** Perfil como rascunho da anamnese (condições em texto "a,b", como o rascunho guarda). */
+export function draftFixture(changes: Partial<Profile> = {}): Draft {
+  return profileToDraft({ ...profileFixture(), ...changes });
+}
+/**
+ * Estado de teste com a anamnese pronta. O comentário automático do dia fica desligado para que
+ * os cenários com IA simulada não mandem um pedido extra ao abrir o Hoje (ia-proativa.spec.ts o liga).
+ */
 export function stateFixture() {
-  return updateProfile(initialState(), profileFixture());
+  return { ...updateProfile(initialState(), profileFixture()), aiDailyComment: false };
 }
 
 /**

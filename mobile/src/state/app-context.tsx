@@ -12,9 +12,10 @@ import {
   type AiQuota,
 } from "@shared/lib/account";
 import { useServerSync } from "@shared/lib/use-server-sync";
+import { useDailyComment } from "@shared/lib/use-daily-comment";
 import { initialState, localDate, notificationsFor, uid } from "@shared/lib/domain";
 import type { AppState, DiaryEntry, InjectionEntry, ToastMessage } from "@shared/types";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import {
   createContext,
   useCallback,
@@ -378,6 +379,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
         : null,
     [mode, account, quota, refreshQuota, accountLogOut, accountChangePassword, accountDelete],
   );
+
+  // Comentário automático do dia (IA proativa), como no web: uma vez por dia com a aba Hoje aberta.
+  const pathname = usePathname();
+  useDailyComment({
+    state,
+    isHome: pathname === "/",
+    aiReady,
+    aiBusy,
+    isPaused: isRestoring || (mode === "online" && !account),
+    // Com a cópia no servidor ligada, espera a comparação: outro aparelho pode já ter rodado hoje.
+    sync,
+    getState: () => stateRef.current,
+    request: (requestMode, text) => aiRequest(requestMode, text),
+    commit: (update) => commit(update),
+    // Online, a cota do dia é conferida antes (o comentário conta 1 pedido).
+    checkQuota:
+      mode === "online"
+        ? async () => {
+            const me = await fetchMe(syncRequest);
+            if (me) setQuota(me.ai);
+            return me?.ai ?? null;
+          }
+        : undefined,
+  });
 
   const restore = useCallback<AppContextValue["restore"]>(
     async (backup, expectedRevision, message = "Backup restaurado. IA e lembretes permanecem desativados.") => {

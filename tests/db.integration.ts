@@ -38,11 +38,17 @@ const EXPECTED_TABLES = [
   "users",
 ];
 
-/** Mapeia o perfil do aplicativo (camelCase) para as colunas da tabela profiles. */
+/**
+ * Mapeia o perfil do aplicativo (camelCase) para as colunas da tabela profiles. Listas (conditionTags,
+ * jsonb) vão como texto JSON: o pg mandaria um array JS como array do Postgres ('{...}').
+ */
 function profileColumns(p: ReturnType<typeof profileFixture>) {
   const snake = (key: string) =>
     key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
-  return Object.entries(p).map(([key, value]) => [snake(key), value] as const);
+  return Object.entries(p).map(
+    ([key, value]) =>
+      [snake(key), Array.isArray(value) ? JSON.stringify(value) : value] as const,
+  );
 }
 
 async function insertProfile(client: pg.Client, userId: string) {
@@ -117,6 +123,47 @@ test(
           "update profiles set allergy_details = '' where user_id = $1",
           [userId],
           /profiles_allergy_details_required/,
+        );
+        // 0017: condições marcadas são uma lista jsonb de até 12 chaves; o perfil de teste marca "Nenhuma".
+        const tags = await client.query<{ condition_tags: unknown }>(
+          "select condition_tags from profiles where user_id = $1",
+          [userId],
+        );
+        assert.deepEqual(tags.rows[0].condition_tags, ["nenhuma"]);
+        // Com condição marcada, o texto de detalhes pode ficar vazio (como no profileSchema).
+        await client.query(
+          "update profiles set condition_tags = $2::jsonb, conditions = '' where user_id = $1",
+          [userId, JSON.stringify(["hipertensao", "diabetes_tipo_2"])],
+        );
+        await expectRejected(
+          client,
+          "update profiles set condition_tags = '[]'::jsonb, conditions = '' where user_id = $1",
+          [userId],
+          /profiles_conditions_check/,
+        );
+        await expectRejected(
+          client,
+          "update profiles set condition_tags = $2::jsonb, conditions = '' where user_id = $1",
+          [userId, JSON.stringify(["outra"])],
+          /profiles_conditions_other_check/,
+        );
+        await expectRejected(
+          client,
+          "update profiles set condition_tags = $2::jsonb where user_id = $1",
+          [userId, JSON.stringify(["nenhuma", "hipertensao"])],
+          /profiles_condition_tags_none_check/,
+        );
+        await expectRejected(
+          client,
+          "update profiles set condition_tags = $2::jsonb where user_id = $1",
+          [userId, JSON.stringify("hipertensao")],
+          /profiles_condition_tags_check/,
+        );
+        await expectRejected(
+          client,
+          "update profiles set condition_tags = $2::jsonb where user_id = $1",
+          [userId, JSON.stringify(Array.from({ length: 13 }, (_, i) => `tag_${i}`))],
+          /profiles_condition_tags_check/,
         );
         await expectRejected(
           client,

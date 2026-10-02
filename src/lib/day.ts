@@ -5,6 +5,7 @@
  */
 import type { HabitItem, PantryItem, Profile } from "../types";
 import { fmtMl, fmtNumber, fmtRelDate } from "./format";
+import type { IntakeAlert } from "./intake-alert";
 import { visiblePlainText } from "./text";
 
 export const MOOD_LABELS = ["Muito mal", "Mal", "Regular", "Bem", "Muito bem"] as const;
@@ -44,6 +45,8 @@ export interface DayInsight {
   headline: string;
   /** Consequência curta depois do título ("O jantar resolve."); só no caso da proteína. */
   followUp?: string;
+  /** Orientação curta sob o título (alerta de ingestão da caneta); sem números. */
+  detail?: string;
   /** "Resumo · fim de tarde": o período do dia em que o cartão foi montado. */
   kicker: string;
   /** Até 2 contextos curtos, com ícone. */
@@ -74,6 +77,8 @@ export interface DayInsightInput {
   date: string;
   /** Horário atual "HH:MM". */
   time: string;
+  /** Alerta dos últimos dias para quem usa caneta (intakeAlert); ausente ou null não muda nada. */
+  intakeAlert?: IntakeAlert | null;
 }
 
 const WATER_STEP = 250;
@@ -86,6 +91,13 @@ const MAX_CHIPS = 2;
 /** Títulos de combinado até este tamanho entram inteiros no chip; os maiores, só a 1ª palavra. */
 const HABIT_CHIP_MAX = 14;
 const DINNER = /jantar|ceia/i;
+/** Pergunta pronta do alerta de ingestão: ideias de refeição, nunca dose nem números (também no sinal da Seringa). */
+export const INTAKE_PROMPTS: Record<IntakeAlert["kind"], string> = {
+  low_intake:
+    "Tenho comido pouco nos últimos dias. Pode me sugerir refeições pequenas, fáceis de comer e com proteína, dentro da minha dieta?",
+  protein:
+    "Minha proteína ficou abaixo do combinado nos últimos dias. Pode me sugerir fontes de proteína práticas para cada refeição, dentro da minha dieta?",
+};
 /** Limites dos períodos do kicker: manhã, tarde, fim de tarde e noite (madrugada conta como noite). */
 const PERIODS = [
   { until: "05:00", label: "noite" },
@@ -262,6 +274,21 @@ export function dayInsight(input: DayInsightInput): DayInsight {
         prompt: `Tenho o combinado "${due.title}". Como encaixo isso na minha rotina?`,
       },
       [habitChip(due), ...chipsFor(input, "habit")],
+    );
+  }
+  // intakeAlert já exclui perfis calmos; a checagem repetida protege quem montar a entrada à mão.
+  const alert = isCalmOn(input.profile, input.date) ? null : input.intakeAlert;
+  if (alert) {
+    return finish(
+      input,
+      {
+        domain: "food",
+        headline: alert.title,
+        detail: alert.body,
+        action: { kind: "agent", label: "Pedir ideias ao agente" },
+        prompt: INTAKE_PROMPTS[alert.kind],
+      },
+      chipsFor(input, "food"),
     );
   }
   const proteinGoal = input.goals.protein;

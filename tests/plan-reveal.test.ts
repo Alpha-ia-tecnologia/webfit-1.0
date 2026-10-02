@@ -9,6 +9,7 @@ import {
   planRingAria,
   planVariant,
   planWater,
+  strategyLabel,
 } from "../src/lib/plan-reveal";
 import { goalsFor } from "../src/lib/domain";
 import { fmtKcal } from "../src/lib/format";
@@ -26,9 +27,15 @@ test("variante do plano: completo, prato com calorias ocultas e rotina para quem
   assert.equal(variantOf({ ...p, pregnancy: "gestacao" }), "habitos");
   // Menor de idade: rotina mesmo com meta manual.
   assert.equal(variantOf({ ...p, birthDate: "2010-06-15" }), "habitos");
-  const hypertension = { ...p, conditions: "Hipertensão" };
+  // Perfil antigo (só texto livre): o texto ainda pede avaliação individual.
+  const hypertension = { ...p, conditionTags: [], conditions: "Hipertensão" };
   assert.equal(variantOf({ ...hypertension, manualCalories: null }), "habitos");
   assert.equal(variantOf({ ...hypertension, manualCalories: 1800 }), "completo");
+  // Lista de condições: as com ajustes mantêm o plano completo; as que pedem avaliação, rotina.
+  const listed = (conditionTags: Profile["conditionTags"]) =>
+    variantOf({ ...p, conditionTags, conditions: "", manualCalories: null });
+  assert.equal(listed(["hipertensao", "diabetes_tipo_2"]), "completo");
+  assert.equal(listed(["doenca_renal"]), "habitos");
   assert.equal(PLAN_TITLES.completo, "Seu plano inicial");
   assert.equal(PLAN_TITLES.prato, "Seu plano inicial");
   assert.equal(PLAN_TITLES.habitos, "Seu plano de hábitos");
@@ -83,12 +90,21 @@ test("cascata basal → gasto → meta com o detalhe de cada meta", () => {
     const q = { ...p, manualCalories: null, ...changes };
     return planCascade(q, goalsFor(q, TODAY))?.[2].detail;
   };
-  assert.equal(detailFor({ goal: "perder" }), "500 kcal a menos por dia");
+  // IMC 26,4: déficit de 20% do gasto, no mínimo 400 kcal; com caneta, 25%.
+  assert.equal(detailFor({ goal: "perder" }), "400 kcal a menos por dia");
+  assert.equal(detailFor({ goal: "perder", weightLossPen: "sim" }), "488 kcal a menos por dia");
   assert.equal(detailFor({ goal: "ganhar" }), "300 kcal a mais por dia");
   assert.equal(detailFor({ goal: "manter" }), "igual ao gasto");
   assert.equal(detailFor({ activityLevel: "moderado" }), "igual ao gasto");
-  const restricted = { ...p, conditions: "Hipertensão", manualCalories: null };
+  const restricted = { ...p, conditionTags: ["doenca_renal" as const], manualCalories: null };
   assert.equal(planCascade(restricted, goalsFor(restricted, TODAY)), null);
+});
+
+test("estratégia da meta sem números: déficit ajustado ao perfil", () => {
+  assert.equal(strategyLabel({ strategy: "deficit" }), "Déficit ajustado");
+  assert.equal(strategyLabel({ strategy: "superavit" }), "Superávit leve");
+  assert.equal(strategyLabel({ strategy: "manutencao" }), "Manutenção");
+  assert.equal(strategyLabel({ strategy: null }), null);
 });
 
 test("água, linha do dia e anel com rótulos falados", () => {

@@ -4,6 +4,7 @@
  * Lógica pura, compartilhada entre web e app nativo.
  */
 import type { Draft } from "../types";
+import { parseConditionTags, type ConditionTag } from "./conditions";
 import {
   ageAt,
   localDate,
@@ -25,11 +26,14 @@ export const withFlowMarker = (answers: Draft): Draft => ({
 export const hasFlowMarker = (draft: Draft | null) =>
   draft?.[FLOW_KEY] === FLOW_VERSION;
 
+/** Rascunho ou perfil salvo: as regras abaixo só leem campos de texto. */
+type DraftLike = Readonly<Record<string, unknown>>;
+
 /** Mesmo critério de isSensitive, no rascunho: resposta vazia conta como sensível (sem triagem = cautela). */
-export const isSensitiveDraft = (a: Draft) =>
+export const isSensitiveDraft = (a: DraftLike) =>
   a.eatingDisorder !== "nao" || a.pregnancy !== "nao";
 
-/** Os cinco campos do filtro de cuidado como texto (vazio quando não respondidos). */
+/** Os campos do filtro de cuidado como texto (vazio quando não respondidos); condições em "a,b". */
 export function careInput(a: Draft): CareInput {
   const text = (value: Draft[string] | undefined) => String(value ?? "");
   return {
@@ -38,19 +42,28 @@ export function careInput(a: Draft): CareInput {
     pregnancy: text(a.pregnancy),
     eatingDisorder: text(a.eatingDisorder),
     conditions: text(a.conditions),
+    conditionTags: text(a.conditionTags),
   };
 }
+
+/**
+ * Condições do rascunho: lá ficam como texto "hipertensao,diabetes_tipo_2" (o rascunho só guarda
+ * texto, número ou sim/não); na conclusão, profileSchema as converte na lista validada
+ * (parseConditionTags/formatConditionTags em lib/conditions fazem as duas direções).
+ */
+export const draftConditionTags = (a: Draft): ConditionTag[] =>
+  parseConditionTags(a.conditionTags);
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const ADULT_AGE = 18;
 
 /** Idade na data; null sem data de nascimento válida. */
-export function draftAge(a: Draft, today: string): number | null {
+export function draftAge(a: DraftLike, today: string): number | null {
   const birthDate = String(a.birthDate ?? "");
   return DATE_PATTERN.test(birthDate) ? ageAt(birthDate, today) : null;
 }
 /** IMC e peso desejado: adulto (≥ 18) e perfil não sensível. */
-export const canShowBodyNumbers = (a: Draft, today: string) =>
+export const canShowBodyNumbers = (a: DraftLike, today: string) =>
   !isSensitiveDraft(a) && (draftAge(a, today) ?? 0) >= ADULT_AGE;
 /** Projeção: objetivo perder/ganhar e nenhum motivo de avaliação individual (inclui condições e sexo não informado). */
 export const canShowProjection = (a: Draft, today: string) =>

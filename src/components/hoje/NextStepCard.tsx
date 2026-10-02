@@ -29,6 +29,7 @@ export function NextStepCard({ insight, onAction, onAsk }: Props) {
       <div className="next-step-body">
         <p className="next-step-kicker">{insight.kicker}</p>
         <h2 id="next-step-title">{insightTitle(insight)}</h2>
+        {insight.detail && <p className="next-step-detail">{insight.detail}</p>}
         {insight.chipItems.length > 0 && (
           <ul className="next-step-chips">
             {insight.chipItems.map((chip) => {

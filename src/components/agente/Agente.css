@@ -173,7 +173,6 @@
   display: inline-flex;
   align-items: center;
   align-self: center;
-  flex-wrap: wrap;
   justify-content: center;
   gap: 6px;
   max-width: 100%;
@@ -184,7 +183,9 @@
   color: var(--wf-text-2);
   background: var(--wf-surface-3);
 }
+/* Em telas estreitas o texto quebra em duas linhas ao lado do ícone (o ícone nunca fica sozinho na 1ª linha). */
 .chat-system svg {
+  flex-shrink: 0;
   color: var(--wf-green-700);
 }
 .chat-empty {

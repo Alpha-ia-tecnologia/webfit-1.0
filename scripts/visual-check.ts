@@ -6,6 +6,7 @@ import { chromium, type Page } from "@playwright/test";
 import { stateFixture } from "../tests/fixtures";
 import { localDate, localTime, shiftDate, uid } from "../src/lib/domain";
 import type { AppState } from "../src/types";
+import { profileToDraft } from "../src/components/anamnese/condition-choice";
 import { contrastIssues } from "../tests/e2e/contrast";
 
 const BASE = process.env.BASE ?? "http://127.0.0.1:3000";
@@ -636,7 +637,7 @@ const state = richState();
   });
   await seed(
     page,
-    { ...stateFixture(), profile: null, draft: { ...penProfile }, draftStep: 7 },
+    { ...stateFixture(), profile: null, draft: profileToDraft(penProfile), draftStep: 7 },
     false,
   );
   const start = page.locator(".anamnese-start-card");

@@ -16,15 +16,15 @@ import {
 } from "../src/lib/goal-editor";
 import { goalsFor, type GoalProfile } from "../src/lib/domain";
 import type { Draft } from "../src/types";
-import { profileFixture } from "./fixtures";
+import { draftFixture, profileFixture } from "./fixtures";
 
 const DAY = "2026-09-27";
-const draft = () => profileFixture() as unknown as Draft;
+const draft = (): Draft => draftFixture();
 const base = (): GoalProfile => draftGoalProfile(draft())!;
 
 test("metas a partir do rascunho: iguais às do perfil e nulas sem os dados obrigatórios", () => {
   assert.equal(draftGoalProfile({ ...draft(), weight: "" }), null);
-  assert.equal(draftGoalProfile({ ...draft(), conditions: "" }), null);
+  assert.equal(draftGoalProfile({ ...draft(), conditionTags: "", conditions: "" }), null);
   assert.deepEqual(draftGoals(draft(), DAY), goalsFor(profileFixture(), DAY));
   assert.equal(draftGoals({ ...draft(), activityLevel: "" }, DAY), null);
   // Textos do rascunho ("72") viram números como no perfil.

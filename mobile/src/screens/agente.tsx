@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import {
   chatSuggestions,
+  PROFILE_ANALYSIS_REQUEST,
   type ChatSuggestion,
 } from "@shared/lib/agent-presentation";
 import { SETTINGS_TAB } from "@shared/lib/copy";
@@ -279,6 +280,10 @@ export function AgenteScreen() {
     if (isLive && canSend) void send(text);
     else setInput(text);
   };
+  // "+ → Analisar meu perfil": o pedido pronto vai pelo mesmo envio (vira um aviso na conversa).
+  const analyzeProfile = () => {
+    if (isLive && canSend) void send(PROFILE_ANALYSIS_REQUEST);
+  };
   // "+ → Foto do prato": refeição nova de hoje com a foto; a análise começa sozinha quando o agente puder.
   const attachPhoto = (photo: string) => {
     setDate(localDate());
@@ -420,6 +425,8 @@ export function AgenteScreen() {
           onAttachPhoto={attachPhoto}
           onOpenExams={() => router.push(espacoHref("documentos"))}
           onOpenPantry={() => router.push("/despensa")}
+          onAnalyzeProfile={analyzeProfile}
+          canAnalyze={isLive && canSend}
         />
       </KeyboardAvoidingView>
       <ContextSheet

@@ -7,9 +7,11 @@ import {
   Droplets,
   EyeOff,
   HardDrive,
+  MessageCircle,
   Moon,
   Ruler,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   SunMoon,
   Target,
@@ -42,13 +44,20 @@ import { ServerSyncCard } from "./server-sync-card";
 import { SettingGroup, StatusRow, SwitchRow, ValueRow } from "./setting-row";
 import { HydrationSheet, QuietHoursSheet } from "./setting-sheets";
 
-type SwitchKey = "hideCalories" | "hideBodyNumbers" | "remindersEnabled" | "consentAi";
+type ProfileSwitchKey = "hideCalories" | "hideBodyNumbers" | "remindersEnabled" | "consentAi";
+/** Preferências guardadas no estado do app (não no perfil): ajuste dinâmico e comentário diário da IA. */
+type StateSwitchKey = "adaptiveTargets" | "aiDailyComment";
+type SwitchKey = ProfileSwitchKey | StateSwitchKey;
+const isStateKey = (key: SwitchKey): key is StateSwitchKey =>
+  key === "adaptiveTargets" || key === "aiDailyComment";
 const CHOICES: [SwitchKey, LucideIcon, string][] = [
   ["hideCalories", EyeOff, "Ocultar calorias nas telas e respostas"],
   ["hideBodyNumbers", Ruler, BODY_PRIVACY_COPY.switchLabel],
   ["remindersEnabled", Bell, "Lembretes dentro do aplicativo"],
 ];
 const AI_LABEL = "Permitir envio do contexto ao DeepSeek e/ou à OpenAI ao usar IA";
+const ADAPTIVE_LABEL = "Ajuste dinâmico das metas";
+const DAILY_COMMENT_LABEL = "Comentários automáticos da IA";
 const privacyLines = (serverSync: boolean, hasAccount: boolean): [LucideIcon, string][] => [
   [
     HardDrive,
@@ -104,7 +113,10 @@ export function SettingsTab({
   const change = async (key: SwitchKey, value: boolean) => {
     setPending((current) => ({ ...current, [key]: value }));
     if (key === "consentAi" && !value) cancelAi();
-    await commit((s) => withProfilePatch(s, { [key]: value }), "Preferência salva.");
+    await commit(
+      (s) => (isStateKey(key) ? { ...s, [key]: value } : withProfilePatch(s, { [key]: value })),
+      "Preferência salva.",
+    );
     setPending(({ [key]: _done, ...rest }) => rest);
   };
   const switchRow = (key: SwitchKey, icon: LucideIcon, label: string) => (
@@ -112,7 +124,7 @@ export function SettingsTab({
       key={key}
       icon={icon}
       label={label}
-      value={pending[key] ?? p[key]}
+      value={pending[key] ?? (isStateKey(key) ? state[key] : p[key])}
       disabled={pending[key] !== undefined}
       onChange={(value) => void change(key, value)}
     />
@@ -153,6 +165,7 @@ export function SettingsTab({
             opensSheet={false}
             onPress={() => openSection("manualCalories")}
           />
+          {switchRow("adaptiveTargets", SlidersHorizontal, ADAPTIVE_LABEL)}
           <ValueRow
             icon={Clock}
             label="Horários das refeições"
@@ -177,7 +190,8 @@ export function SettingsTab({
         </AppText>
         <SettingGroup>
           {switchRow("consentAi", Sparkles, AI_LABEL)}
-          <StatusRow icon={Bot} label="Agente" status={status.label} tone={status.tone} />
+          {switchRow("aiDailyComment", MessageCircle, DAILY_COMMENT_LABEL)}
+          <StatusRow icon={Bot} label="Agente" status={status.label} tone={status.tone} testID="agent-status" />
         </SettingGroup>
         {/* Recolhido quando conectado; abre sozinho sem conexão (a chave remonta ao mudar). */}
         <Disclosure key={aiReady ? "ready" : "offline"} title="Avançado: servidor do agente" defaultOpen={!aiReady}>

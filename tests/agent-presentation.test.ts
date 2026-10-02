@@ -7,8 +7,10 @@ import {
   describeAgentMetaFull,
   describeAgentMetaShort,
   messageViews,
+  PROFILE_ANALYSIS_REQUEST,
   providerLabel,
 } from "../src/lib/agent-presentation";
+import { DAILY_COMMENT_REQUEST } from "../src/lib/daily-comment";
 import { DIET_PLAN_REQUEST } from "../src/lib/diet";
 import type { ChatMessage } from "../src/types";
 import { stateFixture } from "./fixtures";
@@ -144,4 +146,55 @@ test("linha de revisão: curta sob a resposta; a frase inteira diz que não há 
     "Mensagem automática de segurança",
   );
   assert.match(describeAgentMetaFull({ ...meta, urgency: "imediata" as const }), /sem revisão humana/);
+});
+
+test("pedido de análise do perfil vira aviso; a resposta segue como texto ou blocos", () => {
+  const views = messageViews([
+    msg("1", "user", PROFILE_ANALYSIS_REQUEST),
+    msg("2", "ai", "1) O que está indo bem: ..."),
+    msg("3", "user", PROFILE_ANALYSIS_REQUEST, "error"),
+  ]);
+  assert.equal(views.get("1"), "profile-request");
+  assert.equal(views.get("2"), undefined, "a análise em si continua como texto");
+  assert.equal(views.get("3"), undefined, "pedido que falhou fica como texto, com o reenvio");
+});
+
+test("pedido de análise do perfil cruza anamnese, registros e preferências sem pedir números ou dose", () => {
+  for (const topic of [
+    /anamnese/,
+    /condições de saúde/,
+    /caneta/,
+    /atividade/,
+    /sono/,
+    /estresse/,
+    /diário/,
+    /medidas/,
+    /aplicações/,
+    /sintomas/,
+    /favoritos e evitados/,
+    /rotina/,
+    /tempo para cozinhar/,
+    /orçamento/,
+    /metas do app como estão/,
+    /1\) o que está indo bem/,
+    /2\) pontos de atenção/,
+    /3\) sugestões práticas de refeições/,
+    /4\) o que conversar com o meu profissional de saúde/,
+  ])
+    assert.match(PROFILE_ANALYSIS_REQUEST, topic);
+  assert.match(PROFILE_ANALYSIS_REQUEST, /não comente nem sugira doses/);
+  assert.doesNotMatch(PROFILE_ANALYSIS_REQUEST, /kcal|caloria/i);
+});
+
+test("pedido do comentário automático do dia vira aviso, com sinais e ajuste no fim do texto", () => {
+  const views = messageViews([
+    msg("1", "user", `${DAILY_COMMENT_REQUEST} O que o app observou nos últimos dias: Alguns dias acima da meta.`),
+    msg("2", "ai", "Você tem registrado com constância. Hoje, inclua uma fruta no lanche."),
+    msg("3", "user", DAILY_COMMENT_REQUEST, "error"),
+    msg("4", "user", `Pergunta minha: ${DAILY_COMMENT_REQUEST}`),
+  ]);
+  assert.equal(views.get("1"), "daily-request");
+  assert.equal(views.get("2"), undefined, "o comentário em si continua como texto");
+  assert.equal(views.get("3"), undefined, "pedido que falhou fica como texto");
+  assert.equal(views.get("4"), undefined, "só o início fixo identifica o pedido automático");
 });

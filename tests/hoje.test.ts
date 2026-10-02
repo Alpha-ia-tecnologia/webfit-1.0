@@ -45,6 +45,7 @@ const goals: Goals = {
   reason: null,
   strategy: "manutencao",
   note: null,
+  careNotes: [],
 };
 const totals = (partial: Partial<Totals> = {}): Totals => ({
   calories: 0,

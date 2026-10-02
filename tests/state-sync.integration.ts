@@ -49,7 +49,9 @@ function richState(): AppState {
     userId,
     revision: 5,
     updatedAt: NOW,
-    draft: { name: "Pessoa Teste", goal: "manter", sleepHours: 7, consentLocal: true, notes: null },
+    // 0017: condições marcadas (lista jsonb) com o texto de detalhes vazio; no rascunho, texto "a,b".
+    profile: { ...base.profile!, conditionTags: ["hipertensao", "obesidade"], conditions: "" },
+    draft: { name: "Pessoa Teste", goal: "manter", sleepHours: 7, consentLocal: true, notes: null, conditionTags: "hipertensao,obesidade" },
     draftStep: 2,
     diary: [
       {
@@ -192,6 +194,11 @@ function richState(): AppState {
       },
     ],
     readNotifications: ["2026-09-30:agua", "2026-09-29:refeicao"],
+    // Preferências da IA proativa (documento device_data): valores fora do padrão para provar a ida e volta.
+    adaptiveTargets: false,
+    aiDailyComment: false,
+    aiDailyCommentDate: "2026-09-30",
+    signalDismissals: { "agua-baixa": "2026-09-29", "proteina-baixa": "2026-09-30" },
   });
 }
 
@@ -209,6 +216,28 @@ test("o estado gravado volta igual: tabelas, documentos, ordem das listas e opci
       assert.equal(await saveUserState(client, state), 5);
       const loaded = await loadUserState(client, state.userId);
       assert.deepEqual(loaded, state);
+      assert.deepEqual(loaded?.profile?.conditionTags, ["hipertensao", "obesidade"]);
+      // Preferências da IA proativa moram no documento device_data (sem coluna nem migração própria).
+      const device = await client.query(
+        "select data->'adaptiveTargets' as adaptive, data->'aiDailyCommentDate' as comment_date, data->'signalDismissals' as dismissals from webfit.device_data where user_id = $1",
+        [state.userId],
+      );
+      assert.deepEqual(device.rows, [
+        { adaptive: false, comment_date: "2026-09-30", dismissals: state.signalDismissals },
+      ]);
+      // Cópia antiga (documento sem essas chaves) volta com os padrões do app.
+      await client.query(
+        "update webfit.device_data set data = data - 'adaptiveTargets' - 'aiDailyComment' - 'aiDailyCommentDate' - 'signalDismissals' where user_id = $1",
+        [state.userId],
+      );
+      const old = await loadUserState(client, state.userId);
+      assert.equal(old?.adaptiveTargets, true);
+      assert.equal(old?.aiDailyComment, true);
+      assert.equal(old?.aiDailyCommentDate, null);
+      assert.deepEqual(old?.signalDismissals, {});
+      // A lista vai como jsonb (não como array do Postgres nem como texto).
+      const tags = await client.query("select condition_tags, jsonb_typeof(condition_tags) as kind from webfit.profiles where user_id = $1", [state.userId]);
+      assert.deepEqual(tags.rows, [{ condition_tags: ["hipertensao", "obesidade"], kind: "array" }]);
       // A torta não está no catálogo: o item guarda o id do aparelho, sem a chave estrangeira.
       const items = await client.query("select food_id, food_ref from webfit.diary_items where entry_id = $1 order by position", [state.diary[0].id]);
       assert.deepEqual(items.rows, [

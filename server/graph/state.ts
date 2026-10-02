@@ -101,6 +101,20 @@ export const flagsSchema = z.object({
   isMinor: z.boolean(),
   goalsReason: z.string().nullable(),
   missingInformation: z.array(z.string()),
+  /** Uso de caneta emagrecedora ("sim", "nao" ou "nao_informado"); nunca a dose. */
+  weightLossPen: z.string().default("nao_informado"),
+  /** Rótulos das condições marcadas na lista (conditionTags); vazio quando a lista não foi usada. */
+  conditionLabels: z.array(z.string()).default(() => []),
+  /** Faixa do IMC só em palavras; null com hideBodyNumbers, perfil sensível ou sem peso e altura. */
+  bmiBand: z.string().nullable().default(null),
+  /** Ajuste dinâmico da meta de hoje feito pelo app a partir de ontem (só a direção). */
+  targetAdjustment: z.enum(["nenhum", "menor", "maior"]).default("nenhum"),
+  /** Tamanho do ajuste em kcal (sempre positivo); null com hideCalories ou sem ajuste. */
+  targetAdjustmentKcal: z.number().int().positive().nullable().default(null),
+  /** Proteína de hoje um pouco maior para recuperar a de ontem (ajuste do app). */
+  proteinBoost: z.boolean().default(false),
+  /** Títulos dos padrões observados pelo app nos registros (signals.ts), sem números. */
+  activeSignals: z.array(z.string()).default(() => []),
 });
 export type Flags = z.infer<typeof flagsSchema>;
 

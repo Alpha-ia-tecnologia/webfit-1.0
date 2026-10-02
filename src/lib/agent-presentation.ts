@@ -1,4 +1,5 @@
 import type { AgentMeta, AppState, ChatMessage } from "../types";
+import { isDailyCommentRequest } from "./daily-comment";
 import { DIET_PLAN_REQUEST } from "./diet";
 import { agentContext, localDate } from "./domain";
 import { fmtShortDate, plural } from "./format";
@@ -29,16 +30,44 @@ export function describeAgentMetaFull(meta: AgentMeta): string {
 }
 
 /**
- * Como cada mensagem aparece no chat. O texto salvo não muda: o pedido técnico da dieta
- * vira um aviso compacto, o plano que o segue vira um cartão-resumo e respostas com blocos
- * visuais (SIS-02) são desenhadas por blocos.
+ * Pedido pronto de "Analisar meu perfil" (modo chat): cruza anamnese, registros e preferências
+ * usando as metas do app como estão. Nunca pede números novos de meta nem comentário de dose.
  */
-export type MessageView = "text" | "diet-request" | "diet-plan" | "blocks";
+export const PROFILE_ANALYSIS_REQUEST =
+  "Faça uma análise detalhada do meu perfil, cruzando a minha anamnese (objetivo, condições de saúde declaradas, uso de caneta, nível de atividade, sono e estresse), o meu diário recente, as medidas, as aplicações e os sintomas registrados, e as minhas preferências (alimentos favoritos e evitados, rotina, tempo para cozinhar e orçamento). Use as metas do app como estão, sem recalcular, e não comente nem sugira doses. Organize em: 1) o que está indo bem; 2) pontos de atenção; 3) sugestões práticas de refeições para os próximos dias, respeitando as minhas preferências; 4) o que conversar com o meu profissional de saúde.";
+
+/**
+ * Como cada mensagem aparece no chat. O texto salvo não muda: o pedido técnico da dieta
+ * vira um aviso compacto, o plano que o segue vira um cartão-resumo, o pedido de análise do
+ * perfil e o pedido do comentário automático do dia viram avisos (a resposta segue normal) e
+ * respostas com blocos visuais (SIS-02) são desenhadas por blocos.
+ */
+export type MessageView =
+  | "text"
+  | "diet-request"
+  | "diet-plan"
+  | "profile-request"
+  | "daily-request"
+  | "blocks";
 export function messageViews(
   messages: ChatMessage[],
 ): Map<string, MessageView> {
   const views = new Map<string, MessageView>();
   messages.forEach((message, index) => {
+    // Pedido de análise que falhou continua como texto, com o "Tentar de novo" da bolha.
+    if (
+      message.sender === "user" &&
+      message.text === PROFILE_ANALYSIS_REQUEST &&
+      message.status !== "error"
+    )
+      views.set(message.id, "profile-request");
+    // Comentário automático do dia: o pedido técnico vira o aviso "Comentário automático do dia".
+    if (
+      message.sender === "user" &&
+      isDailyCommentRequest(message.text) &&
+      message.status !== "error"
+    )
+      views.set(message.id, "daily-request");
     if (message.sender !== "user" || message.text !== DIET_PLAN_REQUEST)
       return;
     views.set(message.id, "diet-request");

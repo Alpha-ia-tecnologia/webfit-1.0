@@ -3,6 +3,7 @@ import { stateFixture } from "../fixtures";
 import { CHAT_REPLY_SENSITIVE_LEAK, DIET_PLAN_V2, DIET_REPLY } from "../structured-fixtures";
 import { questionnaire } from "../../src/data/questionnaire";
 import { FLOW_KEY, FLOW_VERSION } from "../../src/lib/anamnese-flow";
+import { profileToDraft } from "../../src/components/anamnese/condition-choice";
 import { BODY_PRIVACY_COPY } from "../../src/lib/body-privacy";
 import { createDietPlan } from "../../src/lib/diet";
 import { localDate, shiftDate, withMeasurements } from "../../src/lib/domain";
@@ -302,7 +303,7 @@ test("anamnese: aviso antes do peso, sem IMC nem figura; a revisão também avis
   const lastStep = questionnaire.length - 1;
   await putState(page, {
     ...state,
-    draft: { ...state.profile!, [FLOW_KEY]: FLOW_VERSION },
+    draft: { ...profileToDraft(state.profile!), [FLOW_KEY]: FLOW_VERSION },
     draftStep: lastStep,
   });
   await page.reload();

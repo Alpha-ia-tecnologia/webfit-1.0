@@ -87,5 +87,17 @@ export function prepareRestore(backup: AppState, current: AppState): AppState {
     serverSync: current.serverSync,
     // O dono dos dados é o aparelho (ou a conta) que restaura, não o do arquivo.
     accountBound: current.accountBound,
+    // Restaurar um backup antigo não libera um segundo comentário automático no mesmo dia.
+    aiDailyCommentDate: laterDate(
+      backup.aiDailyCommentDate,
+      current.aiDailyCommentDate,
+    ),
   });
+}
+
+/** A data mais recente (AAAA-MM-DD compara como texto); null quando nenhuma existe. */
+function laterDate(a: string | null, b: string | null): string | null {
+  if (a === null) return b;
+  if (b === null) return a;
+  return a > b ? a : b;
 }

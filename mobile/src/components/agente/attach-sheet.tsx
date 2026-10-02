@@ -1,4 +1,4 @@
-import { Camera, FileText, Images, Plus, Refrigerator } from "lucide-react-native";
+import { Camera, FileText, Images, Plus, Refrigerator, ScanSearch } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { AppText, Button, Sheet } from "@/components/ui";
@@ -12,14 +12,18 @@ type Props = {
   onAttachPhoto: (dataUrl: string) => void;
   onOpenExams: () => void;
   onOpenPantry: () => void;
+  /** "Analisar meu perfil": envia o pedido pronto ao agente. */
+  onAnalyzeProfile: () => void;
+  /** Só com o agente disponível para enviar (consentimento, conexão e nada em curso). */
+  canAnalyze: boolean;
 };
 
 /**
  * "+" da barra do chat: um painel próprio (em vez de menu + outro painel, que abriria um modal
  * sobre outro fechando). A foto é escolhida aqui mesmo, como no registro rápido; exame e despensa
- * fecham o painel e abrem a tela certa.
+ * fecham o painel e abrem a tela certa; "Analisar meu perfil" fecha o painel e envia o pedido pronto.
  */
-export function AttachButton({ onAttachPhoto, onOpenExams, onOpenPantry }: Props) {
+export function AttachButton({ onAttachPhoto, onOpenExams, onOpenPantry, onAnalyzeProfile, canAnalyze }: Props) {
   const styles = useStyles();
   const colors = useThemeColors();
   const { notify } = useApp();
@@ -66,6 +70,14 @@ export function AttachButton({ onAttachPhoto, onOpenExams, onOpenPantry }: Props
         <View style={styles.group}>
           <Button label="Exame" variant="secondary" icon={FileText} wide onPress={() => go(onOpenExams)} />
           <Button label="Despensa" variant="secondary" icon={Refrigerator} wide onPress={() => go(onOpenPantry)} />
+          <Button
+            label="Analisar meu perfil"
+            variant="secondary"
+            icon={ScanSearch}
+            wide
+            disabled={!canAnalyze}
+            onPress={() => go(onAnalyzeProfile)}
+          />
         </View>
       </Sheet>
     </>

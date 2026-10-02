@@ -109,6 +109,8 @@ export function BalanceCard({
           ))}
         {hideCalories && <MacroDonut macros={totals} />}
         <MacroSummary macros={macros} showBars />
+        {/* Ajuste dinâmico do dia (a frase já respeita "Ocultar calorias"): informativo, sem cor de alerta. */}
+        {goals.adjustmentNote && <p className="hint">{goals.adjustmentNote}</p>}
       </section>
       {/* Âncora de altura zero: gruda sob o cabeçalho e desenha a faixa só depois que o cartão sai. */}
       <div className="diary-band-anchor" style={{ top: band.top }}>
